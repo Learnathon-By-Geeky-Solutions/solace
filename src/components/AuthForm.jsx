@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { supabase } from "../lib/supabase";
+import { useState, useEffect } from "react";
 import { Icons } from "../lib/icons";
 import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export function AuthForm() {
   const [email, setEmail] = useState("");
@@ -9,7 +9,21 @@ export function AuthForm() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { signIn, signInWithGoogle } = useAuth();
+  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
+  const { user, signIn, signUp, signInWithGoogle } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Only handle redirect after initial loading screen
+    const timer = setTimeout(() => {
+      if (!user) {
+        navigate("/login");
+      }
+      setShowLoadingScreen(false);
+    }, 1100); // Show loading screen for 1.5 seconds
+
+    return () => clearTimeout(timer);
+  }, [navigate, user]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -18,17 +32,9 @@ export function AuthForm() {
 
     try {
       if (isSignUp) {
-        // const { error } = await supabase.auth.signUp({
-        //   email,
-        //   password,
-        // });
         const { error } = await signUp(email, password);
         if (error) throw error;
       } else {
-        // const { error } = await supabase.auth.signInWithPassword({
-        //   email,
-        //   password,
-        // });
         const { error } = await signIn(email, password);
         if (error) throw error;
       }
@@ -38,25 +44,6 @@ export function AuthForm() {
       setLoading(false);
     }
   }
-
-  // async function signInWithGoogle() {
-  //   try {
-  //     const { data, error } = await supabase.auth.signInWithOAuth({
-  //       provider: "google",
-  //       options: {
-  //         // redirectTo: "localhost:5173/dashboard",
-  //         queryParams: {
-  //           access_type: "offline",
-  //           prompt: "consent",
-  //         },
-  //       },
-  //     });
-  //     if (error) throw error;
-  //     // if (data.url) window.location.href = data.url;
-  //   } catch (err) {
-  //     setError(err instanceof Error ? err.message : "An error occurred");
-  //   }
-  // }
 
   const handleGoogleSignIn = async () => {
     try {
@@ -71,6 +58,21 @@ export function AuthForm() {
       setLoading(false);
     }
   };
+
+  if (showLoadingScreen) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="bg-white p-6 rounded-lg shadow-xl">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">
+              Not logged in! Redirecting to login...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">

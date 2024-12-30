@@ -1,19 +1,25 @@
 import { createContext, useContext, useEffect, useState } from "react";
-// import PropTypes from "prop-types";
 import { supabase } from "../lib/supabase";
 
 const AuthContext = createContext({});
 
+// eslint-disable-next-line react/prop-types
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Session check error:", err);
+        setLoading(false);
+      });
 
     // Listen for changes on auth state (login, logout, etc.)
     const {
@@ -55,8 +61,12 @@ export function AuthProvider({ children }) {
   };
 
   // Sign out
-  const signOut = () => {
-    return supabase.auth.signOut();
+  const signOut = async () => {
+    try {
+      return await supabase.auth.signOut();
+    } catch (err) {
+      console.error("Sign out error:", err);
+    }
   };
 
   const value = {
@@ -73,10 +83,6 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
-
-// AuthProvider.propTypes = {
-//   children: PropTypes.node.isRequired,
-// };
 
 export const useAuth = () => {
   return useContext(AuthContext);
