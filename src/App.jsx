@@ -3,6 +3,7 @@ import {
   RouterProvider,
   Navigate,
 } from "react-router-dom";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthForm } from "./components/AuthForm";
 import { Dashboard } from "./components/Dashboard";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
@@ -12,10 +13,6 @@ const router = createBrowserRouter([
   {
     path: "/login",
     element: <AuthForm />,
-    // loader: ({ request }) => {
-    //   const { user } = useAuth();
-    //   return user ? redirect("/dashboard") : null;
-    // },
   },
   {
     path: "/dashboard",
@@ -34,7 +31,15 @@ const router = createBrowserRouter([
 function App() {
   return (
     <AuthProvider>
-      <RouterProvider router={router} />
+      <ErrorBoundary>
+        <RouterProvider
+          router={router}
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        />
+      </ErrorBoundary>
     </AuthProvider>
   );
 }

@@ -61,11 +61,28 @@ export function AuthProvider({ children }) {
   };
 
   // Sign out
+  // const signOut = async () => {
+  //   try {
+  //     return await supabase.auth.signOut();
+  //   } catch (err) {
+  //     console.error("Sign out error:", err);
+  //   }
+  // };
+
   const signOut = async () => {
     try {
-      return await supabase.auth.signOut();
+      const response = await supabase.auth.signOut();
+      return { error: null };
     } catch (err) {
       console.error("Sign out error:", err);
+      return {
+        error: {
+          message:
+            err instanceof Error
+              ? err.message
+              : "An error occurred during sign out",
+        },
+      };
     }
   };
 
@@ -79,7 +96,15 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {loading ? (
+        <div
+          style={{ display: "flex", justifyContent: "center", padding: "20px" }}
+        >
+          Loading...
+        </div>
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 }
