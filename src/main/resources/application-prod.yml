@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: twiggle
+server:
+  port: 80
+
+# Actuator Configuration
+management:
+  info:
+    git:
+      mode: full
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: "${spring.application.name}"
+  tracing:
+    enabled: false
+    sampling:
+      probability: 1.0
+
+# Springdoc Configuration
+springdoc:
+  api-docs:
+    enabled: true
+  show-actuator: true
+  use-management-port: false
+
+# Logging Configuration
+logging:
+  level:
+    org.springframework: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
