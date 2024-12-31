@@ -8,120 +8,188 @@ Twiggle is a web application designed to help urban gardeners plan and manage th
 
 This project uses **Spring Boot** to build the backend application. Below are the steps to set up the backend on your local machine.
 
+---
+
 ### Prerequisites
+
+Ensure the following tools are installed on your system:
 
 - **Java 21** or above
 - **Maven** (version 3.6+ recommended)
 - **MongoDB** (for NoSQL database)
 - **PostgreSQL** (for Supabase database)
 
+---
+
 ### Getting Started
 
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/yourusername/twiggle.git
-   cd twiggle
-   Install Dependencies
+   git clone https://github.com/Learnathon-By-Geeky-Solutions/solace.git
+   cd solace
    ```
 
-This project uses Maven as the build tool. To install the necessary dependencies, run:
+2. **Install Dependencies**
 
-bash
-Copy code
-mvn clean install
-Configure Application Properties
+   This project uses Maven as the build tool. To install the necessary dependencies, run:
 
-Configure your database connection settings and other properties in src/main/resources/application.properties or src/main/resources/application.yml.
+   ```bash
+   mvn clean install
+   ```
 
-Example for MongoDB:
+3. **Configure Application Properties**
 
-properties
-Copy code
-spring.data.mongodb.uri=mongodb://localhost:27017/twiggle
-Example for PostgreSQL:
+   Configure your database connection settings and other properties in `src/main/resources/application.properties` or `src/main/resources/application.yml`.
 
-properties
-Copy code
-spring.datasource.url=jdbc:postgresql://localhost:5432/twiggle
-spring.datasource.username=your-username
-spring.datasource.password=your-password
-Run the Application
+   - Example for MongoDB:
 
-Once all dependencies are installed and the configuration is set up, run the application using the following command:
+     ```properties
+     spring.data.mongodb.uri=mongodb://localhost:27017/twiggle
+     ```
 
-bash
-Copy code
-mvn spring-boot:run
-Access the Application
+   - Example for PostgreSQL:
 
-After the application starts, you can access the backend at:
+     ```properties
+     spring.datasource.url=jdbc:postgresql://localhost:5432/twiggle
+     spring.datasource.username=your-username
+     spring.datasource.password=your-password
+     ```
 
-arduino
-Copy code
-http://localhost:8080
-Maven Dependencies
-The project includes the following initial dependencies for backend development:
+4. **Run the Application**
 
-Spring Web
-Spring Data MongoDB
-Spring Data JPA
-Spring Boot DevTools
-Spring Security
-JWT (JSON Web Token) Support
-PostgreSQL Driver
-Flyway (Database Migrations)
-Spring Boot Actuator
-Micrometer
-Spring Boot Starter Test
-Spring Boot Starter Logging
-Springfox Swagger
-Spring Boot Starter Validation
-Spring Boot Starter Mail
-API Documentation
-The backend API is documented using Swagger/OpenAPI. You can access the Swagger UI at:
+   Use the provided shell script to run the application:
 
-bash
-Copy code
-http://localhost:8080/swagger-ui/
-Testing
-This project includes unit and integration tests using JUnit and Mockito. To run the tests, execute:
+   ```bash
+   ./run.sh
+   ```
 
-bash
-Copy code
+   Alternatively, you can start the application manually:
+
+   ```bash
+   mvn spring-boot:run
+   ```
+
+5. **Access the Application**
+
+   Once the application starts, access the backend at:
+
+   ```
+   http://localhost:8080
+   ```
+
+   For API documentation, access Swagger UI:
+
+   ```
+   http://localhost:8080/swagger-ui/index.html
+   ```
+
+---
+
+### Current Code Structure
+
+```
+/twiggle
+├── src
+│   ├── main
+│   │   ├── java
+│   │   │   ├── dev.solace
+│   │   │   │   ├── twiggle
+│   │   │   │   │   ├── controller            # API endpoints (REST controllers)
+│   │   │   │   │   ├── model                 # Domain models (e.g., Plant, Layout)
+│   │   │   │   │   ├── repository            # Database repositories (JPA repositories)
+│   │   │   │   │   ├── service               # Business logic (service layer)
+│   │   │   │   │   ├── dto                   # Data Transfer Objects (DTOs for API requests/responses)
+│   │   │   │   │   ├── exception             # Custom exception handling (global exception handler)
+│   │   │   │   │   ├── config                # Configuration classes (security, Swagger, etc.)
+│   │   │   │   │   ├── util                  # Utility classes (e.g., date, validation)
+│   │   │   │   │   ├── security              # Security (JWT, OAuth2, etc.)
+│   │   │   │   │   ├── ai                    # AI/ML integration (plant disease detection, recommendations)
+│   │   │   │   │   ├── scheduler             # Scheduling tasks (for watering, fertilizing)
+│   │   ├── resources
+│   │   │   ├── application.properties        # Application config properties
+│   │   │   ├── static                       # Static files (if needed, e.g., images for plant database)
+│   │   │   ├── templates                    # Thymeleaf templates (if using for server-side rendering)
+│   └── test
+│       ├── java
+│       │   ├── dev.solace
+│       │   │   ├── twiggle
+│       │   │   │   ├── controller            # Tests for controllers (API layer)
+│       │   │   │   ├── service               # Tests for services (business logic layer)
+│       │   │   │   ├── repository            # Tests for repositories (data layer)
+│       │   │   │   ├── util                  # Tests for utility classes
+└── pom.xml                                    # Maven build file
+```
+
+---
+
+### Maven Dependencies
+
+The project includes the following dependencies for backend development:
+
+- **Spring Web**: Build REST APIs
+- **Spring Data MongoDB**: MongoDB integration
+- **Spring Boot DevTools**: Developer tools
+- **Spring Security**: Authentication and authorization
+- **JWT Support**: JSON Web Token integration
+- **Spring Boot Actuator**: Monitoring and metrics
+- **Spring Boot Starter Test**: Testing framework
+- **Spring Boot Starter Validation**: Input validation
+- **Springdoc OpenAPI**: API documentation (Swagger UI)
+- **Lombok**: Boilerplate code reduction
+- **Spring Boot Configuration Processor**: Configuration metadata generation
+- **Spotless Plugin**: Code formatting and linting
+
+---
+
+### Testing
+
+Run unit and integration tests using:
+
+```bash
 mvn test
-Logging and Monitoring
-The application includes Spring Boot Actuator for health checks, metrics, and monitoring. You can access the health endpoints at:
+```
 
-bash
-Copy code
-http://localhost:8080/actuator/health
-http://localhost:8080/actuator/metrics
-Deployment
-This application can be packaged and deployed as a JAR file:
+---
 
-bash
-Copy code
+### Logging and Monitoring
+
+The application uses Spring Boot Actuator for health checks and monitoring. Access these endpoints at:
+
+- **Health Check**: `http://localhost:8080/actuator/health`
+- **Metrics**: `http://localhost:8080/actuator/metrics`
+
+---
+
+### Deployment
+
+Package the application as a JAR file:
+
+```bash
 mvn clean package
-Once packaged, you can deploy the twiggle.jar to your preferred environment.
+```
 
-Contribution
-Contributions are welcome! Please fork the repository, make your changes, and submit a pull request.
+Deploy the `twiggle.jar` file to your preferred environment.
 
-License
+---
+
+### Contribution
+
+We welcome contributions! Please fork the repository, make your changes, and submit a pull request.
+
+---
+
+### License
+
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-Contact
-For any questions or inquiries, please contact us at contact@solace.dev.
+---
 
-markdown
-Copy code
+### Contact
 
-### Key Points:
+For any questions or inquiries, contact us at:
 
-- **Structured and clear sections** for setup, dependencies, testing, logging, etc.
-- **API Documentation** section with a link to Swagger UI.
-- **Deployment** instructions for building a JAR file.
-- **Contribution guidelines** for collaboration.
+**Email**: [contact@solace.dev](mailto:contact@solace.dev)
 
-This template provides a good starting point for the backend setup and can be expanded further as the project progresses.
+**Repository**: [Twiggle GitHub](https://github.com/Learnathon-By-Geeky-Solutions/solace.git)
+
