@@ -2,6 +2,7 @@ package dev.solace.twiggle.exception;
 
 import io.micrometer.common.lang.NonNullApi;
 import jakarta.validation.ConstraintViolationException;
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -89,6 +90,17 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 
         return buildErrorResponse(ex, "Malformed JSON request", HttpStatus.BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+        return buildErrorResponse(ex, ex.getMessage(), HttpStatus.BAD_REQUEST, request);
+    }
+
+    // 403 FORBIDDEN Exceptions
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
+        return buildErrorResponse(ex, "Access denied", HttpStatus.FORBIDDEN, request);
     }
 
     // 404 NOT FOUND Exceptions
