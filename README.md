@@ -26,7 +26,7 @@ Ensure the following tools are installed on your system:
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/Learnathon-By-Geeky-Solutions/solace.git
+   git clone --branch develop-backend https://github.com/Learnathon-By-Geeky-Solutions/solace.git
    cd solace
    ```
 
@@ -56,12 +56,12 @@ Ensure the following tools are installed on your system:
      spring.datasource.password=your-password
      ```
 
-4. **Run the Application**
+4. **Run the Application Locally**
 
    Use the provided shell script to run the application:
 
    ```bash
-   ./run.sh
+   ./run.sh run
    ```
 
    Alternatively, you can start the application manually:
@@ -91,6 +91,33 @@ Ensure the following tools are installed on your system:
 ```
 twiggle/
 ├── src/                    # Source code
+│   ├── main
+│   │   ├── java
+│   │   │   ├── dev.solace
+│   │   │   │   ├── twiggle
+│   │   │   │   │   ├── controller            # API endpoints (REST controllers)
+│   │   │   │   │   ├── model                 # Domain models (e.g., Plant, Layout)
+│   │   │   │   │   ├── repository            # Database repositories (JPA repositories)
+│   │   │   │   │   ├── service               # Business logic (service layer)
+│   │   │   │   │   ├── dto                   # Data Transfer Objects (DTOs for API requests/responses)
+│   │   │   │   │   ├── exception             # Custom exception handling (global exception handler)
+│   │   │   │   │   ├── config                # Configuration classes (security, Swagger, etc.)
+│   │   │   │   │   ├── util                  # Utility classes (e.g., date, validation)
+│   │   │   │   │   ├── security              # Security (JWT, OAuth2, etc.)
+│   │   │   │   │   ├── ai                    # AI/ML integration (plant disease detection, recommendations)
+│   │   │   │   │   ├── scheduler             # Scheduling tasks (for watering, fertilizing)
+│   │   ├── resources
+│   │   │   ├── application.properties        # Application config properties
+│   │   │   ├── static                       # Static files (if needed, e.g., images for plant database)
+│   │   │   ├── templates                    # Thymeleaf templates (if using for server-side rendering)
+│   └── test
+│       ├── java
+│       │   ├── dev.solace
+│       │   │   ├── twiggle
+│       │   │   │   ├── controller            # Tests for controllers (API layer)
+│       │   │   │   ├── service               # Tests for services (business logic layer)
+│       │   │   │   ├── repository            # Tests for repositories (data layer)
+│       │   │   │   ├── util                  # Tests for utility classes
 ├── docker/                 # Docker configuration
 │   ├── Dockerfile         # Application Dockerfile
 │   ├── docker-compose.yml # Docker services configuration
@@ -98,80 +125,6 @@ twiggle/
 │   └── grafana/           # Grafana configuration
 ├── pom.xml                # Maven dependencies
 └── run.sh                 # Script for various operations
-
-## Prerequisites
-
-- Java 17
-- Maven
-- Docker
-- Docker Compose
-
-## Available Commands
-
-The `run.sh` script provides various commands to manage the application:
-
-```bash
-./run.sh [command]
-```
-
-Available commands:
-- `format`: Format code using Spotless
-- `build`: Build the application
-- `test`: Run tests
-- `run`: Run the application locally
-- `docker`: Build Docker image
-- `start`: Start all Docker services
-- `stop`: Stop all Docker services
-- `help`: Show help message
-
-## Running with Docker
-
-1. Build the Docker image:
-```bash
-./run.sh docker
-```
-
-2. Start all services (Application, Prometheus, Grafana):
-```bash
-./run.sh start
-```
-
-3. Access the services:
-- Application: http://localhost:8080
-- Prometheus: http://localhost:9090
-- Grafana: http://localhost:3000 (credentials: admin/admin)
-
-4. Stop all services:
-```bash
-./run.sh stop
-```
-
-## Monitoring
-
-### Prometheus
-- Metrics endpoint: http://localhost:8080/actuator/prometheus
-- Prometheus UI: http://localhost:9090
-
-### Grafana
-- URL: http://localhost:3000
-- Default credentials: admin/admin
-- Prometheus datasource is automatically configured
-
-## Development
-
-1. Format code:
-```bash
-./run.sh format
-```
-
-2. Run tests:
-```bash
-./run.sh test
-```
-
-3. Build and run locally:
-```bash
-./run.sh run
 ```
 
 ---
@@ -192,6 +145,50 @@ The project includes the following dependencies for backend development:
 - **Lombok**: Boilerplate code reduction
 - **Spring Boot Configuration Processor**: Configuration metadata generation
 - **Spotless Plugin**: Code formatting and linting
+
+---
+
+### Available Commands
+
+The `run.sh` script provides various commands to manage the application:
+
+```bash
+./run.sh [command]
+```
+
+Available commands:
+- `format`: Format code using Spotless
+- `build`: Build the application
+- `test`: Run tests
+- `run`: Run the application locally
+- `docker`: Build Docker image
+- `start`: Start all Docker services
+- `stop`: Stop all Docker services
+- `help`: Show help message
+
+---
+
+### Running with Docker
+
+1. Build the Docker image:
+   ```bash
+   ./run.sh docker
+   ```
+
+2. Start all services (Application, Prometheus, Grafana):
+   ```bash
+   ./run.sh start
+   ```
+
+3. Access the services:
+   - Application: http://localhost:8080
+   - Prometheus: http://localhost:9090
+   - Grafana: http://localhost:3000 (credentials: admin/admin)
+
+4. Stop all services:
+   ```bash
+   ./run.sh stop
+   ```
 
 ---
 

@@ -68,6 +68,25 @@ start_docker_services() {
     echo "- Grafana: http://localhost:3000 (admin/admin)"
 }
 
+# Function to rebuild Docker services with no cache
+rebuild_docker_services() {
+    echo "Rebuilding Docker services with no cache..."
+    if ! docker-compose -f docker/docker-compose.yml build --no-cache; then
+        echo -e "${RED}Failed to rebuild Docker services.${NC}"
+        exit 1
+    fi
+    echo "Starting rebuilt services..."
+    if ! docker-compose -f docker/docker-compose.yml up -d; then
+        echo -e "${RED}Failed to start Docker services.${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}Docker services rebuilt and started successfully.${NC}"
+    echo "Services available at:"
+    echo "- Application: http://localhost:8080"
+    echo "- Prometheus: http://localhost:9090"
+    echo "- Grafana: http://localhost:3000 (admin/admin)"
+}
+
 # Function to stop Docker services
 stop_docker_services() {
     echo "Stopping Docker services..."
@@ -88,6 +107,42 @@ run_tests() {
     echo -e "${GREEN}Tests completed successfully.${NC}"
 }
 
+# Function to clean all and rebuild
+clean_all() {
+    echo "Performing deep clean..."
+
+    # Remove Maven target directories
+    echo "Cleaning Maven build directories..."
+    if ! mvn clean; then
+        echo -e "${RED}Maven clean failed.${NC}"
+        exit 1
+    fi
+
+    # Remove Maven dependencies
+    echo "Cleaning Maven dependencies..."
+    if ! rm -rf ~/.m2/repository/dev/solace/twiggle/; then
+        echo -e "${RED}Failed to clean Maven dependencies.${NC}"
+        exit 1
+    fi
+
+    # Clean Docker resources
+    echo "Cleaning Docker resources..."
+    if docker images | grep -q 'twiggle-app'; then
+        if ! docker rmi twiggle-app; then
+            echo -e "${RED}Failed to remove Docker image.${NC}"
+            exit 1
+        fi
+    fi
+
+    echo -e "${GREEN}Deep clean completed successfully.${NC}"
+
+    # Rebuild from scratch
+    echo "Rebuilding from scratch..."
+    format_code
+    build_app
+    echo -e "${GREEN}Project rebuilt successfully from scratch.${NC}"
+}
+
 # Help function
 show_help() {
     echo "Usage: ./run.sh [command]"
@@ -98,7 +153,9 @@ show_help() {
     echo "  run       - Run the application locally"
     echo "  docker    - Build Docker image"
     echo "  start     - Start all Docker services"
+    echo "  rebuild   - Rebuild and start Docker services with no cache"
     echo "  stop      - Stop all Docker services"
+    echo "  clean     - Clean all packages and rebuild from scratch"
     echo "  help      - Show this help message"
 }
 
@@ -125,8 +182,14 @@ case "$1" in
     "start")
         start_docker_services
         ;;
+    "rebuild")
+        rebuild_docker_services
+        ;;
     "stop")
         stop_docker_services
+        ;;
+    "clean")
+        clean_all
         ;;
     "help"|"")
         show_help
