@@ -1,7 +1,7 @@
 package dev.solace.twiggle.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
@@ -19,6 +19,8 @@ public class TestControllerTest {
     public void test_ShouldReturnHelloWorld() throws Exception {
         mockMvc.perform(get("/api/test"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Hello, World!"));
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Test endpoint executed successfully"))
+                .andExpect(jsonPath("$.data").value("Hello, World!"));
     }
 }
