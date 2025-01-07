@@ -24,6 +24,14 @@
 		<springdoc.version>2.7.0</springdoc.version>
 		<spotless.version>2.43.0</spotless.version>
 		<palantir.format.version>2.35.0</palantir.format.version>
+		<sonarsource.scanner.maven.version>3.9.1.2184</sonarsource.scanner.maven.version>
+		<sonar.host.url>http://localhost:9000</sonar.host.url>
+		<sonar.login>admin</sonar.login>
+		<sonar.password>admin</sonar.password>
+		<sonar.projectKey>twiggle</sonar.projectKey>
+		<sonar.projectName>Twiggle Garden Planner</sonar.projectName>
+		<sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
+		<sonar.java.source>21</sonar.java.source>
 	</properties>
 
 	<!-- Dependencies -->
@@ -176,6 +184,13 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+
+			<!-- SonarQube Plugin -->
+			<plugin>
+				<groupId>org.sonarsource.scanner.maven</groupId>
+				<artifactId>sonar-maven-plugin</artifactId>
+				<version>${sonarsource.scanner.maven.version}</version>
 			</plugin>
 		</plugins>
 	</build>

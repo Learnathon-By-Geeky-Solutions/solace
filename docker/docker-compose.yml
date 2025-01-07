@@ -10,6 +10,19 @@ services:
     networks:
       - monitoring-network
 
+  sonarqube:
+    image: sonarqube:latest
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    networks:
+      - monitoring-network
+
   prometheus:
     image: prom/prometheus:latest
     ports:
@@ -21,7 +34,7 @@ services:
     networks:
       - monitoring-network
     extra_hosts:
-      - "host.docker.internal:host-gateway"  # Important for local Docker development
+      - "host.docker.internal:host-gateway"
 
   grafana:
     image: grafana/grafana:latest
@@ -38,3 +51,8 @@ services:
 networks:
   monitoring-network:
     driver: bridge
+
+volumes:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
