@@ -3,12 +3,25 @@ package dev.solace.twiggle.util;
 import static org.junit.jupiter.api.Assertions.*;
 
 import dev.solace.twiggle.dto.ApiResponse;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 class ResponseUtilTest {
+
+    @Test
+    void constructor_ShouldThrowAssertionError() throws Exception {
+        Constructor<ResponseUtil> constructor = ResponseUtil.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+
+        InvocationTargetException exception = assertThrows(InvocationTargetException.class, constructor::newInstance);
+        assertTrue(exception.getCause() instanceof AssertionError);
+        assertEquals(
+                "Utility class should not be instantiated", exception.getCause().getMessage());
+    }
 
     @Test
     void success_ShouldReturnResponseEntityWithOkStatus() {

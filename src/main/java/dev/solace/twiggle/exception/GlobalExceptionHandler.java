@@ -65,9 +65,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Object> handleConstraintViolation(ConstraintViolationException ex, WebRequest request) {
-        List<String> errors = ex.getConstraintViolations().stream()
+        List<String> errors = new ArrayList<>(ex.getConstraintViolations().stream()
                 .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
-                .toList();
+                .toList());
 
         return buildErrorResponse(ex, "Constraint Violation", HttpStatus.BAD_REQUEST, request, errors);
     }
@@ -172,7 +172,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private ResponseEntity<Object> buildErrorResponse(
             Exception exception, String message, HttpStatus httpStatus, WebRequest request, List<String> errors) {
 
-        errors.add("Exception: " + exception.getClass().getName());
+        List<String> mutableErrors = new ArrayList<>(errors);
+        mutableErrors.add("Exception: " + exception.getClass().getName());
 
         ApiErrorResponse errorResponse = ApiErrorResponse.builder()
                 .timestamp(java.time.LocalDateTime.now())
@@ -180,7 +181,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .error(httpStatus.getReasonPhrase())
                 .message(message)
                 .path(request.getDescription(false))
-                .details(errors)
+                .details(mutableErrors)
                 .build();
 
         return new ResponseEntity<>(errorResponse, httpStatus);
