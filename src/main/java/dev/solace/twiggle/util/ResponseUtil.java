@@ -5,7 +5,11 @@ import java.time.LocalDateTime;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-public class ResponseUtil {
+public final class ResponseUtil {
+
+    private ResponseUtil() {
+        throw new AssertionError("Utility class should not be instantiated");
+    }
 
     public static <T> ResponseEntity<ApiResponse<T>> success(String message, T data) {
         ApiResponse<T> response = ApiResponse.<T>builder()

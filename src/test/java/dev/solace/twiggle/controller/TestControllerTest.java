@@ -10,13 +10,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(TestController.class)
-public class TestControllerTest {
+class TestControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
-    public void test_ShouldReturnHelloWorld() throws Exception {
+    void test_ShouldReturnHelloWorld() throws Exception {
         mockMvc.perform(get("/api/test"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))

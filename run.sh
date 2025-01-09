@@ -150,28 +150,45 @@ run_tests() {
 
 # Function to run SonarQube analysis
 run_sonar_check() {
-   echo -e "${CYAN}Starting SonarQube service...${NC}"
-   if ! docker-compose -f ${DOCKER_SERVICES} up -d sonarqube; then
-       echo -e "${RED}Failed to start SonarQube.${NC}"
-       exit 1
-   fi
+    # Load the .env file
+    if [ -f docker/.env ]; then
+        # Use 'set -a' to automatically export all variables
+        set -a
+        source docker/.env
+        set +a
 
-   echo -e "${YELLOW}Waiting for SonarQube to start (this may take a minute)...${NC}"
-   sleep 60
+        # Debug: Print credentials
+        echo "${YELLOW}Debug - SonarQube credentials:${NC}"
+        echo "${GREEN}Username: ${SONARQUBE_USER}${NC}"
+        echo "${GREEN}Password: ${SONARQUBE_PASSWORD}${NC}"
+    else
+        echo "${RED}Error: .env file not found in docker/ directory.${NC}"
+        exit 1
+    fi
 
-   echo -e "${CYAN}Running SonarQube analysis...${NC}"
-   if ! mvn clean verify sonar:sonar \
-       -Dsonar.host.url=http://localhost:9000 \
-       -Dsonar.login=admin \
-       -Dsonar.password=admin; then
-       echo -e "${RED}SonarQube analysis failed.${NC}"
-       exit 1
-   fi
+    echo -e "${CYAN}Starting SonarQube service...${NC}"
+    if ! docker-compose -f ${DOCKER_SERVICES} up -d sonarqube; then
+        echo -e "${RED}Failed to start SonarQube.${NC}"
+        exit 1
+    fi
 
-   echo -e "${GREEN}SonarQube analysis completed successfully.${NC}"
-   echo -e "${BLUE}View the results at:${NC}"
-   echo -e "${CYAN}http://localhost:9000${NC}"
+    echo -e "${YELLOW}Waiting for SonarQube to start (this may take a minute)...${NC}"
+    sleep 60
+
+    echo -e "${CYAN}Running SonarQube analysis...${NC}"
+    if ! mvn clean verify sonar:sonar \
+        -Dsonar.host.url=http://localhost:9000 \
+        -Dsonar.login="${SONARQUBE_USER}" \
+        -Dsonar.password="${SONARQUBE_PASSWORD}"; then
+        echo -e "${RED}SonarQube analysis failed.${NC}"
+        exit 1
+    fi
+
+    echo -e "${GREEN}SonarQube analysis completed successfully.${NC}"
+    echo -e "${BLUE}View the results at:${NC}"
+    echo -e "${CYAN}http://localhost:9000${NC}"
 }
+
 
 # Function to clean all and rebuild
 clean_all() {
@@ -209,6 +226,27 @@ clean_all() {
    echo -e "${GREEN}Project rebuilt successfully from scratch.${NC}"
 }
 
+# Function to rebuild Docker services with no cache
+rebuild_docker_services_nocache() {
+   echo -e "${CYAN}Rebuilding Docker services with no cache...${NC}"
+   if ! docker-compose -f ${DOCKER_SERVICES} build --no-cache; then
+       echo -e "${RED}Failed to rebuild monitoring services.${NC}"
+       exit 1
+   fi
+   if ! docker-compose -f ${DOCKER_APP} build --no-cache; then
+       echo -e "${RED}Failed to rebuild application service.${NC}"
+       exit 1
+   fi
+   echo -e "${CYAN}Starting rebuilt services...${NC}"
+   docker-compose -f ${DOCKER_SERVICES} up -d
+   docker-compose -f ${DOCKER_APP} up -d
+   echo -e "${GREEN}Docker services rebuilt and started successfully.${NC}"
+   echo -e "${BLUE}Services available at:${NC}"
+   echo -e "${CYAN}- Application: http://localhost:8080${NC}"
+   echo -e "${CYAN}- Prometheus: http://localhost:9090${NC}"
+   echo -e "${CYAN}- Grafana: http://localhost:3000 (admin/admin)${NC}"
+}
+
 # Help function with colored output
 show_help() {
    echo -e "${BLUE}╔════════════════════════════════════════════╗${NC}"
@@ -226,6 +264,7 @@ show_help() {
    echo -e "${BLUE}║${NC} ${CYAN}start${NC}      - Start all services            ${BLUE}║${NC}"
    echo -e "${BLUE}║${NC} ${CYAN}stop${NC}       - Stop all services             ${BLUE}║${NC}"
    echo -e "${BLUE}║${NC} ${CYAN}rebuild${NC}    - Rebuild and restart services  ${BLUE}║${NC}"
+   echo -e "${BLUE}║${NC} ${CYAN}rebuild-nocache${NC} - Rebuild with no cache    ${BLUE}║${NC}"
    echo -e "${BLUE}║${NC} ${CYAN}clean${NC}      - Clean all and rebuild         ${BLUE}║${NC}"
    echo -e "${BLUE}║${NC} ${CYAN}check${NC}      - Run SonarQube analysis        ${BLUE}║${NC}"
    echo -e "${BLUE}║${NC} ${CYAN}help${NC}       - Show this help message        ${BLUE}║${NC}"
@@ -272,6 +311,9 @@ case "$1" in
        ;;
    "rebuild")
        rebuild_docker_services
+       ;;
+   "rebuild-nocache")
+       rebuild_docker_services_nocache
        ;;
    "check")
        run_sonar_check
