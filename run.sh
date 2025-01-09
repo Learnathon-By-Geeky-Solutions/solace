@@ -158,11 +158,11 @@ run_sonar_check() {
         set +a
 
         # Debug: Print credentials
-        echo "${YELLOW}Debug - SonarQube credentials:${NC}"
-        echo "${GREEN}Username: ${SONARQUBE_USER}${NC}"
-        echo "${GREEN}Password: ${SONARQUBE_PASSWORD}${NC}"
+        echo -e "${YELLOW}Debug - SonarQube credentials:${NC}"
+        echo -e "${GREEN}Username: ${SONARQUBE_USER}${NC}"
+        echo -e "${GREEN}Password: ${SONARQUBE_PASSWORD}${NC}"
     else
-        echo "${RED}Error: .env file not found in docker/ directory.${NC}"
+        echo -e "${RED}Error: .env file not found in docker/ directory.${NC}"
         exit 1
     fi
 
