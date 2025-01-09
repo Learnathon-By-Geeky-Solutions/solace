@@ -1,3 +1,10 @@
+# Ignore all .env files
+*.env
+
+# Allow .env.example files to be tracked
+!*.env.example
+
+# Spring Boot specific ignores
 HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
