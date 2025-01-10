@@ -4,15 +4,18 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 
-# Format code automatically before packaging
-RUN mvn spotless:apply
-
-# Package the application
-RUN mvn clean package -DskipTests
+# Format code and package the application in a single layer
+RUN mvn spotless:apply && \
+    mvn clean package -DskipTests
 
 # Run stage
 FROM amazoncorretto:21-alpine
 WORKDIR /app
+
+# Update Alpine packages to get the latest security fixes
+RUN apk update && \
+    apk upgrade
+
 # Copy the jar file
 COPY --from=build /app/target/*.jar app.jar
 # Explicitly copy both config files from resources

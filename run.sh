@@ -151,10 +151,10 @@ run_tests() {
 # Function to run SonarQube analysis
 run_sonar_check() {
     # Load the .env file
-    if [ -f docker/.env ]; then
+    if [ -f .env ]; then
         # Use 'set -a' to automatically export all variables
         set -a
-        source docker/.env
+        source .env
         set +a
 
         # Debug: Print credentials
