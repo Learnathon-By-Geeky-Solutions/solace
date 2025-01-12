@@ -25,6 +25,9 @@
 		<spotless.version>2.43.0</spotless.version>
 		<palantir.format.version>2.35.0</palantir.format.version>
 		<sonarsource.scanner.maven.version>3.9.1.2184</sonarsource.scanner.maven.version>
+		<lombok.version>1.18.36</lombok.version>
+		<dotenv.version>4.0.0</dotenv.version>
+		<mapstruct.version>1.6.3</mapstruct.version>
 		<sonar.projectKey>twiggle</sonar.projectKey>
 		<sonar.projectName>Twiggle Garden Planner</sonar.projectName>
 		<sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
@@ -51,10 +54,23 @@
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
 		</dependency>
+
+		<!-- Boilerplate Code Generators -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<optional>true</optional>
+			<version>${lombok.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>${mapstruct.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct-processor</artifactId>
+			<version>${mapstruct.version}</version>
 		</dependency>
 
 		<!-- Spring Boot Actuator -->
@@ -90,7 +106,7 @@
 		<dependency>
 			<groupId>me.paulschwarz</groupId>
 			<artifactId>spring-dotenv</artifactId>
-			<version>4.0.0</version>
+			<version>${dotenv.version}</version>
 		</dependency>
 
 		<!-- Testing -->
@@ -113,10 +129,16 @@
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version>
 						</path>
 						<path>
 							<groupId>org.springframework.boot</groupId>
 							<artifactId>spring-boot-configuration-processor</artifactId>
+						</path>
+						<path>
+							<groupId>org.mapstruct</groupId>
+							<artifactId>mapstruct-processor</artifactId>
+							<version>${mapstruct.version}</version>
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
