@@ -37,3 +37,4 @@ logging:
     org.springframework: DEBUG
     org.springframework.security: DEBUG
     org.hibernate.SQL: DEBUG
+
