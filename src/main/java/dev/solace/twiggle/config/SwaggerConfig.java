@@ -7,7 +7,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SwaggerConfig {
 
-    // Group for Actuator API Endpoints
+    /**
+     * Creates a Swagger/OpenAPI group configuration for Actuator API endpoints.
+     *
+     * @return A {@code GroupedOpenApi} instance configured for Actuator API documentation
+     * @see GroupedOpenApi
+     */
     @Bean
     public GroupedOpenApi actuatorApi() {
         return GroupedOpenApi.builder()
@@ -16,7 +21,12 @@ public class SwaggerConfig {
                 .build();
     }
 
-    // Group for Application API Endpoints
+    /**
+     * Creates a Swagger/OpenAPI group configuration for Application API endpoints.
+     *
+     * @return A {@code GroupedOpenApi} instance configured for application-specific API endpoints
+     * @see GroupedOpenApi
+     */
     @Bean
     public GroupedOpenApi applicationApi() {
         return GroupedOpenApi.builder()
