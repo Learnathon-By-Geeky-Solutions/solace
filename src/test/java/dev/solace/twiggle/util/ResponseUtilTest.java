@@ -18,7 +18,7 @@ class ResponseUtilTest {
         constructor.setAccessible(true);
 
         InvocationTargetException exception = assertThrows(InvocationTargetException.class, constructor::newInstance);
-        assertTrue(exception.getCause() instanceof AssertionError);
+        assertInstanceOf(AssertionError.class, exception.getCause());
         assertEquals(
                 "Utility class should not be instantiated", exception.getCause().getMessage());
     }

@@ -12,7 +12,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: 'health,info,metrics,prometheus'
   endpoint:
     health:
       show-details: always
@@ -34,6 +34,6 @@ springdoc:
 # Logging Configuration
 logging:
   level:
-    org.springframework: DEBUG
-    org.springframework.security: DEBUG
-    org.hibernate.SQL: DEBUG
+    org.springframework: INFO
+    org.springframework.security: INFO
+    org.hibernate.SQL: INFO

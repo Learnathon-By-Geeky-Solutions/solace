@@ -11,7 +11,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -23,53 +22,58 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-/**
- * Global exception handler for the application.
- * Handles various types of exceptions and converts them to appropriate API responses.
- */
 @Slf4j
 @RestControllerAdvice
 @NonNullApi
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    // Custom exceptions
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<Object> handleCustomException(CustomException ex, WebRequest request) {
-        return buildErrorResponse(ex, ex.getMessage(), ex.getStatus(), request);
+        return buildErrorResponse(ex, ex.getMessage(), ex.getStatus(), ex.getErrorCode(), request);
     }
 
-    // 400 BAD REQUEST Exceptions
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-
-        List<String> errors = new ArrayList<>();
+        List<String> validationErrors = new ArrayList<>();
         ex.getBindingResult()
                 .getFieldErrors()
-                .forEach(error -> errors.add(error.getField() + ": " + error.getDefaultMessage()));
+                .forEach(error -> validationErrors.add(error.getField() + ": " + error.getDefaultMessage()));
         ex.getBindingResult()
                 .getGlobalErrors()
-                .forEach(error -> errors.add(error.getObjectName() + ": " + error.getDefaultMessage()));
+                .forEach(error -> validationErrors.add(error.getObjectName() + ": " + error.getDefaultMessage()));
 
-        return buildErrorResponse(ex, "Validation Failed", HttpStatus.BAD_REQUEST, request, errors);
+        return buildErrorResponse(
+                ex,
+                "Validation failed. Please check the provided data.",
+                HttpStatus.BAD_REQUEST,
+                ErrorCode.INVALID_REQUEST,
+                request,
+                validationErrors);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     protected ResponseEntity<Object> handleMethodArgumentTypeMismatch(
             MethodArgumentTypeMismatchException ex, WebRequest request) {
-
-        String error = ex.getName() + " should be of type "
-                + Objects.requireNonNull(ex.getRequiredType()).getName();
-        return buildErrorResponse(ex, error, HttpStatus.BAD_REQUEST, request);
+        String message = String.format(
+                "The parameter '%s' must be a valid %s",
+                ex.getName(), Objects.requireNonNull(ex.getRequiredType()).getSimpleName());
+        return buildErrorResponse(ex, message, HttpStatus.BAD_REQUEST, ErrorCode.INVALID_PARAMETER_TYPE, request);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Object> handleConstraintViolation(ConstraintViolationException ex, WebRequest request) {
-        List<String> errors = new ArrayList<>(ex.getConstraintViolations().stream()
-                .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
-                .toList());
+        List<String> violations = new ArrayList<>();
+        ex.getConstraintViolations()
+                .forEach(violation -> violations.add(violation.getPropertyPath() + ": " + violation.getMessage()));
 
-        return buildErrorResponse(ex, "Constraint Violation", HttpStatus.BAD_REQUEST, request, errors);
+        return buildErrorResponse(
+                ex,
+                "Validation constraints violated. Please check your input.",
+                HttpStatus.BAD_REQUEST,
+                ErrorCode.CONSTRAINT_VIOLATION,
+                request,
+                violations);
     }
 
     @Override
@@ -78,110 +82,97 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             HttpHeaders headers,
             HttpStatusCode status,
             WebRequest request) {
-
-        String error = ex.getParameterName() + " parameter is missing";
-        return buildErrorResponse(ex, error, HttpStatus.BAD_REQUEST, request);
+        String message = String.format("The required parameter '%s' is missing", ex.getParameterName());
+        return buildErrorResponse(ex, message, HttpStatus.BAD_REQUEST, ErrorCode.MISSING_PARAMETER, request);
     }
 
-    @Override
-    protected ResponseEntity<Object> handleHttpMessageNotReadable(
-            HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-
-        return buildErrorResponse(ex, "Malformed JSON request", HttpStatus.BAD_REQUEST, request);
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
-        return buildErrorResponse(ex, ex.getMessage(), HttpStatus.BAD_REQUEST, request);
-    }
-
-    // 403 FORBIDDEN Exceptions
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
-        return buildErrorResponse(ex, "Access denied", HttpStatus.FORBIDDEN, request);
+        return buildErrorResponse(
+                ex,
+                "You don't have permission to access this resource",
+                HttpStatus.FORBIDDEN,
+                ErrorCode.ACCESS_DENIED,
+                request);
     }
 
-    // 404 NOT FOUND Exceptions
     @Override
     protected ResponseEntity<Object> handleNoHandlerFoundException(
             NoHandlerFoundException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-
-        String error = "No handler found for " + ex.getHttpMethod() + " " + ex.getRequestURL();
-        return buildErrorResponse(ex, error, HttpStatus.NOT_FOUND, request);
+        String message = String.format("The requested resource '%s' was not found", ex.getRequestURL());
+        return buildErrorResponse(ex, message, HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND, request);
     }
 
-    // 405 METHOD NOT ALLOWED Exceptions
     @Override
     protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(
             HttpRequestMethodNotSupportedException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-
-        StringBuilder error = new StringBuilder();
-        error.append(ex.getMethod());
-        error.append(" method is not supported for this request. Supported methods are ");
-        Objects.requireNonNull(ex.getSupportedHttpMethods())
-                .forEach(t -> error.append(t).append(" "));
-
-        return buildErrorResponse(ex, error.toString(), HttpStatus.METHOD_NOT_ALLOWED, request);
+        String supportedMethods = String.join(
+                ", ",
+                Objects.requireNonNull(ex.getSupportedHttpMethods()).stream()
+                        .map(Object::toString)
+                        .toList());
+        String message = String.format(
+                "The %s method is not supported. Supported methods are: %s", ex.getMethod(), supportedMethods);
+        return buildErrorResponse(ex, message, HttpStatus.METHOD_NOT_ALLOWED, ErrorCode.METHOD_NOT_ALLOWED, request);
     }
 
-    // 415 UNSUPPORTED MEDIA TYPE Exceptions
     @Override
     protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(
             HttpMediaTypeNotSupportedException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-
-        StringBuilder error = new StringBuilder();
-        error.append(ex.getContentType());
-        error.append(" media type is not supported. Supported media types are ");
-        ex.getSupportedMediaTypes().forEach(t -> error.append(t).append(", "));
-
+        String supportedTypes = String.join(
+                ", ",
+                ex.getSupportedMediaTypes().stream().map(Objects::toString).toList());
+        String message = String.format(
+                "The media type %s is not supported. Supported types are: %s", ex.getContentType(), supportedTypes);
         return buildErrorResponse(
-                ex, error.substring(0, error.length() - 2), HttpStatus.UNSUPPORTED_MEDIA_TYPE, request);
+                ex, message, HttpStatus.UNSUPPORTED_MEDIA_TYPE, ErrorCode.UNSUPPORTED_MEDIA_TYPE, request);
     }
 
-    // 500 INTERNAL SERVER ERROR Exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleAllUncaughtException(Exception ex, WebRequest request) {
-        log.error("Unknown error occurred", ex);
-
-        List<String> details = new ArrayList<>();
-        details.add("Error: " + ex.getMessage());
-
-        // Add stack trace elements for debugging (first 5 elements)
-        if (ex.getStackTrace() != null && ex.getStackTrace().length > 0) {
-            details.add("Stack trace:");
-            for (int i = 0; i < Math.min(5, ex.getStackTrace().length); i++) {
-                details.add(ex.getStackTrace()[i].toString());
-            }
-        }
-
+        log.error("Unexpected error occurred", ex);
         return buildErrorResponse(
-                ex, "An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR, request, details);
+                ex,
+                "An unexpected error occurred. Please try again later or contact support if the problem persists.",
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                ErrorCode.INTERNAL_ERROR,
+                request);
     }
 
-    /**
-     * Builds the error response entity with the given parameters.
-     */
-    private ResponseEntity<Object> buildErrorResponse(
-            Exception exception, String message, HttpStatus httpStatus, WebRequest request) {
-        return buildErrorResponse(exception, message, httpStatus, request, new ArrayList<>());
+    @ExceptionHandler(io.github.resilience4j.ratelimiter.RequestNotPermitted.class)
+    public ResponseEntity<Object> handleRequestNotPermitted(
+            io.github.resilience4j.ratelimiter.RequestNotPermitted ex, WebRequest request) {
+        return buildErrorResponse(
+                ex,
+                "Too many requests. Please try again later.",
+                HttpStatus.TOO_MANY_REQUESTS,
+                ErrorCode.RATE_LIMIT_EXCEEDED,
+                request);
     }
 
-    /**
-     * Builds the error response entity with the given parameters including error details.
-     */
     private ResponseEntity<Object> buildErrorResponse(
-            Exception exception, String message, HttpStatus httpStatus, WebRequest request, List<String> errors) {
+            Exception exception, String message, HttpStatus httpStatus, ErrorCode errorCode, WebRequest request) {
+        return buildErrorResponse(exception, message, httpStatus, errorCode, request, new ArrayList<>());
+    }
 
-        List<String> mutableErrors = new ArrayList<>(errors);
-        mutableErrors.add("Exception: " + exception.getClass().getName());
+    private ResponseEntity<Object> buildErrorResponse(
+            Exception exception,
+            String message,
+            HttpStatus httpStatus,
+            ErrorCode errorCode,
+            WebRequest request,
+            List<String> details) {
+        log.error("Exception occurred:", exception);
 
         ApiErrorResponse errorResponse = ApiErrorResponse.builder()
                 .timestamp(java.time.LocalDateTime.now())
                 .status(httpStatus.value())
                 .error(httpStatus.getReasonPhrase())
+                .code(errorCode.name())
                 .message(message)
                 .path(request.getDescription(false))
-                .details(mutableErrors)
+                .details(details)
+                .suggestion(errorCode.getSuggestion())
                 .build();
 
         return new ResponseEntity<>(errorResponse, httpStatus);

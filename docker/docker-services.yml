@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   sonarqube:
-    image: sonarqube:latest
+    image: sonarqube:25.1.0.102122-community
     ports:
       - "9000:9000"
     environment:
@@ -15,7 +15,7 @@ services:
       - monitoring-network
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:3.1.0
     ports:
       - "9090:9090"
     volumes:
@@ -28,7 +28,7 @@ services:
       - "host.docker.internal:host-gateway"
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.4.0
     ports:
       - "3000:3000"
     environment:

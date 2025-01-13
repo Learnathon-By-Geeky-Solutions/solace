@@ -28,6 +28,7 @@
 		<lombok.version>1.18.36</lombok.version>
 		<dotenv.version>4.0.0</dotenv.version>
 		<mapstruct.version>1.6.3</mapstruct.version>
+		<spring-cloud.version>2024.0.0</spring-cloud.version>
 		<sonar.projectKey>twiggle</sonar.projectKey>
 		<sonar.projectName>Twiggle Garden Planner</sonar.projectName>
 		<sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
@@ -109,6 +110,12 @@
 			<version>${dotenv.version}</version>
 		</dependency>
 
+		<!--Rate Limiting-->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
+		</dependency>
+
 		<!-- Testing -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -116,6 +123,18 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<!-- Build Configuration -->
 	<build>
