@@ -177,6 +177,30 @@ run_sonar_check() {
 
     echo -e "${YELLOW}Waiting for SonarQube to start (this may take a minute)...${NC}"
 
+    # Check if curl is available
+    if ! command -v curl &> /dev/null; then
+        echo -e "${RED}Error: curl is required but not installed.${NC}"
+        exit 1
+    fi
+
+    # Wait for SonarQube to be ready
+    max_attempts=30
+    attempt=1
+    while [ $attempt -le $max_attempts ]; do
+        if curl -s -f http://localhost:9000/api/system/status > /dev/null; then
+            echo -e "${GREEN}SonarQube is ready!${NC}"
+            break
+        fi
+        echo -e "${YELLOW}Attempt $attempt/$max_attempts: SonarQube is not ready yet...${NC}"
+        sleep 10
+        attempt=$((attempt + 1))
+    done
+
+    if [ $attempt -gt $max_attempts ]; then
+        echo -e "${RED}SonarQube failed to start after $max_attempts attempts.${NC}"
+        exit 1
+    fi
+
     echo -e "${CYAN}Running SonarQube analysis...${NC}"
     if ! mvn clean verify sonar:sonar \
         -Dsonar.host.url=http://localhost:9000 \

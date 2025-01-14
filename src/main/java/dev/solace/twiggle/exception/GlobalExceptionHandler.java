@@ -6,6 +6,7 @@ import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -109,11 +110,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(
             HttpRequestMethodNotSupportedException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        String supportedMethods = String.join(
-                ", ",
-                Objects.requireNonNull(ex.getSupportedHttpMethods()).stream()
-                        .map(Object::toString)
-                        .toList());
+        String supportedMethods = Optional.ofNullable(ex.getSupportedHttpMethods())
+                .map(methods ->
+                        String.join(", ", methods.stream().map(Object::toString).toList()))
+                .orElse("No supported methods");
         String message = String.format(
                 "The %s method is not supported. Supported methods are: %s", ex.getMethod(), supportedMethods);
         return buildErrorResponse(ex, message, HttpStatus.METHOD_NOT_ALLOWED, ErrorCode.METHOD_NOT_ALLOWED, request);
