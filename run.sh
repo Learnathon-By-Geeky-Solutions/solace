@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Check required commands
+for cmd in docker docker-compose mvn java curl; do
+    if ! command -v $cmd >/dev/null 2>&1; then
+        echo -e "${RED}Error: $cmd is required but not installed.${NC}"
+        exit 1
+   fi
+done
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -168,7 +176,6 @@ run_sonar_check() {
     fi
 
     echo -e "${YELLOW}Waiting for SonarQube to start (this may take a minute)...${NC}"
-    sleep 60
 
     echo -e "${CYAN}Running SonarQube analysis...${NC}"
     if ! mvn clean verify sonar:sonar \

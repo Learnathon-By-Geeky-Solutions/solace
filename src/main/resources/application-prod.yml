@@ -2,7 +2,7 @@ spring:
   application:
     name: twiggle
 server:
-  port: 80
+  port: 8080
 
 # Actuator Configuration
 management:

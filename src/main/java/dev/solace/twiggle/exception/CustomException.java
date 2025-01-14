@@ -1,5 +1,6 @@
 package dev.solace.twiggle.exception;
 
+import java.util.Objects;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
@@ -12,14 +13,14 @@ public class CustomException extends RuntimeException {
     private final ErrorCode errorCode;
 
     public CustomException(String message, HttpStatus status) {
-        super(message);
-        this.status = status;
+        super(Objects.requireNonNull(message, "message must not be null"));
+        this.status = Objects.requireNonNull(status, "status must not be null");
         this.errorCode = ErrorCode.INTERNAL_ERROR;
     }
 
     public CustomException(String message, HttpStatus status, ErrorCode errorCode) {
-        super(message);
-        this.status = status;
-        this.errorCode = errorCode;
+        super(Objects.requireNonNull(message, "message must not be null"));
+        this.status = Objects.requireNonNull(status, "status must not be null");
+        this.errorCode = Objects.requireNonNull(errorCode, "errorCode must not be null");
     }
 }
