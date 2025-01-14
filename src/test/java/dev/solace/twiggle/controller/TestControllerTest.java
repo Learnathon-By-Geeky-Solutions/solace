@@ -11,6 +11,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Unit tests for {@link TestController}.
+ */
 @WebMvcTest(TestController.class)
 @Import({RateLimiterConfiguration.class})
 class TestControllerTest {

@@ -7,6 +7,9 @@ import java.time.Duration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configuration class for RateLimiter beans.
+ */
 @Configuration
 public class RateLimiterConfiguration {
 
@@ -50,21 +53,5 @@ public class RateLimiterConfiguration {
                 .build();
 
         return rateLimiterRegistry.rateLimiter("actuator", config);
-    }
-
-    // Add Duration bean for test configuration
-    @Bean
-    public Duration limitRefreshPeriod() {
-        return Duration.ofMinutes(1);
-    }
-
-    // Add RateLimiterConfig bean for test configuration
-    @Bean
-    public RateLimiterConfig rateLimiterConfig() {
-        return RateLimiterConfig.custom()
-                .limitForPeriod(300)
-                .limitRefreshPeriod(Duration.ofMinutes(1))
-                .timeoutDuration(Duration.ZERO)
-                .build();
     }
 }

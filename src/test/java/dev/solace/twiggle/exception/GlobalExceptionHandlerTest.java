@@ -31,6 +31,9 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+/**
+ * Unit tests for the {@link GlobalExceptionHandler} class.
+ */
 class GlobalExceptionHandlerTest {
 
     private GlobalExceptionHandler exceptionHandler;

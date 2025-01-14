@@ -10,6 +10,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+/**
+ * Unit tests for the {@link ResponseUtil} class.
+ */
 class ResponseUtilTest {
 
     @Test

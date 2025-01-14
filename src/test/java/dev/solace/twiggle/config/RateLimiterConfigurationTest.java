@@ -9,6 +9,9 @@ import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Unit tests for the {@link RateLimiterConfiguration} class.
+ */
 class RateLimiterConfigurationTest {
 
     private RateLimiterConfiguration configuration;

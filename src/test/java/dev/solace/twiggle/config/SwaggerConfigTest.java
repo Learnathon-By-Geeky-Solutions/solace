@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 import org.springdoc.core.models.GroupedOpenApi;
 
+/**
+ * Unit tests for the {@link SwaggerConfig} class.
+ */
 class SwaggerConfigTest {
 
     private final SwaggerConfig swaggerConfig = new SwaggerConfig();

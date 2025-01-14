@@ -5,6 +5,9 @@ import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Data;
 
+/**
+ * DTO class for API response.
+ */
 @Data
 @Builder
 public class ApiResponse<T> {
