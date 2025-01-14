@@ -15,10 +15,8 @@ This project uses **Spring Boot** to build the backend application. Below are th
 Ensure the following tools are installed on your system:
 
 - **Java 21** or above
+- **JDK** (version 11+ recommended) with JAVA_HOME environment variable set
 - **Maven** (version 3.6+ recommended)
-- **MongoDB** (for NoSQL database)
-- **PostgreSQL** (for Supabase database)
-
 ---
 
 ### Getting Started
@@ -29,34 +27,58 @@ Ensure the following tools are installed on your system:
    git clone --branch develop-backend https://github.com/Learnathon-By-Geeky-Solutions/solace.git
    cd solace
    ```
+   Note: If you want to clone the other branches, use the following command:
+   ```bash
+   git clone --branch <branch-name> https://github.com/Learnathon-By-Geeky-Solutions/solace.git
+   cd solace
+    ```
 
-2. **Install Dependencies**
+2. **Install Dependencies & Setup**
 
    This project uses Maven as the build tool. To install the necessary dependencies, run:
 
    ```bash
    mvn clean install
    ```
+   Note: Alternatively, you can use the shell script provided to clean and build the project:
+   ```bash
+    ./run.sh clean
+   ```
 
 3. **Configure Application Properties**
 
-   Configure your database connection settings and other properties in `src/main/resources/application.properties` or `src/main/resources/application.yml`.
+   The application properties are stored in `src/main/resources/application.properties`. You can modify these properties as needed.
 
-   - Example for MongoDB:
+   For sensitive information (e.g., database credentials, API keys), use environment variables or a `.env` file. Create a `.env` file in the project root and add the required environment variables. A `.env.example` file is provided as a template.
 
-     ```properties
-     spring.data.mongodb.uri=mongodb://localhost:27017/twiggle
-     ```
+   Example `.env` file:
+   ```bash
+   GRAFANA_USER=username
+   GRAFANA_PASSWORD=password
+   
+   SONARQUBE_USER=username
+   SONARQUBE_PASSWORD=password
+   SONAR_TOKEN=token
+   ```
 
-   - Example for PostgreSQL:
+   The application reads these environment variables during startup.
 
-     ```properties
-     spring.datasource.url=jdbc:postgresql://localhost:5432/twiggle
-     spring.datasource.username=your-username
-     spring.datasource.password=your-password
-     ```
+4. **Start Docker Services**
 
-4. **Run the Application Locally**
+   If you want to run the application using Docker, start the Docker services and application using the provided shell script:
+
+   ```bash
+   ./run.sh start
+   ```
+
+   This command starts the application, Prometheus, and Grafana services etc. Access the application at `http://localhost:8080`.
+
+   To stop the services, run:
+
+   ```bash
+   ./run.sh stop
+   ```
+5. **Run the Application Locally**
 
    Use the provided shell script to run the application:
 
@@ -70,7 +92,7 @@ Ensure the following tools are installed on your system:
    mvn spring-boot:run
    ```
 
-5. **Access the Application**
+6. **Access the Application**
 
    Once the application starts, access the backend at:
 
@@ -123,6 +145,7 @@ twiggle/
 │   ├── docker-compose.yml # Docker services configuration
 │   ├── prometheus/        # Prometheus configuration
 │   └── grafana/           # Grafana configuration
+├── .env                    # Environment variables
 ├── pom.xml                # Maven dependencies
 └── run.sh                 # Script for various operations
 ```
@@ -142,54 +165,31 @@ The project includes the following dependencies for backend development:
 - **Spring Boot Starter Test**: Testing framework
 - **Spring Boot Starter Validation**: Input validation
 - **Springdoc OpenAPI**: API documentation (Swagger UI)
+- **Prometheus**: Monitoring and alerting
 - **Lombok**: Boilerplate code reduction
 - **Spring Boot Configuration Processor**: Configuration metadata generation
+- **Dotenv**: Environment variable management
+- **Mapstruct**: Object mapping
+- **Resilience4j**: Resilience patterns (circuit breaker, rate limiter)
 - **Spotless Plugin**: Code formatting and linting
+- **Jocco Plugin**: Code documentation generation
+- **Git Commit ID Plugin**: Git commit ID generation
+- **SonarQube Plugin**: Code quality analysis
 
 ---
 
 ### Available Commands
 
-The `run.sh` script provides various commands to manage the application:
+The `run.sh` script provides various commands to manage the application. 
 
 ```bash
 ./run.sh [command]
 ```
+Use the following commands to display the list of available commands:
 
-Available commands:
-- `format`: Format code using Spotless
-- `build`: Build the application
-- `test`: Run tests
-- `run`: Run the application locally
-- `docker`: Build Docker image
-- `start`: Start all Docker services
-- `stop`: Stop all Docker services
-- `help`: Show help message
-
----
-
-### Running with Docker
-
-1. Build the Docker image:
-   ```bash
-   ./run.sh docker
-   ```
-
-2. Start all services (Application, Prometheus, Grafana):
-   ```bash
-   ./run.sh start
-   ```
-
-3. Access the services:
-   - Application: http://localhost:8080
-   - Prometheus: http://localhost:9090
-   - Grafana: http://localhost:3000 (credentials: admin/admin)
-
-4. Stop all services:
-   ```bash
-   ./run.sh stop
-   ```
-
+```bash
+./run.sh help
+```
 ---
 
 ### Testing
@@ -198,6 +198,12 @@ Run unit and integration tests using:
 
 ```bash
 mvn test
+```
+
+Alternatively, use the provided shell script to run the tests:
+
+```bash
+./run.sh test
 ```
 
 ---
@@ -223,23 +229,11 @@ Deploy the `twiggle.jar` file to your preferred environment.
 
 ---
 
-### Contribution
-
-We welcome contributions! Please fork the repository, make your changes, and submit a pull request.
-
----
-
-### License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
 ### Contact
 
 For any questions or inquiries, contact us at:
 
-**Email**: [contact@solace.dev](mailto:contact@solace.dev)
+**Email**: [Tasriad Ahmed Tias](mailto:trisn.eclipse@gmail.com)
 
 **Repository**: [Twiggle GitHub](https://github.com/Learnathon-By-Geeky-Solutions/solace.git)
 
