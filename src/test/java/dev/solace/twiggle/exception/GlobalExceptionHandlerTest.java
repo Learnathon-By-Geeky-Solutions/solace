@@ -191,6 +191,7 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleHttpRequestMethodNotSupported_ShouldReturnCorrectResponse() {
+        // Test with supported methods
         HttpRequestMethodNotSupportedException ex =
                 new HttpRequestMethodNotSupportedException("POST", Collections.singletonList("GET"));
 
@@ -204,6 +205,22 @@ class GlobalExceptionHandlerTest {
         assertEquals("The POST method is not supported. Supported methods are: GET", error.getMessage());
         assertEquals(ErrorCode.METHOD_NOT_ALLOWED.name(), error.getCode());
         assertEquals(ErrorCode.METHOD_NOT_ALLOWED.getSuggestion(), error.getSuggestion());
+
+        // Test with null supported methods
+        HttpRequestMethodNotSupportedException exWithNull = new HttpRequestMethodNotSupportedException("POST", null);
+
+        ResponseEntity<Object> responseWithNull = exceptionHandler.handleHttpRequestMethodNotSupported(
+                exWithNull, new HttpHeaders(), HttpStatus.METHOD_NOT_ALLOWED, webRequest);
+
+        assertNotNull(responseWithNull);
+        assertEquals(HttpStatus.METHOD_NOT_ALLOWED, responseWithNull.getStatusCode());
+        ApiErrorResponse errorWithNull = (ApiErrorResponse) responseWithNull.getBody();
+        assertNotNull(errorWithNull);
+        assertEquals(
+                "The POST method is not supported. Supported methods are: No supported methods",
+                errorWithNull.getMessage());
+        assertEquals(ErrorCode.METHOD_NOT_ALLOWED.name(), errorWithNull.getCode());
+        assertEquals(ErrorCode.METHOD_NOT_ALLOWED.getSuggestion(), errorWithNull.getSuggestion());
     }
 
     @Test

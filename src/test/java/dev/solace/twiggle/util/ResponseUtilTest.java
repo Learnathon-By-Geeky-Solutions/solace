@@ -6,6 +6,7 @@ import dev.solace.twiggle.dto.ApiResponse;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,7 @@ class ResponseUtilTest {
         // Arrange
         String message = "Success message";
         String data = "Test data";
+        LocalDateTime beforeTest = LocalDateTime.now(ZoneOffset.UTC);
 
         // Act
         ResponseEntity<ApiResponse<String>> response = ResponseUtil.success(message, data);
@@ -45,13 +47,22 @@ class ResponseUtilTest {
         assertEquals(message, body.getMessage());
         assertEquals(data, body.getData());
         assertNotNull(body.getTimestamp());
-        assertTrue(body.getTimestamp().isBefore(LocalDateTime.now().plusSeconds(1)));
+
+        // Verify timestamp is between test start and now + 1 second
+        LocalDateTime responseTime = body.getTimestamp();
+        assertTrue(
+                responseTime.isAfter(beforeTest) || responseTime.isEqual(beforeTest),
+                "Response timestamp should not be before test start time");
+        assertTrue(
+                responseTime.isBefore(LocalDateTime.now(ZoneOffset.UTC).plusSeconds(1)),
+                "Response timestamp should be before current time + 1 second");
     }
 
     @Test
     void success_ShouldHandleNullData() {
         // Arrange
         String message = "Success with null data";
+        LocalDateTime beforeTest = LocalDateTime.now(ZoneOffset.UTC);
 
         // Act
         ResponseEntity<ApiResponse<Object>> response = ResponseUtil.success(message, null);
@@ -65,6 +76,11 @@ class ResponseUtilTest {
         assertEquals(HttpStatus.OK.value(), body.getStatus());
         assertEquals(message, body.getMessage());
         assertNull(body.getData());
+
+        // Verify timestamp
+        LocalDateTime responseTime = body.getTimestamp();
+        assertTrue(responseTime.isAfter(beforeTest) || responseTime.isEqual(beforeTest));
+        assertTrue(responseTime.isBefore(LocalDateTime.now(ZoneOffset.UTC).plusSeconds(1)));
     }
 
     @Test
@@ -72,6 +88,7 @@ class ResponseUtilTest {
         // Arrange
         String message = "Created message";
         Long data = 123L;
+        LocalDateTime beforeTest = LocalDateTime.now(ZoneOffset.UTC);
 
         // Act
         ResponseEntity<ApiResponse<Long>> response = ResponseUtil.created(message, data);
@@ -86,13 +103,18 @@ class ResponseUtilTest {
         assertEquals(message, body.getMessage());
         assertEquals(data, body.getData());
         assertNotNull(body.getTimestamp());
-        assertTrue(body.getTimestamp().isBefore(LocalDateTime.now().plusSeconds(1)));
+
+        // Verify timestamp
+        LocalDateTime responseTime = body.getTimestamp();
+        assertTrue(responseTime.isAfter(beforeTest) || responseTime.isEqual(beforeTest));
+        assertTrue(responseTime.isBefore(LocalDateTime.now(ZoneOffset.UTC).plusSeconds(1)));
     }
 
     @Test
     void created_ShouldHandleNullData() {
         // Arrange
         String message = "Created with null data";
+        LocalDateTime beforeTest = LocalDateTime.now(ZoneOffset.UTC);
 
         // Act
         ResponseEntity<ApiResponse<Object>> response = ResponseUtil.created(message, null);
@@ -106,5 +128,10 @@ class ResponseUtilTest {
         assertEquals(HttpStatus.CREATED.value(), body.getStatus());
         assertEquals(message, body.getMessage());
         assertNull(body.getData());
+
+        // Verify timestamp
+        LocalDateTime responseTime = body.getTimestamp();
+        assertTrue(responseTime.isAfter(beforeTest) || responseTime.isEqual(beforeTest));
+        assertTrue(responseTime.isBefore(LocalDateTime.now(ZoneOffset.UTC).plusSeconds(1)));
     }
 }

@@ -15,6 +15,7 @@ public class SwaggerConfig {
     private static final String APPLICATION_GROUP = "Application API";
     private static final String ACTUATOR_PATH_PATTERN = "/actuator/**";
     private static final String APPLICATION_PATH_PATTERN = "/api/**";
+    private static final String API_VERSION = "1.0";
 
     @Bean
     public GroupedOpenApi actuatorApi() {
@@ -24,7 +25,7 @@ public class SwaggerConfig {
                 .addOpenApiCustomizer(openApi -> openApi.info(new Info()
                         .title("Actuator API Documentation")
                         .description("API endpoints for application monitoring and management")
-                        .version("1.0")))
+                        .version(API_VERSION)))
                 .build();
     }
 
@@ -36,7 +37,7 @@ public class SwaggerConfig {
                 .addOpenApiCustomizer(openApi -> openApi.info(new Info()
                         .title("Twiggle API Documentation")
                         .description("API endpoints for Urban Garden Planner")
-                        .version("1.0")))
+                        .version(API_VERSION)))
                 .build();
     }
 }
