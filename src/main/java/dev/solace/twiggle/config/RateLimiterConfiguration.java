@@ -24,13 +24,7 @@ public class RateLimiterConfiguration {
 
     @Bean
     public RateLimiter standardApiLimiter(RateLimiterRegistry rateLimiterRegistry) {
-        RateLimiterConfig config = RateLimiterConfig.custom()
-                .limitForPeriod(300)
-                .limitRefreshPeriod(Duration.ofMinutes(1))
-                .timeoutDuration(Duration.ZERO)
-                .build();
-
-        return rateLimiterRegistry.rateLimiter("standard-api", config);
+        return rateLimiterRegistry.rateLimiter("standard-api");
     }
 
     @Bean
