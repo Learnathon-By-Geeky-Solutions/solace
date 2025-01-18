@@ -15,7 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @ActiveProfiles("dev")
-public class MongoDBConnectionTest {
+class MongoDBConnectionTest {
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -35,7 +35,7 @@ public class MongoDBConnectionTest {
     void testMongoDBConnection() {
         assertNotNull(mongoTemplate);
         assertNotNull(database);
-        assertTrue(mongoTemplate.getDb().getName().length() > 0);
+        assertFalse(mongoTemplate.getDb().getName().isEmpty());
     }
 
     @Test

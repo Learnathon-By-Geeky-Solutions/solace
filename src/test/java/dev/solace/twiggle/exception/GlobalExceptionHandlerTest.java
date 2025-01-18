@@ -3,10 +3,13 @@ package dev.solace.twiggle.exception;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import io.github.resilience4j.ratelimiter.RateLimiter;
+import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.lang.reflect.Method;
 import java.nio.file.AccessDeniedException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
@@ -257,5 +260,29 @@ class GlobalExceptionHandlerTest {
                 error.getMessage());
         assertEquals(ErrorCode.INTERNAL_ERROR.name(), error.getCode());
         assertEquals(ErrorCode.INTERNAL_ERROR.getSuggestion(), error.getSuggestion());
+    }
+
+    @Test
+    void handleRequestNotPermitted_ShouldReturnCorrectResponse() {
+        // Given
+        RateLimiterConfig config = RateLimiterConfig.custom()
+                .limitForPeriod(1)
+                .limitRefreshPeriod(Duration.ofSeconds(1))
+                .build();
+        RateLimiter rateLimiter = RateLimiter.of("test", config);
+        io.github.resilience4j.ratelimiter.RequestNotPermitted ex =
+                io.github.resilience4j.ratelimiter.RequestNotPermitted.createRequestNotPermitted(rateLimiter);
+
+        // When
+        ResponseEntity<Object> response = exceptionHandler.handleRequestNotPermitted(ex, webRequest);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(HttpStatus.TOO_MANY_REQUESTS, response.getStatusCode());
+        ApiErrorResponse error = (ApiErrorResponse) response.getBody();
+        assertNotNull(error);
+        assertEquals("Too many requests. Please try again later.", error.getMessage());
+        assertEquals(ErrorCode.RATE_LIMIT_EXCEEDED.name(), error.getCode());
+        assertEquals(ErrorCode.RATE_LIMIT_EXCEEDED.getSuggestion(), error.getSuggestion());
     }
 }
