@@ -25,7 +25,7 @@ import org.testcontainers.utility.DockerImageName;
 @ActiveProfiles("dev")
 class MongoDBConnectionTest {
     @Container
-    static MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
+    static MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:7.0.5"));
 
     @DynamicPropertySource
     static void setProperties(DynamicPropertyRegistry registry) {
