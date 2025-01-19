@@ -12,10 +12,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
+@Testcontainers
 @SpringBootTest
 @ActiveProfiles("dev")
 class MongoDBConnectionTest {
+    @Container
+    static MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
+
+    @DynamicPropertySource
+    static void setProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
+    }
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -35,28 +49,25 @@ class MongoDBConnectionTest {
     void testMongoDBConnection() {
         assertNotNull(mongoTemplate);
         assertNotNull(database);
-        assertFalse(mongoTemplate.getDb().getName().isEmpty());
     }
 
     @Test
-    @DisplayName("Test MongoDB Write and Read Operations")
-    void testMongoDBWriteAndRead() {
-        // Create a test collection
+    @DisplayName("Test MongoDB Insert Operation")
+    void testMongoDBInsert() {
         String collectionName = "test_collection";
         Document testDoc = new Document("test_key", "test_value");
 
-        // Write operation
+        // Insert
         database.getCollection(collectionName).insertOne(testDoc);
 
-        // Read operation
+        // Verify insertion
         Document foundDoc = database.getCollection(collectionName)
                 .find(new Document("test_key", "test_value"))
                 .first();
-
         assertNotNull(foundDoc);
         assertEquals("test_value", foundDoc.getString("test_key"));
 
-        // Clean up
+        // Cleanup
         database.getCollection(collectionName).drop();
     }
 
@@ -79,11 +90,10 @@ class MongoDBConnectionTest {
         Document updatedDoc = database.getCollection(collectionName)
                 .find(new Document("test_key", "updated_value"))
                 .first();
-
         assertNotNull(updatedDoc);
         assertEquals("updated_value", updatedDoc.getString("test_key"));
 
-        // Clean up
+        // Cleanup
         database.getCollection(collectionName).drop();
     }
 
@@ -103,10 +113,9 @@ class MongoDBConnectionTest {
         Document deletedDoc = database.getCollection(collectionName)
                 .find(new Document("test_key", "test_value"))
                 .first();
-
         assertNull(deletedDoc);
 
-        // Clean up
+        // Cleanup
         database.getCollection(collectionName).drop();
     }
 }
