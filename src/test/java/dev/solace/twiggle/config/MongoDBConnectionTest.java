@@ -2,6 +2,7 @@ package dev.solace.twiggle.config;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
@@ -24,6 +25,8 @@ import org.testcontainers.utility.DockerImageName;
 @SpringBootTest
 @ActiveProfiles("dev")
 class MongoDBConnectionTest {
+    private static final String TEST_COLLECTION = "test_collection";
+
     @Container
     static MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:7.0.5"));
 
@@ -65,14 +68,13 @@ class MongoDBConnectionTest {
     @Test
     @DisplayName("Test MongoDB Insert Operation")
     void testMongoDBInsert() {
-        String collectionName = "test_collection";
         Document testDoc = new Document("test_key", "test_value");
 
         // Insert
-        database.getCollection(collectionName).insertOne(testDoc);
+        database.getCollection(TEST_COLLECTION).insertOne(testDoc);
 
         // Verify insertion
-        Document foundDoc = database.getCollection(collectionName)
+        Document foundDoc = database.getCollection(TEST_COLLECTION)
                 .find(new Document("test_key", "test_value"))
                 .first();
         assertNotNull(foundDoc);
@@ -80,22 +82,35 @@ class MongoDBConnectionTest {
     }
 
     @Test
+    @DisplayName("Test MongoDB Insert With Duplicate ID")
+    void testMongoDBInsertDuplicate() {
+        Document doc = new Document("_id", "test_id").append("value", "test");
+
+        // First insertion should succeed
+        database.getCollection(TEST_COLLECTION).insertOne(doc);
+
+        // Second insertion with same _id should throw MongoWriteException
+        assertThrows(MongoWriteException.class, () -> {
+            database.getCollection(TEST_COLLECTION).insertOne(doc);
+        });
+    }
+
+    @Test
     @DisplayName("Test MongoDB Update Operation")
     void testMongoDBUpdate() {
-        String collectionName = "test_collection";
         Document testDoc = new Document("test_key", "initial_value");
 
         // Insert
-        database.getCollection(collectionName).insertOne(testDoc);
+        database.getCollection(TEST_COLLECTION).insertOne(testDoc);
 
         // Update
-        database.getCollection(collectionName)
+        database.getCollection(TEST_COLLECTION)
                 .updateOne(
                         new Document("test_key", "initial_value"),
                         new Document("$set", new Document("test_key", "updated_value")));
 
         // Verify update
-        Document updatedDoc = database.getCollection(collectionName)
+        Document updatedDoc = database.getCollection(TEST_COLLECTION)
                 .find(new Document("test_key", "updated_value"))
                 .first();
         assertNotNull(updatedDoc);
@@ -103,21 +118,44 @@ class MongoDBConnectionTest {
     }
 
     @Test
+    @DisplayName("Test MongoDB Update Non-Existent Document")
+    void testMongoDBUpdateNonExistent() {
+        // Attempt to update a non-existent document
+        Document result = database.getCollection(TEST_COLLECTION)
+                .findOneAndUpdate(
+                        new Document("non_existent", "value"), new Document("$set", new Document("field", "value")));
+
+        // Verify that no document was found and updated
+        assertNull(result);
+    }
+
+    @Test
     @DisplayName("Test MongoDB Delete Operation")
     void testMongoDBDelete() {
-        String collectionName = "test_collection";
         Document testDoc = new Document("test_key", "test_value");
 
         // Insert
-        database.getCollection(collectionName).insertOne(testDoc);
+        database.getCollection(TEST_COLLECTION).insertOne(testDoc);
 
         // Delete
-        database.getCollection(collectionName).deleteOne(new Document("test_key", "test_value"));
+        database.getCollection(TEST_COLLECTION).deleteOne(new Document("test_key", "test_value"));
 
         // Verify deletion
-        Document deletedDoc = database.getCollection(collectionName)
+        Document deletedDoc = database.getCollection(TEST_COLLECTION)
                 .find(new Document("test_key", "test_value"))
                 .first();
         assertNull(deletedDoc);
+    }
+
+    @Test
+    @DisplayName("Test MongoDB Delete Non-Existent Document")
+    void testMongoDBDeleteNonExistent() {
+        // Attempt to delete a non-existent document
+        long deletedCount = database.getCollection(TEST_COLLECTION)
+                .deleteOne(new Document("non_existent", "value"))
+                .getDeletedCount();
+
+        // Verify that no documents were deleted
+        assertEquals(0, deletedCount);
     }
 }
