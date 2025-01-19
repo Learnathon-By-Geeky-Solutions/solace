@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,16 @@ class MongoDBConnectionTest {
         database = mongoClient.getDatabase(mongoTemplate.getDb().getName());
     }
 
+    @AfterEach
+    void tearDown() {
+        // Clean up all test collections
+        database.listCollectionNames().forEach(name -> {
+            if (name.startsWith("test_")) {
+                database.getCollection(name).drop();
+            }
+        });
+    }
+
     @Test
     @DisplayName("Test MongoDB Connection")
     void testMongoDBConnection() {
@@ -66,9 +77,6 @@ class MongoDBConnectionTest {
                 .first();
         assertNotNull(foundDoc);
         assertEquals("test_value", foundDoc.getString("test_key"));
-
-        // Cleanup
-        database.getCollection(collectionName).drop();
     }
 
     @Test
@@ -92,9 +100,6 @@ class MongoDBConnectionTest {
                 .first();
         assertNotNull(updatedDoc);
         assertEquals("updated_value", updatedDoc.getString("test_key"));
-
-        // Cleanup
-        database.getCollection(collectionName).drop();
     }
 
     @Test
@@ -114,8 +119,5 @@ class MongoDBConnectionTest {
                 .find(new Document("test_key", "test_value"))
                 .first();
         assertNull(deletedDoc);
-
-        // Cleanup
-        database.getCollection(collectionName).drop();
     }
 }
