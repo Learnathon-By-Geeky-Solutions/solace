@@ -21,10 +21,16 @@ RUN apk update && \
 
 # Copy the jar file
 COPY --from=build /app/target/*.jar app.jar
-# Explicitly copy both config files from resources
+
+# Set default environment to dev
+ARG ENV=dev
+
+# Copy base configuration and environment-specific configuration
 COPY --from=build /app/src/main/resources/application.yml ./
-COPY --from=build /app/src/main/resources/application-dev.yml ./
-# add application-pro.yml later here and clean it up a bit
+COPY --from=build /app/src/main/resources/application-${ENV}.yml ./application-${ENV}.yml
+
+# Set active profile through environment variable
+ENV SPRING_PROFILES_ACTIVE=${ENV}
 
 EXPOSE 8080
 
@@ -36,5 +42,5 @@ EXPOSE 8080
 HEALTHCHECK --start-period=30s --interval=30s --timeout=3s --retries=3 \
     CMD ["curl", "-f", "http://localhost:8080/actuator/health"]
 
-# No need to specify profile as it's in application.yml
+# Use the environment-aware configuration
 ENTRYPOINT ["java", "-jar", "app.jar"]

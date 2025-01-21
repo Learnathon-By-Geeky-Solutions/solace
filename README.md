@@ -15,7 +15,7 @@ This project uses **Spring Boot** to build the backend application. Below are th
 Ensure the following tools are installed on your system:
 
 - **Java 21** or above
-- **JDK** (version 11+ recommended) with JAVA_HOME environment variable set
+- **JDK** (version 21 or 21+ recommended) with JAVA_HOME environment variable set
 - **Maven** (version 3.6+ recommended)
 ---
 

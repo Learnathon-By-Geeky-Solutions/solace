@@ -1,12 +1,19 @@
 #!/bin/bash
 
 # Check required commands
-for cmd in docker docker-compose mvn java curl; do
+for cmd in docker mvn java curl; do
     if ! command -v $cmd >/dev/null 2>&1; then
         echo -e "${RED}Error: $cmd is required but not installed.${NC}"
         exit 1
-   fi
+    fi
 done
+
+# Check Docker Compose V2
+if ! docker compose version >/dev/null 2>&1; then
+    echo -e "${RED}Error: Docker Compose V2 is required but not installed.${NC}"
+    echo -e "${YELLOW}Please upgrade Docker Desktop or install Docker Compose V2${NC}"
+    exit 1
+fi
 
 # Colors for output
 RED='\033[0;31m'
@@ -146,6 +153,58 @@ rebuild_docker_services() {
    echo -e "${GREEN}Rebuild completed successfully.${NC}"
 }
 
+# Function to rebuild Docker services with no cache
+rebuild_docker_services_nocache() {
+   echo -e "${CYAN}Rebuilding Docker services with no cache...${NC}"
+
+   # Build monitoring services
+   if ! docker compose -f ${DOCKER_SERVICES} build --no-cache; then
+       echo -e "${RED}Failed to rebuild monitoring services.${NC}"
+       exit 1
+   fi
+
+   # Build application service
+   if ! docker compose -f ${DOCKER_APP} build --no-cache; then
+       echo -e "${RED}Failed to rebuild application service.${NC}"
+       exit 1
+   fi
+
+   echo -e "${CYAN}Starting rebuilt services...${NC}"
+
+   # Start monitoring services
+   if ! docker compose -f ${DOCKER_SERVICES} up -d; then
+       echo -e "${RED}Failed to start monitoring services.${NC}"
+       exit 1
+   fi
+
+   # Start application service
+   if ! docker compose -f ${DOCKER_APP} up -d; then
+       echo -e "${RED}Failed to start application service.${NC}"
+       # Clean up monitoring services before exiting
+       echo -e "${YELLOW}Rolling back - stopping monitoring services...${NC}"
+       docker compose -f ${DOCKER_SERVICES} down
+       exit 1
+   fi
+
+   # Verify services are running
+   echo -e "${CYAN}Verifying services are running...${NC}"
+   sleep 5  # Give services time to initialize
+
+   if ! curl -s http://localhost:8080/actuator/health > /dev/null; then
+       echo -e "${RED}Application health check failed.${NC}"
+       echo -e "${YELLOW}Rolling back - stopping all services...${NC}"
+       docker compose -f ${DOCKER_APP} down
+       docker compose -f ${DOCKER_SERVICES} down
+       exit 1
+   fi
+
+   echo -e "${GREEN}Docker services rebuilt and started successfully.${NC}"
+   echo -e "${BLUE}Services available at:${NC}"
+   echo -e "${CYAN}- Application: http://localhost:8080${NC}"
+   echo -e "${CYAN}- Prometheus: http://localhost:9090${NC}"
+   echo -e "${CYAN}- Grafana: http://localhost:3000 (admin/admin)${NC}"
+}
+
 # Function to run tests
 run_tests() {
    echo -e "${CYAN}Running tests...${NC}"
@@ -248,27 +307,6 @@ clean_all() {
    format_code
    build_app
    echo -e "${GREEN}Project rebuilt successfully from scratch.${NC}"
-}
-
-# Function to rebuild Docker services with no cache
-rebuild_docker_services_nocache() {
-   echo -e "${CYAN}Rebuilding Docker services with no cache...${NC}"
-   if ! docker-compose -f ${DOCKER_SERVICES} build --no-cache; then
-       echo -e "${RED}Failed to rebuild monitoring services.${NC}"
-       exit 1
-   fi
-   if ! docker-compose -f ${DOCKER_APP} build --no-cache; then
-       echo -e "${RED}Failed to rebuild application service.${NC}"
-       exit 1
-   fi
-   echo -e "${CYAN}Starting rebuilt services...${NC}"
-   docker-compose -f ${DOCKER_SERVICES} up -d
-   docker-compose -f ${DOCKER_APP} up -d
-   echo -e "${GREEN}Docker services rebuilt and started successfully.${NC}"
-   echo -e "${BLUE}Services available at:${NC}"
-   echo -e "${CYAN}- Application: http://localhost:8080${NC}"
-   echo -e "${CYAN}- Prometheus: http://localhost:9090${NC}"
-   echo -e "${CYAN}- Grafana: http://localhost:3000 (admin/admin)${NC}"
 }
 
 # Help function with colored output

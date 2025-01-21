@@ -85,20 +85,22 @@ class MongoDBConnectionTest {
         assertEquals("test_value", foundDoc.getString("test_key"), "Document should contain the inserted value");
     }
 
+    private void insertDocument(Document doc) {
+        database.getCollection(TEST_COLLECTION).insertOne(doc);
+    }
+
     @Test
     @DisplayName("Should fail to insert document with duplicate ID")
     void testMongoDBInsertDuplicate() {
         Document doc = new Document("_id", "test_id").append("value", "test");
 
         // First insertion should succeed
-        database.getCollection(TEST_COLLECTION).insertOne(doc);
+        insertDocument(doc);
 
         // Second insertion with same _id should throw MongoWriteException
         assertThrows(
                 MongoWriteException.class,
-                () -> {
-                    database.getCollection(TEST_COLLECTION).insertOne(doc);
-                },
+                () -> insertDocument(doc),
                 "Should throw MongoWriteException for duplicate _id");
     }
 
