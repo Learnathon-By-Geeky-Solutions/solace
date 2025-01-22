@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
+import java.io.IOException;
 import org.bson.Document;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,17 +27,22 @@ import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
 @SpringBootTest
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 @DisplayName("MongoDB Connection Tests")
 class MongoDBConnectionTest {
     private static final String TEST_COLLECTION = "test_collection";
+    private static final String TEST_DATABASE = "test_db";
 
     @Container
-    static MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:7.0.5"));
+    static MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:7.0.5"))
+            .withExposedPorts(27017)
+            .withReuse(true)
+            .withCommand("--replSet rs0");
 
     @DynamicPropertySource
     static void setProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
+        registry.add("spring.data.mongodb.uri", () -> mongoDBContainer.getReplicaSetUrl());
+        registry.add("spring.data.mongodb.database", () -> TEST_DATABASE);
     }
 
     @Autowired
@@ -48,7 +54,15 @@ class MongoDBConnectionTest {
     private MongoDatabase database;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException, InterruptedException {
+        // Initialize replica set
+        mongoDBContainer.execInContainer("/bin/bash", "-c", "mongosh --eval 'rs.initiate()'");
+
+        // Clear test collection
+        if (mongoTemplate != null && mongoTemplate.collectionExists(TEST_COLLECTION)) {
+            mongoTemplate.dropCollection(TEST_COLLECTION);
+        }
+
         database = mongoClient.getDatabase(mongoTemplate.getDb().getName());
     }
 

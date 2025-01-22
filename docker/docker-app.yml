@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 services:
   app:
     build:
@@ -6,6 +6,16 @@ services:
       dockerfile: docker/Dockerfile
     ports:
       - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - ../.env
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-dev}
+      - MONGODB_USERNAME=${MONGODB_USERNAME}
+      - MONGODB_PASSWORD_ENCODED=${MONGODB_PASSWORD_ENCODED}
+      - MONGODB_HOST=${MONGODB_HOST}
+      - MONGODB_DATABASE=${MONGODB_DATABASE}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
@@ -20,6 +30,9 @@ services:
     restart: unless-stopped
     networks:
       - monitoring-network
+    privileged: true # Required for TestContainers
+    group_add:
+      - docker # Required for TestContainers
 networks:
   monitoring-network:
     driver: bridge

@@ -1,0 +1,23 @@
+spring:
+  data:
+    mongodb:
+      auto-index-creation: true
+      # The URI will be provided dynamically by TestContainers
+      uri: mongodb://localhost:27017/test_db
+      database: test_db
+
+logging:
+  level:
+    org.springframework.data.mongodb: DEBUG
+    org.testcontainers: DEBUG
+    com.github.dockerjava: DEBUG
+
+# Disable security for tests
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always

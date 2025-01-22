@@ -42,27 +42,46 @@ format_code() {
    fi
 }
 
-# Function to build the application
+# # Function to build the application
+# build_app() {
+#    echo -e "${CYAN}Building the application...${NC}"
+#    if ! mvn clean install; then
+#        echo -e "${RED}Build failed. Fix the errors and try again.${NC}"
+#        exit 1
+#    fi
+#    echo -e "${GREEN}Build completed successfully.${NC}"
+# }
 build_app() {
    echo -e "${CYAN}Building the application...${NC}"
    # Load environment variables before building
    if [ -f .env ]; then
        echo -e "${CYAN}Loading environment variables from .env file...${NC}"
-       export $(grep -v '^#' .env | xargs)
+       export $(cat .env | xargs)
    fi
-   if ! mvn clean install -DskipTests; then
+   if ! mvn clean install; then
        echo -e "${RED}Build failed. Fix the errors and try again.${NC}"
        exit 1
    fi
    echo -e "${GREEN}Build completed successfully.${NC}"
 }
-
-# Function to run the application locally
+# # Function to run the application locally
+# run_local() {
+#    JAR_FILE=$(find target -maxdepth 1 -type f -name "*.jar" | head -n 1)
+#    if [ -z "$JAR_FILE" ]; then
+#        echo -e "${RED}No JAR file found in the target directory. Build might have failed.${NC}"
+#        exit 1
+#    fi
+#    echo -e "${CYAN}Running the application from $JAR_FILE...${NC}"
+#    if ! java -jar "$JAR_FILE"; then
+#        echo -e "${RED}Application failed to start.${NC}"
+#        exit 1
+#    fi
+# }
 run_local() {
    # Load environment variables before running
    if [ -f .env ]; then
        echo -e "${CYAN}Loading environment variables from .env file...${NC}"
-       export $(grep -v '^#' .env | xargs)
+       export $(cat .env | xargs)
    fi
    JAR_FILE=$(find target -maxdepth 1 -type f -name "*.jar" | head -n 1)
    if [ -z "$JAR_FILE" ]; then
@@ -75,7 +94,6 @@ run_local() {
        exit 1
    fi
 }
-
 # Function to build Docker image
 build_docker() {
    echo -e "${CYAN}Building Docker image...${NC}"
@@ -93,12 +111,7 @@ build_docker() {
 # Function to start monitoring services
 start_services() {
    echo -e "${CYAN}Starting monitoring services...${NC}"
-   # Load environment variables before running
-   if [ -f .env ]; then
-       echo -e "${CYAN}Loading environment variables from .env file...${NC}"
-       export $(grep -v '^#' .env | xargs)
-   fi
-   if ! docker compose -f "${DOCKER_SERVICES}" up -d; then
+   if ! docker compose -f "${DOCKER_SERVICES}" up -d --remove-orphans; then
        echo -e "${RED}Failed to start monitoring services.${NC}"
        exit 1
    fi
@@ -111,56 +124,39 @@ start_services() {
 # Function to start application
 start_app() {
    echo -e "${CYAN}Starting application...${NC}"
-   # Load environment variables before running
-   if [ -f .env ]; then
-       echo -e "${CYAN}Loading environment variables from .env file...${NC}"
-       export $(grep -v '^#' .env | xargs)
-   fi
-
-   # Check if we need to rebuild
-   if [ "$1" = "--rebuild" ] || ! docker image inspect twiggle-app >/dev/null 2>&1; then
-       # Build the application first
-       build_app
-
-       # Build fresh Docker image
-       echo -e "${CYAN}Building Docker image...${NC}"
-       if ! docker build -t twiggle-app -f docker/Dockerfile .; then
-           echo -e "${RED}Docker build failed.${NC}"
-           exit 1
-       fi
-   else
-       echo -e "${CYAN}Using existing Docker image...${NC}"
-   fi
-
-   echo -e "${CYAN}Starting Docker container...${NC}"
-   if ! docker compose -f "${DOCKER_APP}" up -d app; then
+   if ! docker compose -f "${DOCKER_APP}" up -d --remove-orphans; then
        echo -e "${RED}Failed to start application service.${NC}"
        exit 1
    fi
    echo -e "${GREEN}Application started successfully.${NC}"
    echo -e "${BLUE}Application available at:${NC}"
    echo -e "${CYAN}- Application: http://localhost:8080${NC}"
-   echo -e "${CYAN}- Health Check: http://localhost:8080/actuator/health${NC}"
 }
 
-# Function to stop application
-stop_app() {
-   echo -e "${CYAN}Stopping application...${NC}"
-   if ! docker compose -f "${DOCKER_APP}" stop app; then
-       echo -e "${RED}Failed to stop application service.${NC}"
-       exit 1
-   fi
-   echo -e "${GREEN}Application stopped successfully.${NC}"
+# Function to start all services
+start_all() {
+   start_services
+   start_app
 }
 
 # Function to stop monitoring services
 stop_services() {
    echo -e "${CYAN}Stopping monitoring services...${NC}"
-   if ! docker compose -f "${DOCKER_SERVICES}" stop; then
+   if ! docker compose -f "${DOCKER_SERVICES}" down; then
        echo -e "${RED}Failed to stop monitoring services.${NC}"
        exit 1
    fi
    echo -e "${GREEN}Monitoring services stopped successfully.${NC}"
+}
+
+# Function to stop application
+stop_app() {
+   echo -e "${CYAN}Stopping application...${NC}"
+   if ! docker compose -f "${DOCKER_APP}" down; then
+       echo -e "${RED}Failed to stop application service.${NC}"
+       exit 1
+   fi
+   echo -e "${GREEN}Application stopped successfully.${NC}"
 }
 
 # Function to stop all services
@@ -169,25 +165,18 @@ stop_all() {
    stop_services
 }
 
-# Function to rebuild Docker services
+# Function to rebuild and restart all services
 rebuild_docker_services() {
    echo -e "${CYAN}Starting rebuild process...${NC}"
 
-   # Stop application only
-   stop_app
+   # Stop all services first
+   stop_all
 
    # Build fresh application image
-   build_app
+   build_docker
 
-   # Build Docker image
-   echo -e "${CYAN}Building Docker image...${NC}"
-   if ! docker build -t twiggle-app -f docker/Dockerfile .; then
-       echo -e "${RED}Docker build failed.${NC}"
-       exit 1
-   fi
-
-   # Start application back up
-   start_app
+   # Start everything back up
+   start_all
 
    echo -e "${GREEN}Rebuild completed successfully.${NC}"
 }
@@ -247,11 +236,6 @@ rebuild_docker_services_nocache() {
 # Function to run tests
 run_tests() {
    echo -e "${CYAN}Running tests...${NC}"
-   # Load environment variables before testing
-   if [ -f .env ]; then
-       echo -e "${CYAN}Loading environment variables from .env file...${NC}"
-       export $(grep -v '^#' .env | xargs)
-   fi
    if ! mvn test; then
        echo -e "${RED}Tests failed.${NC}"
        exit 1
@@ -263,17 +247,12 @@ run_tests() {
 run_sonar_check() {
     # Load the .env file
     if [ -f .env ]; then
-        # Load environment variables, excluding comments
-        export $(grep -v '^#' .env | xargs)
+        # Use 'set -a' to automatically export all variables
+        set -a
+        source .env
+        set +a
     else
-        echo -e "${RED}Error: .env file not found.${NC}"
-        exit 1
-    fi
-
-    # Verify SONAR_TOKEN is set
-    if [ -z "${SONAR_TOKEN}" ]; then
-        echo -e "${RED}Error: SONAR_TOKEN is not set in .env file${NC}"
-        echo -e "${YELLOW}Please add SONAR_TOKEN=your_token to your .env file${NC}"
+        echo -e "${RED}Error: .env file not found in docker/ directory.${NC}"
         exit 1
     fi
 
@@ -312,11 +291,7 @@ run_sonar_check() {
     echo -e "${CYAN}Running SonarQube analysis...${NC}"
     if ! mvn clean verify sonar:sonar \
         -Dsonar.host.url=http://localhost:9000 \
-        -Dsonar.token="${SONAR_TOKEN}" \
-        -Dsonar.projectKey=twiggle \
-        -Dsonar.projectName=twiggle \
-        -Dsonar.java.source=21 \
-        -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml; then
+        -Dsonar.token="${SONAR_TOKEN}"; then
         echo -e "${RED}SonarQube analysis failed.${NC}"
         exit 1
     fi
