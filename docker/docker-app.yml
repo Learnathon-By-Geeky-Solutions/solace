@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    restart: unless-stopped
+    networks:
+      - monitoring-network
+networks:
+  monitoring-network:
+    driver: bridge

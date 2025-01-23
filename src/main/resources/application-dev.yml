@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: twiggle
+  data:
+    mongodb:
+      uri: mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}/${MONGODB_DATABASE}?retryWrites=true&w=majority&ssl=true
+
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: never
+    include-exception: false
+
+management:
+  info:
+    git:
+      mode: full
+  endpoints:
+    web:
+      exposure:
+        include: 'health,info,prometheus,metrics'
+      base-path: '/actuator'
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: '${spring.application.name}'
+  tracing:
+    enabled: false
+    sampling:
+      probability: 1
+
+springdoc:
+  api-docs:
+    enabled: true
+  show-actuator: true
+  use-management-port: false
+
+resilience4j:
+  ratelimiter:
+    configs:
+      default:
+        limit-for-period: 300
+        limit-refresh-period: 1m
+        timeout-duration: 0s
+    instances:
+      standard-api:
+        base-config: default
+      test-error:
+        limit-for-period: 30
+        limit-refresh-period: 10s
+        timeout-duration: 0s
+      actuator:
+        limit-for-period: 60
+        limit-refresh-period: 1m
+        timeout-duration: 0s
