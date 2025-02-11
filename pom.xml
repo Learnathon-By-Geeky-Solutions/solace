@@ -21,7 +21,7 @@
 	<!-- Project Properties -->
 	<properties>
 		<java.version>21</java.version>
-		<springdoc.version>2.7.0</springdoc.version>
+		<springdoc.version>2.8.3</springdoc.version>
 		<spotless.version>2.43.0</spotless.version>
 		<palantir.format.version>2.35.0</palantir.format.version>
 		<sonarsource.scanner.maven.version>3.9.1.2184</sonarsource.scanner.maven.version>
@@ -260,12 +260,12 @@
 				<version>${spotless.version}</version>
 				<configuration>
 					<java>
-						<importOrder />
-						<removeUnusedImports />
+						<importOrder/>
+						<removeUnusedImports/>
 						<palantirJavaFormat>
 							<version>${palantir.format.version}</version>
 						</palantirJavaFormat>
-						<formatAnnotations />
+						<formatAnnotations/>
 					</java>
 				</configuration>
 				<executions>
