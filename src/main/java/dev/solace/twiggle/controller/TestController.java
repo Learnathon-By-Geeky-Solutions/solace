@@ -19,17 +19,30 @@ import org.springframework.web.bind.annotation.RestController;
 @RateLimiter(name = "standard-api")
 public class TestController {
 
+    /**
+     * Test endpoint to check if the application is running.
+     *
+     * @return ApiResponse with message
+     */
     @GetMapping("/test")
     public ResponseEntity<ApiResponse<String>> test() {
         return ResponseUtil.success("Test endpoint executed successfully", "Hello, World!");
     }
 
+    /**
+     * Test endpoint to check if global error handling is working.
+     *
+     */
     @RateLimiter(name = "test-error")
     @GetMapping("/test-error")
     public void testError() {
         throw new CustomException("This is a test error", HttpStatus.BAD_REQUEST, ErrorCode.INVALID_REQUEST);
     }
 
+    /**
+     * Test endpoint to check if global error handling is working for server errors.
+     *
+     */
     @RateLimiter(name = "test-error")
     @GetMapping("/test-server-error")
     public void testServerError() {
