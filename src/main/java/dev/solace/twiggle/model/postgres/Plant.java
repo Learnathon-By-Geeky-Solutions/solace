@@ -38,7 +38,7 @@ public class Plant {
     @Column(name = "type", nullable = false)
     private String type;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "watering_frequency")
