@@ -1,5 +1,6 @@
 package dev.solace.twiggle.config;
 
+import jakarta.persistence.EntityManagerFactory;
 import java.util.HashMap;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -74,6 +75,13 @@ public class PostgreSQLConfig {
     @Bean(name = "postgresTransactionManager")
     public PlatformTransactionManager transactionManager(
             @Qualifier("postgresEntityManagerFactory") LocalContainerEntityManagerFactoryBean entityManagerFactory) {
-        return new JpaTransactionManager(entityManagerFactory.getObject());
+        if (entityManagerFactory == null || entityManagerFactory.getObject() == null) {
+            throw new IllegalStateException("EntityManagerFactory cannot be null");
+        }
+        EntityManagerFactory emf = entityManagerFactory.getObject();
+        if (emf == null) {
+            throw new IllegalStateException("EntityManagerFactory cannot be null");
+        }
+        return new JpaTransactionManager(emf);
     }
 }

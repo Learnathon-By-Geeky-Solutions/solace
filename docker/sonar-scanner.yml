@@ -1,0 +1,27 @@
+services:
+  sonar-scanner:
+    image: sonarsource/sonar-scanner-cli:5.0
+    volumes:
+      - ../:/usr/src
+    working_dir: /usr/src
+    environment:
+      - SONAR_HOST_URL=http://sonarqube:9000
+      - SONAR_TOKEN=${SONAR_TOKEN}
+    command: >
+      -Dsonar.projectKey=twiggle
+      -Dsonar.projectName=twiggle
+      -Dsonar.sources=./src/main
+      -Dsonar.tests=./src/test
+      -Dsonar.java.binaries=./target/classes
+      -Dsonar.java.test.binaries=./target/test-classes
+      -Dsonar.java.libraries=./.m2/repository/**/*.jar
+      -Dsonar.coverage.jacoco.xmlReportPaths=./target/site/jacoco/jacoco.xml
+      -Dsonar.scm.provider=git
+      -Dsonar.host.url=http://sonarqube:9000
+      -Dsonar.token=${SONAR_TOKEN}
+    networks:
+      - monitoring-network
+
+networks:
+  monitoring-network:
+    driver: bridge
