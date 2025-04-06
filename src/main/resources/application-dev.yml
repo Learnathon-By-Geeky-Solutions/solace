@@ -3,7 +3,7 @@ spring:
     name: twiggle
   data:
     mongodb:
-      uri: mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}/${MONGODB_DATABASE}?retryWrites=true&w=majority&ssl=true
+      uri: mongodb+srv://${MONGODB_USER}:${MONGODB_PASSWORD}@${MONGODB_HOST}/${MONGODB_DATABASE}?retryWrites=true&w=majority&ssl=true
     supabase:
       uri: jdbc:postgresql://${SUPABASE_URL}:5432/postgres
   # PostgreSQL with Supabase configuration
