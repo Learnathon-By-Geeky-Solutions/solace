@@ -78,11 +78,7 @@ public class GardenPlanController {
      */
     @PostMapping
     @RateLimiter(name = "standard-api")
-    public ResponseEntity<GardenPlan> createGardenPlan(
-            @RequestBody GardenPlan gardenPlan, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<GardenPlan> createGardenPlan(@RequestBody GardenPlan gardenPlan) {
         GardenPlan createdPlan = gardenPlanService.create(gardenPlan);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPlan);
     }
