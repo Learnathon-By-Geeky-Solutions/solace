@@ -2,15 +2,14 @@ package dev.solace.twiggle.service;
 
 import dev.solace.twiggle.model.postgres.Plant;
 import dev.solace.twiggle.repository.postgres.PlantRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service class for managing plants.
@@ -84,19 +83,18 @@ public class PlantService {
      */
     @Transactional
     public Optional<Plant> update(UUID id, Plant plant) {
-        return plantRepository.findById(id)
-                .map(existingPlant -> {
-                    existingPlant.setName(plant.getName());
-                    existingPlant.setType(plant.getType());
-                    existingPlant.setDescription(plant.getDescription());
-                    existingPlant.setWateringFrequency(plant.getWateringFrequency());
-                    existingPlant.setSunlightRequirements(plant.getSunlightRequirements());
-                    existingPlant.setPositionX(plant.getPositionX());
-                    existingPlant.setPositionY(plant.getPositionY());
-                    existingPlant.setImageUrl(plant.getImageUrl());
-                    existingPlant.setUpdatedAt(OffsetDateTime.now());
-                    return plantRepository.save(existingPlant);
-                });
+        return plantRepository.findById(id).map(existingPlant -> {
+            existingPlant.setName(plant.getName());
+            existingPlant.setType(plant.getType());
+            existingPlant.setDescription(plant.getDescription());
+            existingPlant.setWateringFrequency(plant.getWateringFrequency());
+            existingPlant.setSunlightRequirements(plant.getSunlightRequirements());
+            existingPlant.setPositionX(plant.getPositionX());
+            existingPlant.setPositionY(plant.getPositionY());
+            existingPlant.setImageUrl(plant.getImageUrl());
+            existingPlant.setUpdatedAt(OffsetDateTime.now());
+            return plantRepository.save(existingPlant);
+        });
     }
 
     /**
@@ -108,4 +106,4 @@ public class PlantService {
     public void delete(UUID id) {
         plantRepository.deleteById(id);
     }
-} 
+}

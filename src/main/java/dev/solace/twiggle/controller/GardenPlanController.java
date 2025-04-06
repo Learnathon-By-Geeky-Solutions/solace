@@ -3,13 +3,13 @@ package dev.solace.twiggle.controller;
 import dev.solace.twiggle.model.postgres.GardenPlan;
 import dev.solace.twiggle.service.GardenPlanService;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.UUID;
 
 /**
  * REST controller for garden plans.
@@ -41,7 +41,8 @@ public class GardenPlanController {
     @GetMapping("/{id}")
     @RateLimiter(name = "standard-api")
     public ResponseEntity<GardenPlan> getGardenPlanById(@PathVariable UUID id) {
-        return gardenPlanService.findById(id)
+        return gardenPlanService
+                .findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -77,7 +78,11 @@ public class GardenPlanController {
      */
     @PostMapping
     @RateLimiter(name = "standard-api")
-    public ResponseEntity<GardenPlan> createGardenPlan(@RequestBody GardenPlan gardenPlan) {
+    public ResponseEntity<GardenPlan> createGardenPlan(
+            @RequestBody GardenPlan gardenPlan, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().build();
+        }
         GardenPlan createdPlan = gardenPlanService.create(gardenPlan);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPlan);
     }
@@ -92,7 +97,11 @@ public class GardenPlanController {
     @PutMapping("/{id}")
     @RateLimiter(name = "standard-api")
     public ResponseEntity<GardenPlan> updateGardenPlan(@PathVariable UUID id, @RequestBody GardenPlan gardenPlan) {
-        return gardenPlanService.update(id, gardenPlan)
+        if (gardenPlan.getId() != null && !id.equals(gardenPlan.getId())) {
+            return ResponseEntity.badRequest().build();
+        }
+        return gardenPlanService
+                .update(id, gardenPlan)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -106,7 +115,11 @@ public class GardenPlanController {
     @DeleteMapping("/{id}")
     @RateLimiter(name = "standard-api")
     public ResponseEntity<Void> deleteGardenPlan(@PathVariable UUID id) {
-        gardenPlanService.delete(id);
-        return ResponseEntity.noContent().build();
+        try {
+            gardenPlanService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
-} 
+}

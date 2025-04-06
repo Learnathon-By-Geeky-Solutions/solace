@@ -1,8 +1,8 @@
 package dev.solace.twiggle.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 /**
  * Data Transfer Object for sending reminder emails.
@@ -20,4 +20,4 @@ public class ReminderEmailRequest {
     private String imageUrl; // Added for plant image
     private String gardenSpaceName; // Added for garden space name
     private String gardenSpaceId; // Added for linking back to garden space
-} 
+}

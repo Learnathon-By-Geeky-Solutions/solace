@@ -4,13 +4,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.OffsetDateTime;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.OffsetDateTime;
-import java.util.UUID;
 
 /**
  * Profile entity that maps to the existing 'profiles' table in Supabase.
@@ -38,4 +37,4 @@ public class Profile {
 
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
-} 
+}

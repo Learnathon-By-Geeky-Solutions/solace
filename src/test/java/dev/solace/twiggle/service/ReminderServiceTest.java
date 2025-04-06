@@ -1,11 +1,18 @@
 package dev.solace.twiggle.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import com.resend.Resend;
 import com.resend.core.exception.ResendException;
 import com.resend.services.emails.Emails;
 import com.resend.services.emails.model.CreateEmailOptions;
 import com.resend.services.emails.model.CreateEmailResponse;
 import dev.solace.twiggle.model.ReminderEmailRequest;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,41 +21,30 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class ReminderServiceTest {
 
     @Mock
     private Resend resendMock;
-    
+
     @Mock
     private Emails emailsMock;
-    
+
     private ReminderService reminderService;
-    
+
     private ReminderEmailRequest validRequest;
 
     @BeforeEach
     void setUp() throws ResendException {
         // Initialize the service with test values
-        reminderService = new ReminderService(
-                "test-api-key", 
-                "Test <test@example.com>",
-                "https://test-supabase.co");
-        
+        reminderService = new ReminderService("test-api-key", "Test <test@example.com>", "https://test-supabase.co");
+
         // Use reflection to replace the real Resend client with our mock
         ReflectionTestUtils.setField(reminderService, "resend", resendMock);
-        
+
         // Setup the emails mock
         when(resendMock.emails()).thenReturn(emailsMock);
-        
+
         // Create a valid test request
         validRequest = new ReminderEmailRequest();
         validRequest.setPlantName("Test Plant");
@@ -67,7 +63,7 @@ class ReminderServiceTest {
         // Arrange
         CreateEmailResponse mockResponse = new CreateEmailResponse();
         mockResponse.setId("test-email-id-123");
-        
+
         // Setup the emails mock to return the response
         when(emailsMock.send(any(CreateEmailOptions.class))).thenReturn(mockResponse);
 
@@ -79,13 +75,13 @@ class ReminderServiceTest {
         verify(resendMock, times(1)).emails();
         verify(emailsMock, times(1)).send(any(CreateEmailOptions.class));
     }
-    
+
     @Test
     void sendReminderEmailWithId_Success() throws ResendException {
         // Arrange
         CreateEmailResponse mockResponse = new CreateEmailResponse();
         mockResponse.setId("test-email-id-123");
-        
+
         // Setup the emails mock to return the response
         when(emailsMock.send(any(CreateEmailOptions.class))).thenReturn(mockResponse);
 
@@ -98,7 +94,7 @@ class ReminderServiceTest {
         verify(resendMock, times(1)).emails();
         verify(emailsMock, times(1)).send(any(CreateEmailOptions.class));
     }
-    
+
     @Test
     void sendReminderEmail_HandlesException() throws ResendException {
         // Arrange
@@ -112,7 +108,7 @@ class ReminderServiceTest {
         verify(resendMock, times(1)).emails();
         verify(emailsMock, times(1)).send(any(CreateEmailOptions.class));
     }
-    
+
     @Test
     void sendReminderEmailWithId_HandlesException() throws ResendException {
         // Arrange
@@ -127,14 +123,14 @@ class ReminderServiceTest {
         verify(resendMock, times(1)).emails();
         verify(emailsMock, times(1)).send(any(CreateEmailOptions.class));
     }
-    
+
     @Test
     void verifyEmailContent() throws ResendException {
         // Arrange
         ArgumentCaptor<CreateEmailOptions> emailCaptor = ArgumentCaptor.forClass(CreateEmailOptions.class);
         CreateEmailResponse mockResponse = new CreateEmailResponse();
         mockResponse.setId("test-email-id-123");
-        
+
         // Setup the emails mock to capture the options and return a response
         when(emailsMock.send(emailCaptor.capture())).thenReturn(mockResponse);
 
@@ -143,14 +139,14 @@ class ReminderServiceTest {
 
         // Assert
         CreateEmailOptions capturedEmail = emailCaptor.getValue();
-        
+
         // Verify recipient email
         assertEquals(validRequest.getUserEmail(), capturedEmail.getTo().get(0));
-        
+
         // Verify subject contains plant name and reminder type
         assertTrue(capturedEmail.getSubject().contains(validRequest.getPlantName()));
         assertTrue(capturedEmail.getSubject().contains(validRequest.getReminderType()));
-        
+
         // Verify HTML content contains key elements
         String htmlContent = capturedEmail.getHtml();
         assertTrue(htmlContent.contains(validRequest.getPlantName()));
@@ -159,4 +155,4 @@ class ReminderServiceTest {
         assertTrue(htmlContent.contains(validRequest.getGardenSpaceName()));
         assertTrue(htmlContent.contains(validRequest.getNotes()));
     }
-} 
+}

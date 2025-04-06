@@ -2,15 +2,14 @@ package dev.solace.twiggle.service;
 
 import dev.solace.twiggle.model.postgres.Profile;
 import dev.solace.twiggle.repository.postgres.ProfileRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service class for managing user profiles.
@@ -64,13 +63,12 @@ public class ProfileService {
      */
     @Transactional
     public Optional<Profile> update(UUID id, Profile profile) {
-        return profileRepository.findById(id)
-                .map(existingProfile -> {
-                    existingProfile.setFullName(profile.getFullName());
-                    existingProfile.setAvatarUrl(profile.getAvatarUrl());
-                    existingProfile.setUpdatedAt(OffsetDateTime.now());
-                    return profileRepository.save(existingProfile);
-                });
+        return profileRepository.findById(id).map(existingProfile -> {
+            existingProfile.setFullName(profile.getFullName());
+            existingProfile.setAvatarUrl(profile.getAvatarUrl());
+            existingProfile.setUpdatedAt(OffsetDateTime.now());
+            return profileRepository.save(existingProfile);
+        });
     }
 
     /**
@@ -82,4 +80,4 @@ public class ProfileService {
     public void delete(UUID id) {
         profileRepository.deleteById(id);
     }
-} 
+}

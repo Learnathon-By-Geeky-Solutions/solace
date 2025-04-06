@@ -2,15 +2,14 @@ package dev.solace.twiggle.service;
 
 import dev.solace.twiggle.model.postgres.GardenPlan;
 import dev.solace.twiggle.repository.postgres.GardenPlanRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service class for managing garden plans.
@@ -83,17 +82,16 @@ public class GardenPlanService {
      */
     @Transactional
     public Optional<GardenPlan> update(UUID id, GardenPlan gardenPlan) {
-        return gardenPlanRepository.findById(id)
-                .map(existingPlan -> {
-                    existingPlan.setName(gardenPlan.getName());
-                    existingPlan.setType(gardenPlan.getType());
-                    existingPlan.setDescription(gardenPlan.getDescription());
-                    existingPlan.setLocation(gardenPlan.getLocation());
-                    existingPlan.setThumbnailUrl(gardenPlan.getThumbnailUrl());
-                    existingPlan.setIsPublic(gardenPlan.getIsPublic());
-                    existingPlan.setUpdatedAt(OffsetDateTime.now());
-                    return gardenPlanRepository.save(existingPlan);
-                });
+        return gardenPlanRepository.findById(id).map(existingPlan -> {
+            existingPlan.setName(gardenPlan.getName());
+            existingPlan.setType(gardenPlan.getType());
+            existingPlan.setDescription(gardenPlan.getDescription());
+            existingPlan.setLocation(gardenPlan.getLocation());
+            existingPlan.setThumbnailUrl(gardenPlan.getThumbnailUrl());
+            existingPlan.setIsPublic(gardenPlan.getIsPublic());
+            existingPlan.setUpdatedAt(OffsetDateTime.now());
+            return gardenPlanRepository.save(existingPlan);
+        });
     }
 
     /**
@@ -105,4 +103,4 @@ public class GardenPlanService {
     public void delete(UUID id) {
         gardenPlanRepository.deleteById(id);
     }
-} 
+}

@@ -1,5 +1,6 @@
 package dev.solace.twiggle.config;
 
+import java.util.HashMap;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
@@ -14,18 +15,15 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import java.util.HashMap;
-
 /**
  * Configuration class for PostgreSQL database connection.
  */
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-    basePackages = "dev.solace.twiggle.repository.postgres",
-    entityManagerFactoryRef = "postgresEntityManagerFactory",
-    transactionManagerRef = "postgresTransactionManager"
-)
+        basePackages = "dev.solace.twiggle.repository.postgres",
+        entityManagerFactoryRef = "postgresEntityManagerFactory",
+        transactionManagerRef = "postgresTransactionManager")
 public class PostgreSQLConfig {
 
     @Primary
@@ -46,25 +44,29 @@ public class PostgreSQLConfig {
     @Bean(name = "postgresEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(
             @Qualifier("postgresDataSource") DataSource dataSource) {
-        
+
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource);
         em.setPackagesToScan("dev.solace.twiggle.model.postgres");
-        
+
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         vendorAdapter.setGenerateDdl(false);
         em.setJpaVendorAdapter(vendorAdapter);
-        
+
         HashMap<String, Object> properties = new HashMap<>();
         properties.put("hibernate.hbm2ddl.auto", "none");
         properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         properties.put("hibernate.show_sql", "true");
         properties.put("hibernate.format_sql", "true");
         properties.put("hibernate.globally_quoted_identifiers", "true");
-        properties.put("hibernate.physical_naming_strategy", "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl");
-        properties.put("hibernate.implicit_naming_strategy", "org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl");
+        properties.put(
+                "hibernate.physical_naming_strategy",
+                "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl");
+        properties.put(
+                "hibernate.implicit_naming_strategy",
+                "org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl");
         em.setJpaPropertyMap(properties);
-        
+
         return em;
     }
 
@@ -74,4 +76,4 @@ public class PostgreSQLConfig {
             @Qualifier("postgresEntityManagerFactory") LocalContainerEntityManagerFactoryBean entityManagerFactory) {
         return new JpaTransactionManager(entityManagerFactory.getObject());
     }
-} 
+}

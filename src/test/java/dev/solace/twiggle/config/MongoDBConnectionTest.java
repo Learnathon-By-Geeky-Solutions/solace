@@ -10,10 +10,11 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -24,9 +25,6 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
-
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @Testcontainers
 @SpringBootTest
@@ -76,7 +74,7 @@ class MongoDBConnectionTest {
     void tearDown() {
         // Skip if no database connection
         if (database == null) return;
-        
+
         // Clean up all test collections
         database.listCollectionNames().forEach(name -> {
             if (name.startsWith("test_")) {
