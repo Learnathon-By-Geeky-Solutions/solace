@@ -128,6 +128,10 @@ twiggle/
 │   │   │   │   │   ├── security              # Security (JWT, OAuth2, etc.)
 │   │   │   │   │   ├── ai                    # AI/ML integration (plant disease detection, recommendations)
 │   │   │   │   │   ├── scheduler             # Scheduling tasks (for watering, fertilizing)
+│   │   │   │   │   ├── controller            # Tests for controllers (API layer)
+│   │   │   │   │   ├── service               # Tests for services (business logic layer)
+│   │   │   │   │   ├── repository            # Tests for repositories (data layer)
+│   │   │   │   │   ├── util                  # Tests for utility classes
 │   │   ├── resources
 │   │   │   ├── application.properties        # Application config properties
 │   │   │   ├── static                       # Static files (if needed, e.g., images for plant database)
@@ -194,11 +198,13 @@ Use the following commands to display the list of available commands:
 
 ### Testing
 
-Run unit and integration tests using:
+Run basic unit tests using:
 
 ```bash
 mvn test
 ```
+
+For detailed testing instructions, especially for integration tests with MongoDB, see [TESTING.md](TESTING.md).
 
 Alternatively, use the provided shell script to run the tests:
 
