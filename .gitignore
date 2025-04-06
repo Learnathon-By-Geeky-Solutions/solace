@@ -38,3 +38,5 @@ build/
 
 ### VS Code ###
 .vscode/
+.m2/
+.scannerwork/

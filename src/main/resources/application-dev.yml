@@ -3,7 +3,31 @@ spring:
     name: twiggle
   data:
     mongodb:
-      uri: mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}/${MONGODB_DATABASE}?retryWrites=true&w=majority&ssl=true
+      uri: mongodb+srv://${MONGODB_USER}:${MONGODB_PASSWORD}@${MONGODB_HOST}/${MONGODB_DATABASE}?retryWrites=true&w=majority&ssl=true
+    supabase:
+      uri: jdbc:postgresql://${SUPABASE_URL}:5432/postgres
+  # PostgreSQL with Supabase configuration
+  datasource:
+    url: ${spring.data.supabase.uri}
+    username: ${SUPABASE_USERNAME}
+    password: ${SUPABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        # dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        globally_quoted_identifiers: true
+        hbm2ddl:
+          auto: none
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
 
 server:
   port: 8080
