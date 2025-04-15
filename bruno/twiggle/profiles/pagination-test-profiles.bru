@@ -1,0 +1,18 @@
+meta {
+  name: pagination-test-profiles
+  type: http
+  seq: 11
+}
+
+get {
+  url: http://localhost:8080/api/profiles
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 0
+  size: 3
+  sort: fullName
+  direction: ASC
+}

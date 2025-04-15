@@ -1,0 +1,18 @@
+meta {
+  name: create-profile-validation-test
+  type: http
+  seq: 12
+}
+
+post {
+  url: http://localhost:8080/api/profiles
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "fullName": "This is an extremely long name that should exceed the maximum length limitation for the fullName field in our validation constraints. It's intentionally verbose to test the size validation annotation that we have added to the DTO class. We expect this operation to fail because the name is too long.",
+    "avatarUrl": "https://images.unsplash.com/photo-invalid"
+  }
+}

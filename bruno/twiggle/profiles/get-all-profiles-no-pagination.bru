@@ -1,0 +1,11 @@
+meta {
+  name: get-all-profiles-no-pagination
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8080/api/profiles/all
+  body: none
+  auth: inherit
+}

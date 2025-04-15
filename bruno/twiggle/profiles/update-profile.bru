@@ -1,0 +1,21 @@
+meta {
+  name: update-profile
+  type: http
+  seq: 9
+}
+
+put {
+  url: http://localhost:8080/api/profiles/26ad2141-a186-4ca0-81ef-ba478ab3ba80
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "fullName": "Jane Smith",
+    "avatarUrl": "https://images.unsplash.com/photo-profile-jane",
+    "createdAt": "2025-04-15T11:23:57.441Z",
+    "updatedAt": "2025-04-15T11:23:57.441Z"
+  }
+  
+}
