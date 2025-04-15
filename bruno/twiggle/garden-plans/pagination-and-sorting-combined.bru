@@ -1,0 +1,18 @@
+meta {
+  name: pagination-and-sorting-combined
+  type: http
+  seq: 16
+}
+
+get {
+  url: http://localhost:8080/api/garden-plans
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 0
+  size: 3
+  sort: location
+  direction: ASC
+}

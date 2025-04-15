@@ -1,3 +1,4 @@
+version: '3.8'
 services:
   app:
     build:
@@ -19,28 +20,6 @@ services:
     restart: unless-stopped
     networks:
       - monitoring-network
-    depends_on:
-      - mongodb
-    env_file:
-      - ../.env
-    environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/twiggle
-
-  mongodb:
-    image: mongo:7.0.5
-    container_name: mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - monitoring-network
-    restart: unless-stopped
-
-volumes:
-  mongodb_data:
-    driver: local
-
 networks:
   monitoring-network:
     driver: bridge

@@ -1,0 +1,25 @@
+meta {
+  name: create-plant-validation-test
+  type: http
+  seq: 16
+}
+
+post {
+  url: http://localhost:8080/api/plants
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "gardenPlanId": null,
+    "name": "",
+    "type": "",
+    "description": "This request should fail due to validation errors",
+    "wateringFrequency": "Daily",
+    "sunlightRequirements": "Full sun",
+    "positionX": 5,
+    "positionY": 10,
+    "imageUrl": "https://images.unsplash.com/photo-invalid"
+  }
+}

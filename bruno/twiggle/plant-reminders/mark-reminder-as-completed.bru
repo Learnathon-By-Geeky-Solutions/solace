@@ -1,0 +1,11 @@
+meta {
+  name: mark-reminder-as-completed
+  type: http
+  seq: 10
+}
+
+put {
+  url: http://localhost:8080/api/plant-reminders/abcdef12-3456-7890-abcd-ef1234567890/complete
+  body: none
+  auth: inherit
+}

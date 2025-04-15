@@ -4,14 +4,11 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 
-# Default to skipping tests in Docker build (can be overridden)
-ARG SKIP_TESTS=true
-
-# Run code formatting and package the application
+# Run code formatting, tests, and package the application
 # Use Maven cache mount to speed up builds
 RUN --mount=type=cache,target=/root/.m2 \
     mvn spotless:apply && \
-    mvn clean package -DskipTests=${SKIP_TESTS}
+    mvn clean verify
 
 # Run stage
 FROM amazoncorretto:21-alpine

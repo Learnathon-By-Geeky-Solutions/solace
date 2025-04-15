@@ -1,0 +1,43 @@
+meta {
+  name: Twiggle Garden API Environments
+  type: environment
+  seq: 1
+}
+
+// Local Development Environment
+environment {
+  name: Local
+  scheme: http
+  host: localhost:8080
+  path: /api
+}
+
+// Development Server Environment
+environment {
+  name: Development
+  scheme: https
+  host: dev-api.twiggle.dev
+  path: /api
+}
+
+// Test Server Environment
+environment {
+  name: Testing
+  scheme: https
+  host: test-api.twiggle.dev
+  path: /api
+}
+
+// Production Environment
+environment {
+  name: Production
+  scheme: https
+  host: api.twiggle.dev
+  path: /api
+}
+
+// Example Variables
+vars {
+  testUserId: 3ed55bf9-ba06-4d33-99e9-e590f2b36f12
+  testGardenPlanId: 82950eac-afa8-4b58-8129-479fa4cd8739
+}

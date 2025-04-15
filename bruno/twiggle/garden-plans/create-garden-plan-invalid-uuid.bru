@@ -1,0 +1,22 @@
+meta {
+  name: create-garden-plan-invalid-uuid
+  type: http
+  seq: 20
+}
+
+post {
+  url: http://localhost:8080/api/garden-plans
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "userId": "invalid-uuid-format",
+    "name": "Garden with Invalid UUID",
+    "type": "indoor",
+    "description": "Garden plan with invalid UUID format",
+    "location": "Test Location",
+    "isPublic": true
+  }
+}

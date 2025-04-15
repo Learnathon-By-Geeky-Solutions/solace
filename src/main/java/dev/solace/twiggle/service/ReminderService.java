@@ -4,7 +4,7 @@ import com.resend.Resend;
 import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.CreateEmailOptions;
 import com.resend.services.emails.model.CreateEmailResponse;
-import dev.solace.twiggle.model.ReminderEmailRequest;
+import dev.solace.twiggle.dto.ReminderEmailRequest;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;

@@ -1,0 +1,17 @@
+meta {
+  name: get-future-reminders-by-date
+  type: http
+  seq: 13
+}
+
+get {
+  url: http://localhost:8080/api/plant-reminders/due
+  body: none
+  auth: inherit
+}
+
+params:query {
+  date: 2025-06-30
+  page: 0
+  size: 10
+}

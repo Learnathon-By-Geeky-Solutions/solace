@@ -1,0 +1,18 @@
+meta {
+  name: get-activities-by-user-id-and-type
+  type: http
+  seq: 6
+}
+
+get {
+  url: http://localhost:8080/api/activities/user/3ed55bf9-ba06-4d33-99e9-e590f2b36f12/type/WATERING
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 0
+  size: 10
+  sort: createdAt
+  direction: DESC
+}

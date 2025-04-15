@@ -1,0 +1,17 @@
+meta {
+  name: search-garden-plans-advanced-partial
+  type: http
+  seq: 25
+}
+
+get {
+  url: http://localhost:8080/api/garden-plans/search/advanced?type=room&page=0&size=10
+  body: none
+  auth: inherit
+}
+
+params:query {
+  type: room
+  page: 0
+  size: 10
+}

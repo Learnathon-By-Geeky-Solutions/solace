@@ -1,7 +1,12 @@
 package dev.solace.twiggle.controller;
 
-import dev.solace.twiggle.model.ReminderEmailRequest;
+import dev.solace.twiggle.dto.ApiResponse;
+import dev.solace.twiggle.dto.ReminderEmailRequest;
+import dev.solace.twiggle.exception.CustomException;
+import dev.solace.twiggle.exception.ErrorCode;
 import dev.solace.twiggle.service.ReminderService;
+import dev.solace.twiggle.util.ResponseUtil;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -10,65 +15,54 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/reminders")
-@RequiredArgsConstructor // Automatically creates constructor for final fields (ReminderService)
+@RequiredArgsConstructor
 @Slf4j
+@RateLimiter(name = "standard-api")
 public class ReminderController {
 
-    private static final String SUCCESS_KEY = "success";
-    private static final String ERROR_KEY = "error";
-
     private final ReminderService reminderService;
+    private static final String SUCCESS = "success";
 
     @PostMapping("/send")
-    public ResponseEntity<Map<String, Object>> sendReminder(@RequestBody ReminderEmailRequest request) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> sendReminder(@RequestBody ReminderEmailRequest request) {
         log.info("Received request to send reminder for plant: {}", request.getPlantName());
         try {
             Map<String, Object> result = reminderService.sendReminderEmailWithId(request);
-            boolean success = (boolean) result.get(SUCCESS_KEY);
+            boolean success = (boolean) result.get(SUCCESS);
 
             if (success) {
                 log.info("Successfully processed reminder request for {}", request.getUserEmail());
                 Map<String, Object> response = new HashMap<>();
-                response.put(SUCCESS_KEY, true);
+                response.put(SUCCESS, true);
                 response.put("message", "Reminder email sent successfully");
-
-                // Add the ID if it exists
                 if (result.containsKey("id")) {
                     response.put("id", result.get("id"));
                 }
-
-                return ResponseEntity.ok(response);
+                return ResponseUtil.success("Reminder email sent successfully", response);
             } else {
                 log.warn("Failed to send reminder email for {}", request.getUserEmail());
-                // Avoid exposing too much detail in the error response
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of(SUCCESS_KEY, false, ERROR_KEY, "Failed to send reminder email."));
+                throw new CustomException(
+                        "Failed to send reminder email",
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        ErrorCode.EMAIL_SENDING_FAILED);
             }
+        } catch (CustomException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Unexpected error in sendReminder controller: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(SUCCESS_KEY, false, ERROR_KEY, "An unexpected error occurred."));
+            throw new CustomException(
+                    "An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
         }
     }
 
-    /**
-     * Test endpoint to quickly send a sample email to the specified recipient
-     * For development and testing only - disable in production
-     */
     @GetMapping("/test/{email}")
-    public ResponseEntity<Map<String, Object>> testEmail(@PathVariable String email) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> testEmail(@PathVariable String email) {
         log.info("Sending test email to: {}", email);
 
-        // Create a sample reminder request
         ReminderEmailRequest testRequest = new ReminderEmailRequest();
         testRequest.setPlantName("Test Plant");
         testRequest.setReminderType("Water");
@@ -81,16 +75,26 @@ public class ReminderController {
         testRequest.setGardenSpaceName("Test Garden");
         testRequest.setGardenSpaceId("test-garden-id");
 
-        // Send test email
-        Map<String, Object> result = reminderService.sendReminderEmailWithId(testRequest);
-        boolean success = (boolean) result.get(SUCCESS_KEY);
+        try {
+            Map<String, Object> result = reminderService.sendReminderEmailWithId(testRequest);
+            boolean success = (boolean) result.get(SUCCESS);
 
-        if (success) {
-            return ResponseEntity.ok(Map.of(
-                    SUCCESS_KEY, true, "message", "Test email sent successfully to " + email, "id", result.get("id")));
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(SUCCESS_KEY, false, ERROR_KEY, "Failed to send test email"));
+            if (success) {
+                Map<String, Object> response = new HashMap<>();
+                response.put(SUCCESS, true);
+                response.put("message", "Test email sent successfully to " + email);
+                response.put("id", result.get("id"));
+                return ResponseUtil.success("Test email sent successfully", response);
+            } else {
+                throw new CustomException(
+                        "Failed to send test email", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.EMAIL_SENDING_FAILED);
+            }
+        } catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error in testEmail controller: {}", e.getMessage(), e);
+            throw new CustomException(
+                    "An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
         }
     }
 }

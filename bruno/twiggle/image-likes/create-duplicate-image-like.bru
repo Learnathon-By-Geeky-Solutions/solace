@@ -1,0 +1,24 @@
+meta {
+  name: create-duplicate-image-like
+  type: http
+  seq: 11
+}
+
+post {
+  url: http://localhost:8080/api/image-likes
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "imageId": "12345678-1234-1234-1234-123456789abc",
+    "userId": "3ed55bf9-ba06-4d33-99e9-e590f2b36f12"
+  }
+}
+
+docs {
+  This request is meant to test the error handling for duplicate likes.
+  It's assumed that the user has already liked this image (run create-image-like.bru first),
+  so this request should return a 409 Conflict error.
+}

@@ -1,0 +1,18 @@
+meta {
+  name: create-image-like-validation-test
+  type: http
+  seq: 12
+}
+
+post {
+  url: http://localhost:8080/api/image-likes
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "imageId": null,
+    "userId": null
+  }
+}

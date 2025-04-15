@@ -1,0 +1,17 @@
+meta {
+  name: search-plants-advanced
+  type: http
+  seq: 6
+}
+
+get {
+  url: http://localhost:8080/api/plants/search/advanced?name=Mint&page=0&size=10
+  body: none
+  auth: inherit
+}
+
+params:query {
+  name: Mint
+  page: 0
+  size: 10
+}

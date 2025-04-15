@@ -1,0 +1,22 @@
+meta {
+  name: update-garden-image
+  type: http
+  seq: 7
+}
+
+put {
+  url: http://localhost:8080/api/garden-images/12345678-1234-1234-1234-123456789abc
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "gardenPlanId": "82950eac-afa8-4b58-8129-479fa4cd8739",
+    "title": "Updated Spring Garden View",
+    "imageUrl": "https://images.unsplash.com/photo-garden-spring-updated",
+    "description": "An updated view of the garden in spring with new flowers blooming",
+    "captureDate": "2025-04-15",
+    "tags": "spring,flowers,garden,updated"
+  }
+}

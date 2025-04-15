@@ -1,0 +1,25 @@
+meta {
+  name: update-activity
+  type: http
+  seq: 8
+}
+
+put {
+  url: http://localhost:8080/api/activities/123e4567-e89b-12d3-a456-426614174000
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "userId": "3ed55bf9-ba06-4d33-99e9-e590f2b36f12",
+    "gardenPlanId": "82950eac-afa8-4b58-8129-479fa4cd8739",
+    "plantId": "1c0f5b3e-6af7-46c1-b3b4-2cdf3cd55bf9",
+    "activityType": "WATERING",
+    "description": "Regular watering for tomato plants",
+    "scheduledDate": "2025-04-15",
+    "completedDate": "2025-04-15",
+    "status": "COMPLETED",
+    "notes": "Watered as scheduled. Plants are looking healthy."
+  }
+}

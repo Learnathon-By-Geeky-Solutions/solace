@@ -1,0 +1,18 @@
+meta {
+  name: user-garden-plans-with-pagination-sorting
+  type: http
+  seq: 17
+}
+
+get {
+  url: http://localhost:8080/api/garden-plans/user/3ed55bf9-ba06-4d33-99e9-e590f2b36f12
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 0
+  size: 2
+  sort: type
+  direction: ASC
+}

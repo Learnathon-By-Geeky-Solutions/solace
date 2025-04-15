@@ -1,0 +1,18 @@
+meta {
+  name: get-all-garden-plans
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8080/api/garden-plans?page=0&size=2&sort=createdAt&direction=DESC
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 0
+  size: 2
+  sort: createdAt
+  direction: DESC
+}

@@ -45,7 +45,7 @@ format_code() {
 # Function to build the application
 build_app() {
    echo -e "${CYAN}Building the application...${NC}"
-   if ! mvn -e clean install; then
+   if ! mvn clean install; then
        echo -e "${RED}Build failed. Fix the errors and try again.${NC}"
        exit 1
    fi

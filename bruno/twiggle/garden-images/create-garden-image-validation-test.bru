@@ -1,0 +1,22 @@
+meta {
+  name: create-garden-image-validation-test
+  type: http
+  seq: 11
+}
+
+post {
+  url: http://localhost:8080/api/garden-images
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "gardenPlanId": null,
+    "title": "",
+    "imageUrl": "",
+    "description": "This request should fail due to validation errors",
+    "captureDate": "invalid-date",
+    "tags": null
+  }
+}

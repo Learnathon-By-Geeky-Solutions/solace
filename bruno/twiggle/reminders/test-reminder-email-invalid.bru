@@ -1,0 +1,11 @@
+meta {
+  name: test-reminder-email-invalid
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://localhost:8080/api/reminders/test/invalid-email-format
+  body: none
+  auth: inherit
+}

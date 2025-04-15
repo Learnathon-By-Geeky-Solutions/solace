@@ -1,0 +1,19 @@
+meta {
+  name: create-garden-plan-missing-fields
+  type: http
+  seq: 18
+}
+
+post {
+  url: http://localhost:8080/api/garden-plans
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "description": "This garden plan is missing required fields like name, type, and userId",
+    "location": "Test Location",
+    "isPublic": true
+  }
+}

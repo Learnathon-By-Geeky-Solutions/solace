@@ -1,0 +1,21 @@
+meta {
+  name: create-profile
+  type: http
+  seq: 8
+}
+
+post {
+  url: http://localhost:8080/api/profiles
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "fullName": "Jane Smith",
+    "avatarUrl": "https://images.unsplash.com/photo-profile-jane",
+    "createdAt": "2025-04-15T11:23:57.441Z",
+    "updatedAt": "2025-04-15T11:23:57.441Z"
+  }
+  
+}

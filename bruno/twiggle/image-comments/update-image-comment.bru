@@ -1,0 +1,20 @@
+meta {
+  name: update-image-comment
+  type: http
+  seq: 7
+}
+
+put {
+  url: http://localhost:8080/api/image-comments/87654321-4321-4321-4321-cba987654321
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "imageId": "12345678-1234-1234-1234-123456789abc",
+    "userId": "3ed55bf9-ba06-4d33-99e9-e590f2b36f12",
+    "content": "Updated comment: I really love the garden layout and plant selection!",
+    "rating": 4
+  }
+}

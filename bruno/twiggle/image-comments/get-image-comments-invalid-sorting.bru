@@ -1,0 +1,18 @@
+meta {
+  name: get-image-comments-invalid-sorting
+  type: http
+  seq: 10
+}
+
+get {
+  url: http://localhost:8080/api/image-comments
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 0
+  size: 10
+  sort: invalidField
+  direction: INVALID
+}

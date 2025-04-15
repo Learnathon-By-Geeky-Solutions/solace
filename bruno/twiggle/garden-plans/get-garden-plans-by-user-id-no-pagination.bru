@@ -1,0 +1,11 @@
+meta {
+  name: get-garden-plans-by-user-id-no-pagination
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://localhost:8080/api/garden-plans/user/3ed55bf9-ba06-4d33-99e9-e5917ec77fca/all
+  body: none
+  auth: inherit
+}

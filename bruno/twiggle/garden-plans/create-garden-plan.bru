@@ -1,0 +1,26 @@
+meta {
+  name: create-garden-plan
+  type: http
+  seq: 8
+}
+
+post {
+  url: http://localhost:8080/api/garden-plans
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "userId": "921b5d03-c895-469b-8f04-617fdef911f9",
+    "name": "New Test Garden",
+    "type": "indoor",
+    "description": "A test garden for API testing",
+    "location": "Test Location",
+    "thumbnailUrl": "https://images.unsplash.com/photo-test",
+    "isPublic": true,
+    "createdAt": "2025-04-15T08:43:48.492Z",
+    "updatedAt": "2025-04-15T08:43:48.492Z"
+  }
+  
+}

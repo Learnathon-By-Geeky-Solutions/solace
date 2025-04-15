@@ -1,0 +1,23 @@
+meta {
+  name: create-plant-reminder-validation-test
+  type: http
+  seq: 14
+}
+
+post {
+  url: http://localhost:8080/api/plant-reminders
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "plantId": null,
+    "gardenPlanId": null,
+    "reminderType": "",
+    "reminderDate": "invalid-date",
+    "reminderTime": "25:70",
+    "notes": "This request should fail due to validation errors",
+    "isCompleted": false
+  }
+}

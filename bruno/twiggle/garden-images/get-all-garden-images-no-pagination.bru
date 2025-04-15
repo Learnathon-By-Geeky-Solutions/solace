@@ -1,0 +1,11 @@
+meta {
+  name: get-all-garden-images-no-pagination
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8080/api/garden-images/all
+  body: none
+  auth: inherit
+}
