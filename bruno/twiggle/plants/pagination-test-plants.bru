@@ -1,0 +1,18 @@
+meta {
+  name: pagination-test-plants
+  type: http
+  seq: 14
+}
+
+get {
+  url: http://localhost:8080/api/plants
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 0
+  size: 3
+  sort: name
+  direction: ASC
+}

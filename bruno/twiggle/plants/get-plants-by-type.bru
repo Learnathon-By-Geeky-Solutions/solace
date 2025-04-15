@@ -1,0 +1,18 @@
+meta {
+  name: get-plants-by-type
+  type: http
+  seq: 9
+}
+
+get {
+  url: http://localhost:8080/api/plants/type/herb?page=0&size=2&sort=name&direction=ASC
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 0
+  size: 2
+  sort: name
+  direction: ASC
+}
