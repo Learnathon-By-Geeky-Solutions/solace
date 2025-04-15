@@ -1,0 +1,18 @@
+meta {
+  name: pagination-test-image-comments
+  type: http
+  seq: 9
+}
+
+get {
+  url: http://localhost:8080/api/image-comments
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 0
+  size: 5
+  sort: rating
+  direction: DESC
+}

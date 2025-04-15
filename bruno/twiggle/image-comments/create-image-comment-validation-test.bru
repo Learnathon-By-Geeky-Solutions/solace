@@ -1,0 +1,20 @@
+meta {
+  name: create-image-comment-validation-test
+  type: http
+  seq: 11
+}
+
+post {
+  url: http://localhost:8080/api/image-comments
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "imageId": null,
+    "userId": null,
+    "content": "",
+    "rating": 10
+  }
+}

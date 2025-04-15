@@ -1,0 +1,20 @@
+meta {
+  name: create-image-comment
+  type: http
+  seq: 6
+}
+
+post {
+  url: http://localhost:8080/api/image-comments
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "imageId": "12345678-1234-1234-1234-123456789abc",
+    "userId": "3ed55bf9-ba06-4d33-99e9-e590f2b36f12",
+    "content": "Beautiful garden! I love the arrangement of the flowers.",
+    "rating": 5
+  }
+}

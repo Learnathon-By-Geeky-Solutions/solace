@@ -1,0 +1,25 @@
+meta {
+  name: create-activity-validation-test
+  type: http
+  seq: 12
+}
+
+post {
+  url: http://localhost:8080/api/activities
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "userId": null,
+    "gardenPlanId": null,
+    "plantId": null,
+    "activityType": "",
+    "description": "",
+    "scheduledDate": "invalid-date",
+    "completedDate": null,
+    "status": "INVALID_STATUS",
+    "notes": "This request should fail due to validation errors"
+  }
+}

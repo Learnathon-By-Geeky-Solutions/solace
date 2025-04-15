@@ -1,0 +1,36 @@
+package dev.solace.twiggle.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class PlantReminderDTO {
+
+    @NotNull(message = "Plant ID is required") private UUID plantId;
+
+    @NotNull(message = "Garden plan ID is required") private UUID gardenPlanId;
+
+    @NotBlank(message = "Reminder type is required")
+    @Size(max = 255, message = "Reminder type must be less than 255 characters")
+    private String reminderType;
+
+    @NotNull(message = "Reminder date is required") private LocalDate reminderDate;
+
+    @Size(max = 2000, message = "Notes must be less than 2000 characters")
+    private String notes;
+
+    private Boolean isCompleted;
+
+    private OffsetDateTime createdAt;
+}

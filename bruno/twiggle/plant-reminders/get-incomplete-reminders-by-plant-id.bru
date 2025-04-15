@@ -1,0 +1,11 @@
+meta {
+  name: get-incomplete-reminders-by-plant-id
+  type: http
+  seq: 6
+}
+
+get {
+  url: http://localhost:8080/api/plant-reminders/plant/1c0f5b3e-6af7-46c1-b3b4-2cdf3cd55bf9/incomplete
+  body: none
+  auth: inherit
+}

@@ -1,0 +1,11 @@
+meta {
+  name: count-comments-by-image-id
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://localhost:8080/api/image-comments/image/12345678-1234-1234-1234-123456789abc/count
+  body: none
+  auth: inherit
+}

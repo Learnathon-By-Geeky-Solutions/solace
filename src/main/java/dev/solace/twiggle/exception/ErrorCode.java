@@ -25,7 +25,8 @@ public enum ErrorCode {
     INTERNAL_ERROR("Please try again later or contact support if the issue persists."),
     RATE_LIMIT_EXCEEDED(
             "Please wait and try your request again later. Contact support if you need a higher rate limit."),
-    EMAIL_SENDING_FAILED("Please check the email service configuration and try again.");
+    EMAIL_SENDING_FAILED("Please check the email service configuration and try again."),
+    DUPLICATE("Please ensure the resource you're trying to create does not already exist.");
 
     private final String suggestion;
 

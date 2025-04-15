@@ -1,0 +1,23 @@
+meta {
+  name: create-plant-reminder
+  type: http
+  seq: 8
+}
+
+post {
+  url: http://localhost:8080/api/plant-reminders
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "plantId": "1c0f5b3e-6af7-46c1-b3b4-2cdf3cd55bf9",
+    "gardenPlanId": "82950eac-afa8-4b58-8129-479fa4cd8739",
+    "reminderType": "WATERING",
+    "reminderDate": "2025-04-25",
+    "reminderTime": "09:00",
+    "notes": "Water thoroughly but avoid wetting the leaves",
+    "isCompleted": false
+  }
+}

@@ -1,0 +1,18 @@
+meta {
+  name: pagination-test-activities
+  type: http
+  seq: 10
+}
+
+get {
+  url: http://localhost:8080/api/activities
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 0
+  size: 5
+  sort: scheduledDate
+  direction: ASC
+}

@@ -1,0 +1,18 @@
+meta {
+  name: get-activities-by-user-id
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://localhost:8080/api/activities/user/3ed55bf9-ba06-4d33-99e9-e590f2b36f12
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 0
+  size: 10
+  sort: createdAt
+  direction: DESC
+}

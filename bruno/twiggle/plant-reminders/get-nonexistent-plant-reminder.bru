@@ -1,0 +1,11 @@
+meta {
+  name: get-nonexistent-plant-reminder
+  type: http
+  seq: 15
+}
+
+get {
+  url: http://localhost:8080/api/plant-reminders/00000000-0000-0000-0000-000000000000
+  body: none
+  auth: inherit
+}
