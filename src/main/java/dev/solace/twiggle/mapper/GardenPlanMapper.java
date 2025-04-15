@@ -1,11 +1,10 @@
 package dev.solace.twiggle.mapper;
 
+import dev.solace.twiggle.dto.GardenPlanDTO;
 import dev.solace.twiggle.model.GardenPlan;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
-
-import dev.solace.twiggle.dto.GardenPlanDTO;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface GardenPlanMapper {

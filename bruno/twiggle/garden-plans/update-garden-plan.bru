@@ -1,0 +1,23 @@
+meta {
+  name: update-garden-plan
+  type: http
+  seq: 9
+}
+
+put {
+  url: http://localhost:8080/api/garden-plans/82950eac-afa8-4b58-8129-479fa4cd8739
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "userId": "3ed55bf9-ba06-4d33-99e9-e590f2b36f12",
+    "name": "Updated Balcony Herb Garden",
+    "type": "balcony",
+    "description": "Updated description for the balcony herb garden",
+    "location": "Bangladesh",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1234",
+    "isPublic": true
+  }
+}

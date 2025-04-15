@@ -1,10 +1,8 @@
 package dev.solace.twiggle.model;
 
 import jakarta.persistence.*;
-
 import java.time.OffsetDateTime;
 import java.util.UUID;
-
 import lombok.*;
 
 /**

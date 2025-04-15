@@ -1,11 +1,10 @@
 package dev.solace.twiggle.dto;
 
-import java.time.OffsetDateTime;
-import java.util.UUID;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.time.OffsetDateTime;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,8 +16,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class GardenPlanDTO {
 
-    @NotNull(message = "User ID is required")
-    private UUID userId;
+    @NotNull(message = "User ID is required") private UUID userId;
 
     @NotBlank(message = "Name is required")
     @Size(max = 255, message = "Name must be less than 255 characters")

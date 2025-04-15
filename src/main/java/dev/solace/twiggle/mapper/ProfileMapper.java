@@ -1,11 +1,10 @@
 package dev.solace.twiggle.mapper;
 
+import dev.solace.twiggle.dto.ProfileDTO;
+import dev.solace.twiggle.model.Profile;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
-
-import dev.solace.twiggle.dto.ProfileDTO;
-import dev.solace.twiggle.model.Profile;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ProfileMapper {

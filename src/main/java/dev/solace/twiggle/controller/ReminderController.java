@@ -1,9 +1,9 @@
 package dev.solace.twiggle.controller;
 
 import dev.solace.twiggle.dto.ApiResponse;
+import dev.solace.twiggle.dto.ReminderEmailRequest;
 import dev.solace.twiggle.exception.CustomException;
 import dev.solace.twiggle.exception.ErrorCode;
-import dev.solace.twiggle.dto.ReminderEmailRequest;
 import dev.solace.twiggle.service.ReminderService;
 import dev.solace.twiggle.util.ResponseUtil;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
@@ -55,9 +55,7 @@ public class ReminderController {
         } catch (Exception e) {
             log.error("Unexpected error in sendReminder controller: {}", e.getMessage(), e);
             throw new CustomException(
-                    "An unexpected error occurred",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
+                    "An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
         }
     }
 
@@ -89,18 +87,14 @@ public class ReminderController {
                 return ResponseUtil.success("Test email sent successfully", response);
             } else {
                 throw new CustomException(
-                        "Failed to send test email",
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        ErrorCode.EMAIL_SENDING_FAILED);
+                        "Failed to send test email", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.EMAIL_SENDING_FAILED);
             }
         } catch (CustomException e) {
             throw e;
         } catch (Exception e) {
             log.error("Unexpected error in testEmail controller: {}", e.getMessage(), e);
             throw new CustomException(
-                    "An unexpected error occurred",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
+                    "An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
         }
     }
 }

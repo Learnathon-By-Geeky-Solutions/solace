@@ -1,0 +1,11 @@
+meta {
+  name: get-public-garden-plans-no-pagination
+  type: http
+  seq: 7
+}
+
+get {
+  url: http://localhost:8080/api/garden-plans/public/all
+  body: none
+  auth: inherit
+}

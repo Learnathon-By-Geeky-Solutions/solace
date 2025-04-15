@@ -1,0 +1,22 @@
+meta {
+  name: create-garden-plan-empty-name
+  type: http
+  seq: 19
+}
+
+post {
+  url: http://localhost:8080/api/garden-plans
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "userId": "3ed55bf9-ba06-4d33-99e9-e590f2b36f12",
+    "name": "",
+    "type": "indoor",
+    "description": "Garden plan with empty name",
+    "location": "Test Location",
+    "isPublic": true
+  }
+}

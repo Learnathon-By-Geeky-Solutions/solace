@@ -1,9 +1,7 @@
 package dev.solace.twiggle.dto;
 
-import java.time.OffsetDateTime;
-import java.util.UUID;
-
 import jakarta.validation.constraints.Size;
+import java.time.OffsetDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
