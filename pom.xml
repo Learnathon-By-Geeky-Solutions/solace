@@ -27,6 +27,7 @@
 		<sonarsource.scanner.maven.version>3.9.1.2184</sonarsource.scanner.maven.version>
 		<lombok.version>1.18.36</lombok.version>
 		<dotenv.version>4.0.0</dotenv.version>
+		<resend.version>3.1.0</resend.version>
 		<mapstruct.version>1.6.3</mapstruct.version>
 		<spring-cloud.version>2024.0.0</spring-cloud.version>
 		<sonar.projectKey>twiggle</sonar.projectKey>
@@ -122,14 +123,22 @@
 			<artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
 		</dependency>
 
-		<!-- MongoDB -->
+		<!-- PostgreSQL & JPA -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-mongodb</artifactId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.mongodb</groupId>
-			<artifactId>mongodb-driver-sync</artifactId>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Resend -->
+		<dependency>
+			<groupId>com.resend</groupId>
+			<artifactId>resend-java</artifactId>
+			<version>${resend.version}</version>
 		</dependency>
 
 		<!-- Testing -->
@@ -144,20 +153,9 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- Testcontainers -->
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers</artifactId>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>junit-jupiter</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>mongodb</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
