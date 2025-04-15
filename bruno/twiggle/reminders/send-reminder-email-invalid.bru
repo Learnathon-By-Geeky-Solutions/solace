@@ -1,0 +1,25 @@
+meta {
+  name: send-reminder-email-invalid
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/api/reminders/send
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "plantName": "",
+    "reminderType": "",
+    "reminderDate": "invalid-date",
+    "reminderTime": "",
+    "notes": "This request should fail due to validation errors",
+    "userEmail": "invalid-email",
+    "imageUrl": "",
+    "gardenSpaceName": "",
+    "gardenSpaceId": ""
+  }
+}

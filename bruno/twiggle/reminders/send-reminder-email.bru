@@ -1,0 +1,25 @@
+meta {
+  name: send-reminder-email
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/api/reminders/send
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "plantName": "Basil Plant",
+    "reminderType": "Watering",
+    "reminderDate": "2025-04-20",
+    "reminderTime": "09:00 AM",
+    "notes": "Make sure to water thoroughly but avoid wetting the leaves",
+    "userEmail": "trisn.eclipse@gmail.com",
+    "imageUrl": "https://images.unsplash.com/photo-1463936575829-25148e1db1b8",
+    "gardenSpaceName": "Indoor Herb Garden",
+    "gardenSpaceId": "82950eac-afa8-4b58-8129-479fa4cd8739"
+  }
+}

@@ -1,0 +1,25 @@
+meta {
+  name: send-reminder-with-no-image
+  type: http
+  seq: 6
+}
+
+post {
+  url: http://localhost:8080/api/reminders/send
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "plantName": "Snake Plant",
+    "reminderType": "Repotting",
+    "reminderDate": "2025-05-10",
+    "reminderTime": "02:00 PM",
+    "notes": "Use well-draining soil mix for repotting",
+    "userEmail": "user@example.com",
+    "imageUrl": "",
+    "gardenSpaceName": "Living Room Garden",
+    "gardenSpaceId": "98765432-5432-5432-5432-cba876543210"
+  }
+}

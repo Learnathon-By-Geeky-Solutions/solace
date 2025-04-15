@@ -1,0 +1,25 @@
+meta {
+  name: send-reminder-multiple-plants
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:8080/api/reminders/send
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "plantName": "Multiple Plants",
+    "reminderType": "Fertilizing",
+    "reminderDate": "2025-04-25",
+    "reminderTime": "10:30 AM",
+    "notes": "Apply liquid fertilizer to all herbs in the indoor garden",
+    "userEmail": "user@example.com",
+    "imageUrl": "https://images.unsplash.com/photo-herbs-collection",
+    "gardenSpaceName": "Indoor Herb Garden",
+    "gardenSpaceId": "82950eac-afa8-4b58-8129-479fa4cd8739"
+  }
+}

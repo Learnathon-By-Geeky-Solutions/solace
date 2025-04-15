@@ -1,0 +1,25 @@
+meta {
+  name: send-reminder-with-long-notes
+  type: http
+  seq: 7
+}
+
+post {
+  url: http://localhost:8080/api/reminders/send
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "plantName": "Tomato Plant",
+    "reminderType": "Pruning",
+    "reminderDate": "2025-04-30",
+    "reminderTime": "11:00 AM",
+    "notes": "Remove all suckers (side shoots growing in the leaf axils) to improve airflow and direct plant energy to fruit production. Also remove any yellowing or diseased leaves. Make clean cuts using sterilized pruning shears. After pruning, water the plant thoroughly and consider applying a light organic fertilizer to support new growth. Keep an eye on the plant over the next few days to ensure it's responding well to the pruning.",
+    "userEmail": "user@example.com",
+    "imageUrl": "https://images.unsplash.com/photo-tomato-plant",
+    "gardenSpaceName": "Vegetable Garden",
+    "gardenSpaceId": "abcdef12-3456-7890-abcd-ef1234567890"
+  }
+}
