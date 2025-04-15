@@ -1,0 +1,17 @@
+meta {
+  name: search-garden-plans-advanced-partial-2
+  type: http
+  seq: 23
+}
+
+get {
+  url: http://localhost:8080/api/garden-plans/search/advanced?name=Balcony&page=0&size=10
+  body: none
+  auth: inherit
+}
+
+params:query {
+  name: Balcony
+  page: 0
+  size: 10
+}

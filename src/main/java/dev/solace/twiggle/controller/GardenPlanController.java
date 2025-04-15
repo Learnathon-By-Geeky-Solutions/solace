@@ -260,4 +260,77 @@ public class GardenPlanController {
                     "Failed to delete garden plan", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
         }
     }
+
+    /**
+     * Search garden plans with various criteria and pagination.
+     *
+     * @param query search term for name, description, type, or location (optional)
+     * @param userId filter by user ID (optional)
+     * @param isPublic filter by public status (optional)
+     * @param page page number (0-based)
+     * @param size page size
+     * @param sort sort property
+     * @param direction sort direction (ASC or DESC)
+     * @return page of matching garden plan DTOs
+     */
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<Page<GardenPlanDTO>>> searchGardenPlans(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false) Boolean isPublic,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sort,
+            @RequestParam(defaultValue = "DESC") String direction) {
+        try {
+            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
+            Page<GardenPlanDTO> plans = gardenPlanService.searchGardenPlans(query, userId, isPublic, pageable);
+            return ResponseUtil.success("Successfully searched garden plans", plans);
+        } catch (Exception e) {
+            log.error("Error searching garden plans: {}", e.getMessage(), e);
+            throw new CustomException(
+                    "Failed to search garden plans", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
+        }
+    }
+
+    /**
+     * Enhanced search for garden plans with specific fields and closest match capability.
+     * This endpoint allows searching by specific fields and returns results ordered by
+     * relevance, with closest matches to partial entries ranked higher.
+     *
+     * @param name search term for garden plan name (optional)
+     * @param type search term for garden plan type (optional)
+     * @param location search term for garden plan location (optional)
+     * @param query general search term for any field (optional)
+     * @param userId filter by user ID (optional)
+     * @param isPublic filter by public status (optional)
+     * @param page page number (0-based)
+     * @param size page size
+     * @return page of matching garden plan DTOs ordered by relevance
+     */
+    @GetMapping("/search/advanced")
+    public ResponseEntity<ApiResponse<Page<GardenPlanDTO>>> searchGardenPlansAdvanced(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false) Boolean isPublic,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            // For advanced search, we always sort by relevance score
+            Pageable pageable = PageRequest.of(page, size);
+            Page<GardenPlanDTO> plans = gardenPlanService.searchGardenPlansWithRelevance(
+                    name, type, location, query, userId, isPublic, pageable);
+            return ResponseUtil.success("Successfully searched garden plans with advanced criteria", plans);
+        } catch (Exception e) {
+            log.error("Error performing advanced search on garden plans: {}", e.getMessage(), e);
+            throw new CustomException(
+                    "Failed to perform advanced search on garden plans",
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    ErrorCode.INTERNAL_ERROR);
+        }
+    }
 }

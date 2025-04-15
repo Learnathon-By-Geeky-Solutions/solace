@@ -347,6 +347,7 @@ case "$1" in
        ;;
    "run")
        format_code
+       build_app
        run_local
        ;;
    "docker")

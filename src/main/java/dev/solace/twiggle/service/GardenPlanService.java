@@ -103,6 +103,50 @@ public class GardenPlanService {
     }
 
     /**
+     * Search garden plans by query, user ID, and public status.
+     *
+     * @param query search query for name, description, type, or location (optional)
+     * @param userId filter by user ID (optional)
+     * @param isPublic filter by public status (optional)
+     * @param pageable pagination and sorting parameters
+     * @return page of matching garden plan DTOs
+     */
+    public Page<GardenPlanDTO> searchGardenPlans(String query, UUID userId, Boolean isPublic, Pageable pageable) {
+        return gardenPlanRepository
+                .searchGardenPlans(query, userId, isPublic, pageable)
+                .map(gardenPlanMapper::toDto);
+    }
+
+    /**
+     * Enhanced search for garden plans with specific criteria for name, type, and location.
+     * Returns results with the closest match to partial entries.
+     *
+     * @param name search term for garden plan name (optional)
+     * @param type search term for garden plan type (optional)
+     * @param location search term for garden plan location (optional)
+     * @param query general search term for any field (optional)
+     * @param userId filter by user ID (optional)
+     * @param isPublic filter by public status (optional)
+     * @param pageable pagination and sorting parameters
+     * @return page of matching garden plan DTOs ordered by relevance
+     */
+    public Page<GardenPlanDTO> searchGardenPlansWithRelevance(
+            String name, String type, String location, String query, UUID userId, Boolean isPublic, Pageable pageable) {
+        try {
+            return gardenPlanRepository
+                    .searchGardenPlansWithRelevance(name, type, location, query, userId, isPublic, pageable)
+                    .map(gardenPlanMapper::toDto);
+        } catch (Exception e) {
+            // If the enhanced search fails (e.g., due to database compatibility issues),
+            // fall back to the simpler search method
+            log.warn("Enhanced search failed, falling back to simple search: {}", e.getMessage());
+            return gardenPlanRepository
+                    .searchGardenPlans(query, userId, isPublic, pageable)
+                    .map(gardenPlanMapper::toDto);
+        }
+    }
+
+    /**
      * Create a new garden plan.
      *
      * @param gardenPlanDTO the garden plan DTO to create
