@@ -77,3 +77,19 @@ resilience4j:
         limit-for-period: 60
         limit-refresh-period: 1m
         timeout-duration: 0s
+
+openai:
+  api:
+    key: ${OPENAI_API_KEY:}
+    url: https://api.openai.com/v1
+
+# Unsplash Configuration
+unsplash:
+  access:
+    key: ${UNSPLASH_ACCESS_KEY:}
+  api:
+    url: https://api.unsplash.com
+
+# CORS Configuration
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
