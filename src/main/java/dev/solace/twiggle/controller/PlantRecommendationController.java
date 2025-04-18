@@ -6,7 +6,6 @@ import dev.solace.twiggle.dto.recommendation.PlantRecommendationResponse;
 import dev.solace.twiggle.service.PlantRecommendationService;
 import dev.solace.twiggle.util.ResponseUtil;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,19 +61,6 @@ public class PlantRecommendationController {
             return buildErrorResponse(
                     HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred: " + e.getMessage());
         }
-    }
-
-    /**
-     * Fallback handler for unhandled exceptions.
-     */
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleException(Exception ex, HttpServletRequest request) {
-        log.error(
-                "Unhandled exception in PlantRecommendationController for path {}: {}",
-                request.getRequestURI(),
-                ex.getMessage(),
-                ex);
-        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error: " + ex.getMessage());
     }
 
     /**

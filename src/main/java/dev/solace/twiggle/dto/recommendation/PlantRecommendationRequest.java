@@ -1,6 +1,7 @@
 package dev.solace.twiggle.dto.recommendation;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -17,7 +18,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PlantRecommendationRequest {
 
+    @NotBlank(message = "Garden type must not be blank")
     private String gardenType; // optional — default: "Any"
+
+    @NotBlank(message = "Location must not be blank")
     private String location; // optional — default: "Any"
 
     // optional — can be empty
