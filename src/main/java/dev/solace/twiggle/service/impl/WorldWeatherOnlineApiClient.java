@@ -24,6 +24,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Slf4j
 public class WorldWeatherOnlineApiClient {
 
+    private static final String FORMAT_PARAM = "format";
+    private static final String FORMAT_JSON = "json";
+    private static final String NUM_OF_DAYS_PARAM = "num_of_days";
+    private static final String ALERTS_PARAM = "alerts";
+    private static final String WEATHER_ENDPOINT = "/weather.ashx";
+    private static final String YES_VALUE = "yes";
+
     private final RestTemplate restTemplate = new RestTemplate();
     private final WeatherApiConfig weatherApiConfig;
 
@@ -36,14 +43,14 @@ public class WorldWeatherOnlineApiClient {
     public String getCurrentWeather(String location) {
         Map<String, String> queryParams = new HashMap<>();
         queryParams.put("q", location);
-        queryParams.put("format", "json");
-        queryParams.put("num_of_days", "1");
-        queryParams.put("fx", "yes");
-        queryParams.put("cc", "yes");
-        queryParams.put("aqi", "yes");
-        queryParams.put("alerts", "yes");
+        queryParams.put(FORMAT_PARAM, FORMAT_JSON);
+        queryParams.put(NUM_OF_DAYS_PARAM, "1");
+        queryParams.put("fx", YES_VALUE);
+        queryParams.put("cc", YES_VALUE);
+        queryParams.put("aqi", YES_VALUE);
+        queryParams.put(ALERTS_PARAM, YES_VALUE);
 
-        return makeApiCall("/weather.ashx", queryParams);
+        return makeApiCall(WEATHER_ENDPOINT, queryParams);
     }
 
     /**
@@ -56,14 +63,14 @@ public class WorldWeatherOnlineApiClient {
     public String getCurrentWeatherByCoordinates(double latitude, double longitude) {
         Map<String, String> queryParams = new HashMap<>();
         queryParams.put("q", formatCoordinates(latitude, longitude));
-        queryParams.put("format", "json");
-        queryParams.put("num_of_days", "1");
-        queryParams.put("fx", "yes");
-        queryParams.put("cc", "yes");
-        queryParams.put("aqi", "yes");
-        queryParams.put("alerts", "yes");
+        queryParams.put(FORMAT_PARAM, FORMAT_JSON);
+        queryParams.put(NUM_OF_DAYS_PARAM, "1");
+        queryParams.put("fx", YES_VALUE);
+        queryParams.put("cc", YES_VALUE);
+        queryParams.put("aqi", YES_VALUE);
+        queryParams.put(ALERTS_PARAM, YES_VALUE);
 
-        return makeApiCall("/weather.ashx", queryParams);
+        return makeApiCall(WEATHER_ENDPOINT, queryParams);
     }
 
     /**
@@ -81,15 +88,15 @@ public class WorldWeatherOnlineApiClient {
 
         Map<String, String> queryParams = new HashMap<>();
         queryParams.put("q", location);
-        queryParams.put("format", "json");
-        queryParams.put("num_of_days", String.valueOf(days));
-        queryParams.put("fx", "yes");
-        queryParams.put("cc", "yes");
+        queryParams.put(FORMAT_PARAM, FORMAT_JSON);
+        queryParams.put(NUM_OF_DAYS_PARAM, String.valueOf(days));
+        queryParams.put("fx", YES_VALUE);
+        queryParams.put("cc", YES_VALUE);
         queryParams.put("tp", "3"); // 3-hourly forecast
-        queryParams.put("aqi", "yes");
-        queryParams.put("alerts", "yes");
+        queryParams.put("aqi", YES_VALUE);
+        queryParams.put(ALERTS_PARAM, YES_VALUE);
 
-        return makeApiCall("/weather.ashx", queryParams);
+        return makeApiCall(WEATHER_ENDPOINT, queryParams);
     }
 
     /**
@@ -108,15 +115,15 @@ public class WorldWeatherOnlineApiClient {
 
         Map<String, String> queryParams = new HashMap<>();
         queryParams.put("q", formatCoordinates(latitude, longitude));
-        queryParams.put("format", "json");
-        queryParams.put("num_of_days", String.valueOf(days));
-        queryParams.put("fx", "yes");
-        queryParams.put("cc", "yes");
+        queryParams.put(FORMAT_PARAM, FORMAT_JSON);
+        queryParams.put(NUM_OF_DAYS_PARAM, String.valueOf(days));
+        queryParams.put("fx", YES_VALUE);
+        queryParams.put("cc", YES_VALUE);
         queryParams.put("tp", "3"); // 3-hourly forecast
-        queryParams.put("aqi", "yes");
-        queryParams.put("alerts", "yes");
+        queryParams.put("aqi", YES_VALUE);
+        queryParams.put(ALERTS_PARAM, YES_VALUE);
 
-        return makeApiCall("/weather.ashx", queryParams);
+        return makeApiCall(WEATHER_ENDPOINT, queryParams);
     }
 
     /**

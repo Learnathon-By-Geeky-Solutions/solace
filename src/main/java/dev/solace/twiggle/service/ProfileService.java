@@ -8,7 +8,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -43,7 +42,7 @@ public class ProfileService {
      * @return list of all profile DTOs
      */
     public List<ProfileDTO> findAll() {
-        return profileRepository.findAll().stream().map(profileMapper::toDto).collect(Collectors.toList());
+        return profileRepository.findAll().stream().map(profileMapper::toDto).toList();
     }
 
     /**
@@ -78,7 +77,7 @@ public class ProfileService {
     public List<ProfileDTO> findByFullName(String fullName) {
         return profileRepository.findByFullNameContainingIgnoreCase(fullName).stream()
                 .map(profileMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**

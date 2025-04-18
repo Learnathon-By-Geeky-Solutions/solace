@@ -5,10 +5,11 @@ meta {
 }
 
 get {
-  url: http://localhost:8080/api/weather/hazards
-  query: {
-    location: London
-  }
+  url: http://localhost:8080/api/weather/hazards?location=London
   body: none
   auth: inherit
-} 
+}
+
+params:query {
+  location: London
+}

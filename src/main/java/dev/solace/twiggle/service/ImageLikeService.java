@@ -8,7 +8,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -45,7 +44,7 @@ public class ImageLikeService {
     public List<ImageLikeDTO> findAll() {
         return imageLikeRepository.findAll().stream()
                 .map(imageLikeMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**

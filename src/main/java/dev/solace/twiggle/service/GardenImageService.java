@@ -8,7 +8,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -45,7 +44,7 @@ public class GardenImageService {
     public List<GardenImageDTO> findAll() {
         return gardenImageRepository.findAll().stream()
                 .map(gardenImageMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -78,7 +77,7 @@ public class GardenImageService {
     public List<GardenImageDTO> findByGardenPlanId(UUID gardenPlanId) {
         return gardenImageRepository.findByGardenPlanId(gardenPlanId).stream()
                 .map(gardenImageMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**

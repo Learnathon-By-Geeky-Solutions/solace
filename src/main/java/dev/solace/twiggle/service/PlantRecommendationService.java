@@ -200,41 +200,56 @@ public class PlantRecommendationService {
     }
 
     private String buildSystemPrompt(String season) {
-        return new StringBuilder()
-                .append("You are a knowledgeable and warm gardening assistant...\n")
-                .append("- seasonal_tips: Tips specific to the current season (" + season + ")\n")
+        StringBuilder prompt = new StringBuilder(256);
+        prompt.append("You are a knowledgeable and warm gardening assistant...\n")
+                .append("- seasonal_tips: Tips specific to the current season (")
+                .append(season)
+                .append(")\n")
                 .append("- image_url: String - URL to a plant image (leave empty string)\n")
-                .append("CRITICALLY IMPORTANT: Return ONLY valid, parseable JSON. ...")
-                .toString();
+                .append("CRITICALLY IMPORTANT: Return ONLY valid, parseable JSON. ...");
+        return prompt.toString();
     }
 
     private String buildUserPrompt(PlantRecommendationRequest request, String season) {
         var prefs = request.getUserPreferences();
-        return new StringBuilder()
-                .append("Garden information:\n")
-                .append("- Type: " + request.getGardenType() + "\n")
-                .append("- Location: "
-                        + Optional.ofNullable(request.getLocation()).orElse(UNKNOWN) + "\n")
-                .append("- Current season: " + season + "\n")
-                .append("- Gardening experience: "
-                        + Optional.ofNullable(prefs.getExperience()).orElse("beginner") + "\n")
-                .append("- Time commitment: "
-                        + Optional.ofNullable(prefs.getTimeCommitment()).orElse("moderate") + "\n")
-                .append("- Harvest goals: "
-                        + (prefs.getHarvestGoals() != null
+        StringBuilder prompt = new StringBuilder(512);
+
+        prompt.append("Garden information:\n")
+                .append("- Type: ")
+                .append(request.getGardenType())
+                .append("\n")
+                .append("- Location: ")
+                .append(Optional.ofNullable(request.getLocation()).orElse(UNKNOWN))
+                .append("\n")
+                .append("- Current season: ")
+                .append(season)
+                .append("\n")
+                .append("- Gardening experience: ")
+                .append(Optional.ofNullable(prefs.getExperience()).orElse("beginner"))
+                .append("\n")
+                .append("- Time commitment: ")
+                .append(Optional.ofNullable(prefs.getTimeCommitment()).orElse("moderate"))
+                .append("\n")
+                .append("- Harvest goals: ")
+                .append(
+                        prefs.getHarvestGoals() != null
                                         && !prefs.getHarvestGoals().isEmpty()
                                 ? String.join(", ", prefs.getHarvestGoals())
                                 : "general gardening")
-                        + "\n")
-                .append("- Existing plants: "
-                        + (request.getExistingPlants() != null
+                .append("\n")
+                .append("- Existing plants: ")
+                .append(
+                        request.getExistingPlants() != null
                                         && !request.getExistingPlants().isEmpty()
                                 ? String.join(", ", request.getExistingPlants())
                                 : "None yet")
-                        + "\n\n")
-                .append("User query: " + request.getMessage() + "\n\n")
-                .append("Please provide 3-5 personalized plant recommendations...")
-                .toString();
+                .append("\n\n")
+                .append("User query: ")
+                .append(request.getMessage())
+                .append("\n\n")
+                .append("Please provide 3-5 personalized plant recommendations...");
+
+        return prompt.toString();
     }
 
     private String getCurrentSeason(String location) {
