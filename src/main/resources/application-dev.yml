@@ -36,6 +36,10 @@ weather:
     key: ${WEATHER_API_KEY:your_api_key_here}
     baseUrl: https://api.worldweatheronline.com/premium/v1
 
+plants:
+  api:
+    key: ${PERENUAL_API_KEY:your_api_key_here}
+
 management:
   info:
     git:
