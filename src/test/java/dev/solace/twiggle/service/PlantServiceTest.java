@@ -1,22 +1,18 @@
 package dev.solace.twiggle.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-import dev.solace.twiggle.dto.plant.PlantCreateRequest;
-import dev.solace.twiggle.dto.plant.PlantResponse;
-import dev.solace.twiggle.dto.plant.PlantUpdateRequest;
-import dev.solace.twiggle.exception.ResourceNotFoundException;
+import dev.solace.twiggle.dto.PlantDTO;
 import dev.solace.twiggle.mapper.PlantMapper;
 import dev.solace.twiggle.model.Plant;
 import dev.solace.twiggle.repository.PlantRepository;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,220 +38,290 @@ class PlantServiceTest {
 
     private Plant plant1;
     private Plant plant2;
-    private PlantResponse plantResponse1;
-    private PlantResponse plantResponse2;
-    private PlantCreateRequest createRequest;
-    private PlantUpdateRequest updateRequest;
+    private PlantDTO plantDTO1;
+    private PlantDTO plantDTO2;
+    private UUID plant1Uuid;
+    private UUID plant2Uuid;
+    private UUID gardenPlanUuid;
 
     @BeforeEach
     void setUp() {
-        // Set up test plants
+        plant1Uuid = UUID.randomUUID();
+        plant2Uuid = UUID.randomUUID();
+        gardenPlanUuid = UUID.randomUUID();
+        OffsetDateTime now = OffsetDateTime.now();
+
         plant1 = new Plant();
-        plant1.setId(1L);
-        plant1.setCommonName("Tomato");
-        plant1.setScientificName("Solanum lycopersicum");
-        plant1.setSunlight("Full sun");
-        plant1.setWateringFrequency("Regular");
-        plant1.setDescription("Common garden vegetable");
+        plant1.setId(plant1Uuid);
+        plant1.setGardenPlanId(gardenPlanUuid);
+        plant1.setName("Tomato");
+        plant1.setType("Vegetable");
+        plant1.setDescription("Desc1");
+        plant1.setWateringFrequency("Freq1");
+        plant1.setSunlightRequirements("Sun1");
+        plant1.setPositionX(1);
+        plant1.setPositionY(1);
+        plant1.setImageUrl("url1");
+        plant1.setCreatedAt(now.minusDays(1));
+        plant1.setUpdatedAt(now);
 
         plant2 = new Plant();
-        plant2.setId(2L);
-        plant2.setCommonName("Basil");
-        plant2.setScientificName("Ocimum basilicum");
-        plant2.setSunlight("Partial to full sun");
-        plant2.setWateringFrequency("Moderate");
-        plant2.setDescription("Aromatic herb");
+        plant2.setId(plant2Uuid);
+        plant2.setGardenPlanId(gardenPlanUuid);
+        plant2.setName("Basil");
+        plant2.setType("Herb");
+        plant2.setDescription("Desc2");
+        plant2.setWateringFrequency("Freq2");
+        plant2.setSunlightRequirements("Sun2");
+        plant2.setPositionX(2);
+        plant2.setPositionY(2);
+        plant2.setImageUrl("url2");
+        plant2.setCreatedAt(now.minusHours(5));
+        plant2.setUpdatedAt(now.minusHours(1));
 
-        // Set up plant responses
-        plantResponse1 = new PlantResponse();
-        plantResponse1.setId(1L);
-        plantResponse1.setCommonName("Tomato");
-        plantResponse1.setScientificName("Solanum lycopersicum");
-        plantResponse1.setSunlight("Full sun");
-        plantResponse1.setWateringFrequency("Regular");
-        plantResponse1.setDescription("Common garden vegetable");
+        plantDTO1 = PlantDTO.builder()
+                .gardenPlanId(plant1.getGardenPlanId())
+                .name(plant1.getName())
+                .type(plant1.getType())
+                .description(plant1.getDescription())
+                .wateringFrequency(plant1.getWateringFrequency())
+                .sunlightRequirements(plant1.getSunlightRequirements())
+                .positionX(plant1.getPositionX())
+                .positionY(plant1.getPositionY())
+                .imageUrl(plant1.getImageUrl())
+                .createdAt(plant1.getCreatedAt())
+                .updatedAt(plant1.getUpdatedAt())
+                .build();
 
-        plantResponse2 = new PlantResponse();
-        plantResponse2.setId(2L);
-        plantResponse2.setCommonName("Basil");
-        plantResponse2.setScientificName("Ocimum basilicum");
-        plantResponse2.setSunlight("Partial to full sun");
-        plantResponse2.setWateringFrequency("Moderate");
-        plantResponse2.setDescription("Aromatic herb");
-
-        // Set up create request
-        createRequest = new PlantCreateRequest();
-        createRequest.setCommonName("Cucumber");
-        createRequest.setScientificName("Cucumis sativus");
-        createRequest.setSunlight("Full sun");
-        createRequest.setWateringFrequency("Regular");
-        createRequest.setDescription("Refreshing vegetable");
-
-        // Set up update request
-        updateRequest = new PlantUpdateRequest();
-        updateRequest.setCommonName("Roma Tomato");
-        updateRequest.setScientificName("Solanum lycopersicum var. roma");
-        updateRequest.setSunlight("Full sun");
-        updateRequest.setWateringFrequency("Regular");
-        updateRequest.setDescription("Tomato variety good for sauces");
+        plantDTO2 = PlantDTO.builder()
+                .gardenPlanId(plant2.getGardenPlanId())
+                .name(plant2.getName())
+                .type(plant2.getType())
+                .description(plant2.getDescription())
+                .wateringFrequency(plant2.getWateringFrequency())
+                .sunlightRequirements(plant2.getSunlightRequirements())
+                .positionX(plant2.getPositionX())
+                .positionY(plant2.getPositionY())
+                .imageUrl(plant2.getImageUrl())
+                .createdAt(plant2.getCreatedAt())
+                .updatedAt(plant2.getUpdatedAt())
+                .build();
     }
 
     @Test
-    void getAllPlants_ShouldReturnPageOfPlants() {
-        // Arrange
+    void findAll_ShouldReturnPageOfPlantDTOs() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Plant> plantPage = new PageImpl<>(List.of(plant1, plant2));
+        Page<Plant> plantPage = new PageImpl<>(List.of(plant1, plant2), pageable, 2);
 
         when(plantRepository.findAll(pageable)).thenReturn(plantPage);
-        when(plantMapper.toPlantResponse(plant1)).thenReturn(plantResponse1);
-        when(plantMapper.toPlantResponse(plant2)).thenReturn(plantResponse2);
+        when(plantMapper.toDto(plant1)).thenReturn(plantDTO1);
+        when(plantMapper.toDto(plant2)).thenReturn(plantDTO2);
 
-        // Act
-        Page<PlantResponse> result = plantService.getAllPlants(pageable);
+        Page<PlantDTO> result = plantService.findAll(pageable);
 
-        // Assert
         assertNotNull(result);
         assertEquals(2, result.getTotalElements());
-        assertEquals(plantResponse1, result.getContent().get(0));
-        assertEquals(plantResponse2, result.getContent().get(1));
-        verify(plantRepository, times(1)).findAll(pageable);
+        assertEquals(plantDTO1, result.getContent().get(0));
+        assertEquals(plantDTO2, result.getContent().get(1));
+        verify(plantRepository).findAll(pageable);
+        verify(plantMapper, times(2)).toDto(any(Plant.class));
     }
 
     @Test
-    void getPlantById_WhenPlantExists_ShouldReturnPlant() {
-        // Arrange
-        when(plantRepository.findById(1L)).thenReturn(Optional.of(plant1));
-        when(plantMapper.toPlantResponse(plant1)).thenReturn(plantResponse1);
+    void findById_WhenPlantExists_ShouldReturnOptionalPlantDTO() {
+        when(plantRepository.findById(plant1Uuid)).thenReturn(Optional.of(plant1));
+        when(plantMapper.toDto(plant1)).thenReturn(plantDTO1);
 
-        // Act
-        PlantResponse result = plantService.getPlantById(1L);
+        Optional<PlantDTO> result = plantService.findById(plant1Uuid);
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(plantResponse1, result);
-        verify(plantRepository, times(1)).findById(1L);
+        assertTrue(result.isPresent());
+        assertEquals(plantDTO1, result.get());
+        verify(plantRepository).findById(plant1Uuid);
+        verify(plantMapper).toDto(plant1);
     }
 
     @Test
-    void getPlantById_WhenPlantDoesNotExist_ShouldThrowResourceNotFoundException() {
-        // Arrange
-        when(plantRepository.findById(99L)).thenReturn(Optional.empty());
+    void findById_WhenPlantDoesNotExist_ShouldReturnEmptyOptional() {
+        UUID nonExistentUuid = UUID.randomUUID();
+        when(plantRepository.findById(nonExistentUuid)).thenReturn(Optional.empty());
 
-        // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> plantService.getPlantById(99L));
-        verify(plantRepository, times(1)).findById(99L);
+        Optional<PlantDTO> result = plantService.findById(nonExistentUuid);
+
+        assertTrue(result.isEmpty());
+        verify(plantRepository).findById(nonExistentUuid);
+        verify(plantMapper, never()).toDto(any());
     }
 
     @Test
-    void createPlant_ShouldReturnCreatedPlant() {
-        // Arrange
-        Plant newPlant = new Plant();
-        newPlant.setCommonName("Cucumber");
-        newPlant.setScientificName("Cucumis sativus");
+    void create_ShouldReturnCreatedPlantDTO() {
+        PlantDTO requestDto = PlantDTO.builder()
+                .gardenPlanId(gardenPlanUuid)
+                .name("New Plant")
+                .type("Type")
+                .description("New Desc")
+                .build();
+        Plant plantToSave = new Plant();
+        plantToSave.setGardenPlanId(requestDto.getGardenPlanId());
+        plantToSave.setName(requestDto.getName());
+        plantToSave.setType(requestDto.getType());
+        plantToSave.setDescription(requestDto.getDescription());
+        plantToSave.setCreatedAt(OffsetDateTime.now());
+        plantToSave.setUpdatedAt(OffsetDateTime.now());
 
         Plant savedPlant = new Plant();
-        savedPlant.setId(3L);
-        savedPlant.setCommonName("Cucumber");
-        savedPlant.setScientificName("Cucumis sativus");
+        savedPlant.setId(UUID.randomUUID());
+        savedPlant.setGardenPlanId(requestDto.getGardenPlanId());
+        savedPlant.setName(requestDto.getName());
+        savedPlant.setType(requestDto.getType());
+        savedPlant.setDescription(requestDto.getDescription());
+        savedPlant.setCreatedAt(OffsetDateTime.now());
+        savedPlant.setUpdatedAt(OffsetDateTime.now());
 
-        PlantResponse newPlantResponse = new PlantResponse();
-        newPlantResponse.setId(3L);
-        newPlantResponse.setCommonName("Cucumber");
-        newPlantResponse.setScientificName("Cucumis sativus");
+        PlantDTO responseDto = PlantDTO.builder()
+                .gardenPlanId(savedPlant.getGardenPlanId())
+                .name(savedPlant.getName())
+                .type(savedPlant.getType())
+                .description(savedPlant.getDescription())
+                .createdAt(savedPlant.getCreatedAt())
+                .updatedAt(savedPlant.getUpdatedAt())
+                .build();
 
-        when(plantMapper.toPlant(createRequest)).thenReturn(newPlant);
-        when(plantRepository.save(newPlant)).thenReturn(savedPlant);
-        when(plantMapper.toPlantResponse(savedPlant)).thenReturn(newPlantResponse);
+        when(plantMapper.toEntity(requestDto)).thenReturn(plantToSave);
+        when(plantRepository.save(any(Plant.class))).thenReturn(savedPlant);
+        when(plantMapper.toDto(savedPlant)).thenReturn(responseDto);
 
-        // Act
-        PlantResponse result = plantService.createPlant(createRequest);
+        PlantDTO result = plantService.create(requestDto);
 
-        // Assert
         assertNotNull(result);
-        assertEquals(newPlantResponse, result);
-        verify(plantRepository, times(1)).save(newPlant);
+        assertEquals(responseDto.getName(), result.getName());
+        assertEquals(responseDto.getGardenPlanId(), result.getGardenPlanId());
+        verify(plantMapper).toEntity(requestDto);
+        verify(plantRepository).save(plantToSave);
+        verify(plantMapper).toDto(savedPlant);
     }
 
     @Test
-    void updatePlant_WhenPlantExists_ShouldReturnUpdatedPlant() {
-        // Arrange
-        Plant updatedPlant = new Plant();
-        updatedPlant.setId(1L);
-        updatedPlant.setCommonName("Roma Tomato");
+    void update_WhenPlantExists_ShouldReturnUpdatedOptionalPlantDTO() {
+        PlantDTO updateRequestDto = PlantDTO.builder()
+                .name("Updated Name")
+                .type("Updated Type")
+                .description("Updated Desc")
+                .gardenPlanId(plant1.getGardenPlanId())
+                .build();
 
-        PlantResponse updatedResponse = new PlantResponse();
-        updatedResponse.setId(1L);
-        updatedResponse.setCommonName("Roma Tomato");
+        Plant existingPlant = plant1;
 
-        when(plantRepository.findById(1L)).thenReturn(Optional.of(plant1));
-        when(plantMapper.updatePlantFromRequest(updateRequest, plant1)).thenReturn(updatedPlant);
-        when(plantRepository.save(updatedPlant)).thenReturn(updatedPlant);
-        when(plantMapper.toPlantResponse(updatedPlant)).thenReturn(updatedResponse);
+        Plant expectedSavedPlant = new Plant();
+        expectedSavedPlant.setId(existingPlant.getId());
+        expectedSavedPlant.setGardenPlanId(existingPlant.getGardenPlanId());
+        expectedSavedPlant.setName(updateRequestDto.getName());
+        expectedSavedPlant.setType(updateRequestDto.getType());
+        expectedSavedPlant.setDescription(updateRequestDto.getDescription());
+        expectedSavedPlant.setWateringFrequency(existingPlant.getWateringFrequency());
+        expectedSavedPlant.setSunlightRequirements(existingPlant.getSunlightRequirements());
+        expectedSavedPlant.setPositionX(existingPlant.getPositionX());
+        expectedSavedPlant.setPositionY(existingPlant.getPositionY());
+        expectedSavedPlant.setImageUrl(existingPlant.getImageUrl());
+        expectedSavedPlant.setCreatedAt(existingPlant.getCreatedAt());
 
-        // Act
-        PlantResponse result = plantService.updatePlant(1L, updateRequest);
+        Plant returnedSavedPlant = new Plant();
+        returnedSavedPlant.setId(expectedSavedPlant.getId());
+        returnedSavedPlant.setGardenPlanId(expectedSavedPlant.getGardenPlanId());
+        returnedSavedPlant.setName(expectedSavedPlant.getName());
+        returnedSavedPlant.setType(expectedSavedPlant.getType());
+        returnedSavedPlant.setDescription(expectedSavedPlant.getDescription());
+        returnedSavedPlant.setWateringFrequency(expectedSavedPlant.getWateringFrequency());
+        returnedSavedPlant.setSunlightRequirements(expectedSavedPlant.getSunlightRequirements());
+        returnedSavedPlant.setPositionX(expectedSavedPlant.getPositionX());
+        returnedSavedPlant.setPositionY(expectedSavedPlant.getPositionY());
+        returnedSavedPlant.setImageUrl(expectedSavedPlant.getImageUrl());
+        returnedSavedPlant.setCreatedAt(expectedSavedPlant.getCreatedAt());
+        returnedSavedPlant.setUpdatedAt(OffsetDateTime.now().plusSeconds(1));
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(updatedResponse, result);
-        verify(plantRepository, times(1)).findById(1L);
-        verify(plantRepository, times(1)).save(updatedPlant);
+        PlantDTO responseDto = PlantDTO.builder()
+                .gardenPlanId(returnedSavedPlant.getGardenPlanId())
+                .name(returnedSavedPlant.getName())
+                .type(returnedSavedPlant.getType())
+                .description(returnedSavedPlant.getDescription())
+                .wateringFrequency(returnedSavedPlant.getWateringFrequency())
+                .sunlightRequirements(returnedSavedPlant.getSunlightRequirements())
+                .positionX(returnedSavedPlant.getPositionX())
+                .positionY(returnedSavedPlant.getPositionY())
+                .imageUrl(returnedSavedPlant.getImageUrl())
+                .createdAt(returnedSavedPlant.getCreatedAt())
+                .updatedAt(returnedSavedPlant.getUpdatedAt())
+                .build();
+
+        when(plantRepository.findById(plant1Uuid)).thenReturn(Optional.of(existingPlant));
+        when(plantRepository.save(any(Plant.class))).thenReturn(returnedSavedPlant);
+        when(plantMapper.toDto(returnedSavedPlant)).thenReturn(responseDto);
+
+        Optional<PlantDTO> result = plantService.update(plant1Uuid, updateRequestDto);
+
+        assertTrue(result.isPresent());
+        assertEquals(responseDto, result.get());
+        verify(plantRepository).findById(plant1Uuid);
+        verify(plantRepository).save(existingPlant);
+        verify(plantMapper).toDto(returnedSavedPlant);
     }
 
     @Test
-    void updatePlant_WhenPlantDoesNotExist_ShouldThrowResourceNotFoundException() {
-        // Arrange
-        when(plantRepository.findById(99L)).thenReturn(Optional.empty());
+    void update_WhenPlantDoesNotExist_ShouldReturnEmptyOptional() {
+        UUID nonExistentUuid = UUID.randomUUID();
+        PlantDTO updateRequestDto = PlantDTO.builder().name("Fail").build();
+        when(plantRepository.findById(nonExistentUuid)).thenReturn(Optional.empty());
 
-        // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> plantService.updatePlant(99L, updateRequest));
-        verify(plantRepository, times(1)).findById(99L);
+        Optional<PlantDTO> result = plantService.update(nonExistentUuid, updateRequestDto);
+
+        assertTrue(result.isEmpty());
+        verify(plantRepository).findById(nonExistentUuid);
+        verify(plantRepository, never()).save(any());
     }
 
     @Test
-    void deletePlant_WhenPlantExists_ShouldDeletePlant() {
-        // Arrange
-        when(plantRepository.existsById(1L)).thenReturn(true);
+    void delete_WhenPlantExists_ShouldDeletePlant() {
+        doNothing().when(plantRepository).deleteById(plant1Uuid);
 
-        // Act
-        plantService.deletePlant(1L);
+        plantService.delete(plant1Uuid);
 
-        // Assert
-        verify(plantRepository, times(1)).existsById(1L);
-        verify(plantRepository, times(1)).deleteById(1L);
+        verify(plantRepository).deleteById(plant1Uuid);
     }
 
     @Test
-    void deletePlant_WhenPlantDoesNotExist_ShouldThrowResourceNotFoundException() {
-        // Arrange
-        when(plantRepository.existsById(99L)).thenReturn(false);
+    void searchPlants_ShouldReturnMatchingPlantDTOs() {
+        String query = "Tomato";
+        UUID specificGardenPlanId = gardenPlanUuid;
+        Pageable pageable = PageRequest.of(0, 5);
+        Page<Plant> plantPage = new PageImpl<>(List.of(plant1), pageable, 1);
 
-        // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> plantService.deletePlant(99L));
-        verify(plantRepository, times(1)).existsById(99L);
-    }
-
-    @Test
-    void searchPlantsByName_ShouldReturnMatchingPlants() {
-        // Arrange
-        String searchTerm = "Tom";
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Plant> plantPage = new PageImpl<>(List.of(plant1));
-
-        when(plantRepository.findByCommonNameContainingIgnoreCaseOrScientificNameContainingIgnoreCase(
-                        eq(searchTerm), eq(searchTerm), eq(pageable)))
+        when(plantRepository.searchPlants(eq(query), eq(specificGardenPlanId), eq(pageable)))
                 .thenReturn(plantPage);
-        when(plantMapper.toPlantResponse(plant1)).thenReturn(plantResponse1);
+        when(plantMapper.toDto(plant1)).thenReturn(plantDTO1);
 
-        // Act
-        Page<PlantResponse> result = plantService.searchPlantsByName(searchTerm, pageable);
+        Page<PlantDTO> result = plantService.searchPlants(query, specificGardenPlanId, pageable);
 
-        // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
-        assertEquals(plantResponse1, result.getContent().get(0));
-        verify(plantRepository, times(1))
-                .findByCommonNameContainingIgnoreCaseOrScientificNameContainingIgnoreCase(
-                        eq(searchTerm), eq(searchTerm), eq(pageable));
+        assertEquals(plantDTO1, result.getContent().get(0));
+        verify(plantRepository).searchPlants(eq(query), eq(specificGardenPlanId), eq(pageable));
+        verify(plantMapper).toDto(plant1);
+    }
+
+    @Test
+    void searchPlants_WithoutGardenPlanId_ShouldReturnMatchingPlantDTOs() {
+        String query = "Basil";
+        Pageable pageable = PageRequest.of(0, 5);
+        Page<Plant> plantPage = new PageImpl<>(List.of(plant2), pageable, 1);
+
+        when(plantRepository.searchPlants(eq(query), isNull(), eq(pageable))).thenReturn(plantPage);
+        when(plantMapper.toDto(plant2)).thenReturn(plantDTO2);
+
+        Page<PlantDTO> result = plantService.searchPlants(query, null, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(plantDTO2, result.getContent().get(0));
+        verify(plantRepository).searchPlants(eq(query), isNull(), eq(pageable));
+        verify(plantMapper).toDto(plant2);
     }
 }

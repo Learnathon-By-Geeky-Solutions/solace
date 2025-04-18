@@ -9,7 +9,6 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.lang.reflect.Method;
 import java.nio.file.AccessDeniedException;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
@@ -264,19 +263,12 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleRequestNotPermitted_ShouldReturnCorrectResponse() {
-        // Given
-        RateLimiterConfig config = RateLimiterConfig.custom()
-                .limitForPeriod(1)
-                .limitRefreshPeriod(Duration.ofSeconds(1))
-                .build();
-        RateLimiter rateLimiter = RateLimiter.of("test", config);
         io.github.resilience4j.ratelimiter.RequestNotPermitted ex =
-                io.github.resilience4j.ratelimiter.RequestNotPermitted.createRequestNotPermitted(rateLimiter);
+                io.github.resilience4j.ratelimiter.RequestNotPermitted.createRequestNotPermitted(RateLimiter.of(
+                        "test", RateLimiterConfig.custom().limitForPeriod(1).build()));
 
-        // When
         ResponseEntity<Object> response = exceptionHandler.handleRequestNotPermitted(ex, webRequest);
 
-        // Then
         assertNotNull(response);
         assertEquals(HttpStatus.TOO_MANY_REQUESTS, response.getStatusCode());
         ApiErrorResponse error = (ApiErrorResponse) response.getBody();

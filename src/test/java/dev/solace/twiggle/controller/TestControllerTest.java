@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import dev.solace.twiggle.config.RateLimiterConfiguration;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -12,7 +13,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * Unit tests for {@link TestController}.
+ * Tests for {@link TestController}.
  */
 @WebMvcTest(TestController.class)
 @Import({RateLimiterConfiguration.class})
@@ -22,6 +23,7 @@ class TestControllerTest {
     private MockMvc mockMvc;
 
     @Test
+    @DisplayName("Test endpoint should return success response with Hello World message")
     void test_ShouldReturnHelloWorld() throws Exception {
         mockMvc.perform(get("/api/v1/test"))
                 .andExpect(status().isOk())
@@ -31,6 +33,7 @@ class TestControllerTest {
     }
 
     @Test
+    @DisplayName("Test error endpoint should return bad request")
     void testError_ShouldReturnBadRequest() throws Exception {
         mockMvc.perform(get("/api/v1/test-error"))
                 .andExpect(status().isBadRequest())
@@ -40,6 +43,7 @@ class TestControllerTest {
     }
 
     @Test
+    @DisplayName("Test server error endpoint should return internal server error")
     void testServerError_ShouldReturnInternalServerError() throws Exception {
         mockMvc.perform(get("/api/v1/test-server-error"))
                 .andExpect(status().isInternalServerError())
