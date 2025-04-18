@@ -1,0 +1,32 @@
+meta {
+  name: get-plant-recommendations-outdoor
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/api/v1/plant-recommendations
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "gardenType": "Outdoor",
+    "location": "Backyard",
+    "existingPlants": [
+      "Tomato",
+      "Basil",
+      "Rosemary"
+    ],
+    "message": "I want to add some vegetables that are easy to grow and will complement my existing herbs.",
+    "userPreferences": {
+      "experience": "Intermediate",
+      "harvestGoals": [
+        "Cooking",
+        "Fresh Eating"
+      ],
+      "timeCommitment": "Medium"
+    }
+  }
+}

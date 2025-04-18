@@ -1,0 +1,24 @@
+meta {
+  name: get-plant-recommendations-missing-preferences
+  type: http
+  seq: 8
+}
+
+post {
+  url: http://localhost:8080/api/v1/plant-recommendations
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "gardenType": "Community Garden",
+    "location": "Community Plot",
+    "existingPlants": [
+      "Carrots",
+      "Lettuce",
+      "Radishes"
+    ],
+    "message": "Looking for additional vegetables that grow well in a community garden setting."
+  }
+}

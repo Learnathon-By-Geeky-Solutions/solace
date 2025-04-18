@@ -58,6 +58,12 @@
 			<optional>true</optional>
 		</dependency>
 
+		<!-- WebClient for HTTP calls -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+
 		<!-- Boilerplate Code Generators -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>

@@ -1,0 +1,31 @@
+meta {
+  name: get-plant-recommendations-balcony
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/api/v1/plant-recommendations
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "gardenType": "Balcony",
+    "location": "East-facing Balcony",
+    "existingPlants": [
+      "Mint",
+      "Chives"
+    ],
+    "message": "I'd like to grow plants in containers that can handle partial sun and are drought-tolerant.",
+    "userPreferences": {
+      "experience": "Beginner",
+      "harvestGoals": [
+        "Cooking",
+        "Aesthetics"
+      ],
+      "timeCommitment": "Low"
+    }
+  }
+}
