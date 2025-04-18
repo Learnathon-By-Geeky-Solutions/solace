@@ -297,7 +297,7 @@ public class GardenPlanController {
     /**
      * Enhanced search for garden plans with specific fields and closest match capability.
      * This endpoint allows searching by specific fields and returns results ordered by
-     * relevance, with closest matches to partial entries ranked higher.
+     * relevance, with the closest matches to partial entries ranked higher.
      *
      * @param name search term for garden plan name (optional)
      * @param type search term for garden plan type (optional)

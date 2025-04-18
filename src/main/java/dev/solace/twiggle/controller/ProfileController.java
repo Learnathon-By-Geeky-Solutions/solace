@@ -89,9 +89,9 @@ public class ProfileController {
     }
 
     /**
-     * Enhanced search for profiles with closest match capability.
+     * Enhanced search for profiles with the closest match capability.
      * This endpoint allows searching specifically by full name and returns results ordered by
-     * relevance, with closest matches to partial entries ranked higher.
+     * relevance, with the closest matches to partial entries ranked higher.
      *
      * @param fullName search term for full name (optional)
      * @param query general search term for any field (optional)

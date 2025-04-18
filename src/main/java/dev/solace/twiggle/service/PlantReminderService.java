@@ -9,7 +9,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -46,7 +45,7 @@ public class PlantReminderService {
     public List<PlantReminderDTO> findAll() {
         return plantReminderRepository.findAll().stream()
                 .map(plantReminderMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -79,7 +78,7 @@ public class PlantReminderService {
     public List<PlantReminderDTO> findByPlantId(UUID plantId) {
         return plantReminderRepository.findByPlantId(plantId).stream()
                 .map(plantReminderMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -104,7 +103,7 @@ public class PlantReminderService {
     public List<PlantReminderDTO> findByGardenPlanId(UUID gardenPlanId) {
         return plantReminderRepository.findByGardenPlanId(gardenPlanId).stream()
                 .map(plantReminderMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -117,7 +116,7 @@ public class PlantReminderService {
     public List<PlantReminderDTO> findByPlantIdAndIsCompleted(UUID plantId, Boolean isCompleted) {
         return plantReminderRepository.findByPlantIdAndIsCompleted(plantId, isCompleted).stream()
                 .map(plantReminderMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**

@@ -5,12 +5,13 @@ meta {
 }
 
 get {
-  url: http://localhost:8080/api/weather/forecast/coordinates
-  query: {
-    latitude: 51.5074
-    longitude: -0.1278
-    days: 5
-  }
+  url: http://localhost:8080/api/weather/forecast/coordinates?latitude=51.5074&longitude=-0.1278&days=5
   body: none
   auth: inherit
-} 
+}
+
+params:query {
+  latitude: 51.5074
+  longitude: -0.1278
+  days: 5
+}

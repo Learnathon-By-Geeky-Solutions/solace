@@ -25,6 +25,13 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class WeatherServiceImpl implements WeatherService {
 
+    private static final String FORMAT_PATTERN = "%f,%f";
+    private static final String VALUE_KEY = "value";
+    private static final String NEAREST_AREA_KEY = "nearest_area";
+    private static final String AREA_NAME_KEY = "areaName";
+    private static final String MODERATE_QUALITY = "Moderate";
+    private static final String CLOUD_COVER_KEY = "cloudcover";
+
     private final WorldWeatherOnlineApiClient weatherApiClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -48,7 +55,7 @@ public class WeatherServiceImpl implements WeatherService {
         log.info("Fetching current weather for coordinates: {}, {}", latitude, longitude);
         try {
             String apiResponse = weatherApiClient.getCurrentWeatherByCoordinates(latitude, longitude);
-            return parseWeatherResponse(apiResponse, 1, String.format("%f,%f", latitude, longitude));
+            return parseWeatherResponse(apiResponse, 1, String.format(FORMAT_PATTERN, latitude, longitude));
         } catch (Exception e) {
             log.error(
                     "Error fetching current weather for coordinates {}, {}: {}",
@@ -83,7 +90,7 @@ public class WeatherServiceImpl implements WeatherService {
         log.info("Fetching weather forecast for coordinates: {}, {} for {} days", latitude, longitude, days);
         try {
             String apiResponse = weatherApiClient.getWeatherForecastByCoordinates(latitude, longitude, days);
-            return parseWeatherResponse(apiResponse, days, String.format("%f,%f", latitude, longitude));
+            return parseWeatherResponse(apiResponse, days, String.format(FORMAT_PATTERN, latitude, longitude));
         } catch (Exception e) {
             log.error(
                     "Error fetching weather forecast for coordinates {}, {}: {}",
@@ -145,7 +152,8 @@ public class WeatherServiceImpl implements WeatherService {
         try {
             // Use 3-day forecast for garden weather
             String apiResponse = weatherApiClient.getWeatherForecastByCoordinates(latitude, longitude, 3);
-            WeatherDTO weather = parseWeatherResponse(apiResponse, 3, String.format("%f,%f", latitude, longitude));
+            WeatherDTO weather =
+                    parseWeatherResponse(apiResponse, 3, String.format(FORMAT_PATTERN, latitude, longitude));
 
             // Add garden-specific advice based on weather conditions
             if (weather.getHumidity() > 80) {
@@ -184,130 +192,27 @@ public class WeatherServiceImpl implements WeatherService {
         try {
             JsonNode root = objectMapper.readTree(apiResponse);
             JsonNode data = root.path("data");
-
-            // Get current conditions
             JsonNode currentCondition = data.path("current_condition").get(0);
 
-            // Extract temperature and other current weather details
-            double tempC = currentCondition.path("temp_C").asDouble();
-            double humidity = currentCondition.path("humidity").asDouble();
-            double windSpeed = currentCondition.path("windspeedKmph").asDouble();
-            String windDirection = currentCondition.path("winddir16Point").asText();
-            int cloudCover = currentCondition.path("cloudcover").asInt();
-            double precipitation = currentCondition.path("precipMM").asDouble();
+            WeatherDTO.WeatherDTOBuilder builder = WeatherDTO.builder()
+                    .location(extractLocationName(data, location))
+                    .timestamp(LocalDateTime.now());
 
-            // Extract air quality if available
-            String airQuality = "Good"; // Default value
-            List<String> airHazards = new ArrayList<>();
-            if (currentCondition.has("air_quality")) {
-                JsonNode airQualityNode = currentCondition.path("air_quality");
-                int epaIndex = airQualityNode.path("us-epa-index").asInt();
-                airQuality = getAirQualityFromEpaIndex(epaIndex);
-                airHazards = getAirHazardsFromAirQuality(airQuality, airQualityNode);
-            }
+            // Parse current conditions
+            parseCurrentConditions(currentCondition, builder);
 
-            // Get weather description
-            String weatherDesc =
-                    currentCondition.path("weatherDesc").get(0).path("value").asText();
+            // Parse air quality
+            parseAirQuality(currentCondition, builder);
 
-            // Build forecast items
-            List<WeatherDTO.ForecastItem> forecastItems = new ArrayList<>();
-            JsonNode weatherArray = data.path("weather");
+            // Parse forecast
+            List<WeatherDTO.ForecastItem> forecastItems = parseForecast(data, days);
+            builder.forecast(forecastItems);
 
-            // Format for parsing date
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            // Parse weather alert
+            String weatherAlert = parseWeatherAlert(data);
+            builder.weatherAlert(weatherAlert);
 
-            for (int i = 0; i < Math.min(days, weatherArray.size()); i++) {
-                JsonNode dayForecast = weatherArray.get(i);
-                String dateStr = dayForecast.path("date").asText();
-
-                // Parse hourly forecasts (every 3 hours)
-                JsonNode hourlyArray = dayForecast.path("hourly");
-                for (JsonNode hourly : hourlyArray) {
-                    // Parse time (format is in hmm, e.g., 0 for midnight, 300 for 3 AM, etc.)
-                    String timeStr = hourly.path("time").asText();
-                    int hour = Integer.parseInt(timeStr) / 100;
-
-                    // Create forecast time - FIX: Parse to LocalDate first, then convert to LocalDateTime
-                    LocalDateTime forecastTime =
-                            LocalDate.parse(dateStr, dateFormatter).atTime(hour, 0);
-
-                    // Parse weather data
-                    double forecastTemp = hourly.path("tempC").asDouble();
-                    double forecastHumidity = hourly.path("humidity").asDouble();
-                    int forecastCloudCover = hourly.path("cloudcover").asInt();
-                    double forecastPrecip = hourly.path("precipMM").asDouble();
-                    String forecastCondition =
-                            hourly.path("weatherDesc").get(0).path("value").asText();
-
-                    // Get any weather alerts
-                    List<String> alerts = new ArrayList<>();
-                    JsonNode alertsNode = data.path("alerts").path("alert");
-                    if (alertsNode.isArray() && alertsNode.size() > 0) {
-                        for (JsonNode alert : alertsNode) {
-                            alerts.add(alert.path("headline").asText());
-                        }
-                    }
-
-                    // Create and add forecast item
-                    WeatherDTO.ForecastItem item = WeatherDTO.ForecastItem.builder()
-                            .forecastTime(forecastTime)
-                            .temperature(forecastTemp)
-                            .humidity(forecastHumidity)
-                            .cloudCover(forecastCloudCover)
-                            .precipitation(forecastPrecip)
-                            .conditions(forecastCondition)
-                            .alerts(alerts)
-                            .build();
-
-                    forecastItems.add(item);
-                }
-            }
-
-            // Get weather alert if available
-            String weatherAlert = null;
-            JsonNode alertsNode = data.path("alerts").path("alert");
-            if (alertsNode.isArray() && alertsNode.size() > 0) {
-                weatherAlert = alertsNode.get(0).path("headline").asText();
-            }
-
-            // Extract UV index
-            double uvIndex = 0;
-            if (currentCondition.has("uvIndex")) {
-                uvIndex = currentCondition.path("uvIndex").asDouble();
-            }
-
-            // Get nearest area name
-            String locationName = location;
-            if (data.has("nearest_area") && data.path("nearest_area").size() > 0) {
-                JsonNode nearestArea = data.path("nearest_area").get(0);
-                if (nearestArea.has("areaName") && nearestArea.path("areaName").size() > 0) {
-                    locationName =
-                            nearestArea.path("areaName").get(0).path("value").asText();
-                }
-            }
-
-            // Build and return the weather DTO
-            return WeatherDTO.builder()
-                    .location(locationName)
-                    .timestamp(LocalDateTime.now())
-                    .temperature(tempC)
-                    .temperatureUnit("Celsius")
-                    .humidity(humidity)
-                    .windSpeed(windSpeed)
-                    .windSpeedUnit("km/h")
-                    .windDirection(windDirection)
-                    .cloudCover(cloudCover)
-                    .cloudType(getCloudType(cloudCover))
-                    .precipitation(precipitation)
-                    .precipitationType(getPrecipitationType(tempC))
-                    .uvIndex(uvIndex)
-                    .airQualityIndex(airQuality)
-                    .airHazards(airHazards)
-                    .plantHazards(new ArrayList<>()) // Will be populated in getGardenWeather
-                    .forecast(forecastItems)
-                    .weatherAlert(weatherAlert)
-                    .build();
+            return builder.build();
         } catch (Exception e) {
             log.error("Error parsing weather API response: {}", e.getMessage(), e);
             throw new CustomException(
@@ -315,12 +220,119 @@ public class WeatherServiceImpl implements WeatherService {
         }
     }
 
+    private void parseCurrentConditions(JsonNode currentCondition, WeatherDTO.WeatherDTOBuilder builder) {
+        builder.temperature(currentCondition.path("temp_C").asDouble())
+                .temperatureUnit("Celsius")
+                .humidity(currentCondition.path("humidity").asDouble())
+                .windSpeed(currentCondition.path("windspeedKmph").asDouble())
+                .windSpeedUnit("km/h")
+                .windDirection(currentCondition.path("winddir16Point").asText())
+                .cloudCover(currentCondition.path(CLOUD_COVER_KEY).asInt())
+                .precipitation(currentCondition.path("precipMM").asDouble())
+                .uvIndex(
+                        currentCondition.has("uvIndex")
+                                ? currentCondition.path("uvIndex").asDouble()
+                                : 0);
+
+        int cloudCover = currentCondition.path(CLOUD_COVER_KEY).asInt();
+        double temperature = currentCondition.path("temp_C").asDouble();
+
+        builder.cloudType(getCloudType(cloudCover)).precipitationType(getPrecipitationType(temperature));
+    }
+
+    private void parseAirQuality(JsonNode currentCondition, WeatherDTO.WeatherDTOBuilder builder) {
+        String airQuality = "Good"; // Default value
+        List<String> airHazards = new ArrayList<>();
+
+        if (currentCondition.has("air_quality")) {
+            JsonNode airQualityNode = currentCondition.path("air_quality");
+            int epaIndex = airQualityNode.path("us-epa-index").asInt();
+            airQuality = getAirQualityFromEpaIndex(epaIndex);
+            airHazards = getAirHazardsFromAirQuality(airQuality, airQualityNode);
+        }
+
+        builder.airQualityIndex(airQuality)
+                .airHazards(airHazards)
+                .plantHazards(new ArrayList<>()); // Will be populated in getGardenWeather
+    }
+
+    private List<WeatherDTO.ForecastItem> parseForecast(JsonNode data, int days) {
+        List<WeatherDTO.ForecastItem> forecastItems = new ArrayList<>();
+        JsonNode weatherArray = data.path("weather");
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        for (int i = 0; i < Math.min(days, weatherArray.size()); i++) {
+            JsonNode dayForecast = weatherArray.get(i);
+            String dateStr = dayForecast.path("date").asText();
+            parseHourlyForecasts(dayForecast, dateStr, dateFormatter, data, forecastItems);
+        }
+
+        return forecastItems;
+    }
+
+    private void parseHourlyForecasts(
+            JsonNode dayForecast,
+            String dateStr,
+            DateTimeFormatter dateFormatter,
+            JsonNode data,
+            List<WeatherDTO.ForecastItem> forecastItems) {
+        JsonNode hourlyArray = dayForecast.path("hourly");
+        for (JsonNode hourly : hourlyArray) {
+            String timeStr = hourly.path("time").asText();
+            int hour = Integer.parseInt(timeStr) / 100;
+            LocalDateTime forecastTime = LocalDate.parse(dateStr, dateFormatter).atTime(hour, 0);
+
+            WeatherDTO.ForecastItem item = WeatherDTO.ForecastItem.builder()
+                    .forecastTime(forecastTime)
+                    .temperature(hourly.path("tempC").asDouble())
+                    .humidity(hourly.path("humidity").asDouble())
+                    .cloudCover(hourly.path(CLOUD_COVER_KEY).asInt())
+                    .precipitation(hourly.path("precipMM").asDouble())
+                    .conditions(
+                            hourly.path("weatherDesc").get(0).path(VALUE_KEY).asText())
+                    .alerts(parseAlerts(data))
+                    .build();
+
+            forecastItems.add(item);
+        }
+    }
+
+    private List<String> parseAlerts(JsonNode data) {
+        List<String> alerts = new ArrayList<>();
+        JsonNode alertsNode = data.path("alerts").path("alert");
+        if (alertsNode.isArray() && alertsNode.size() > 0) {
+            for (JsonNode alert : alertsNode) {
+                alerts.add(alert.path("headline").asText());
+            }
+        }
+        return alerts;
+    }
+
+    private String parseWeatherAlert(JsonNode data) {
+        JsonNode alertsNode = data.path("alerts").path("alert");
+        if (alertsNode.isArray() && alertsNode.size() > 0) {
+            return alertsNode.get(0).path("headline").asText();
+        }
+        return null;
+    }
+
+    private String extractLocationName(JsonNode data, String defaultLocation) {
+        if (data.has(NEAREST_AREA_KEY) && data.path(NEAREST_AREA_KEY).size() > 0) {
+            JsonNode nearestArea = data.path(NEAREST_AREA_KEY).get(0);
+            if (nearestArea.has(AREA_NAME_KEY)
+                    && nearestArea.path(AREA_NAME_KEY).size() > 0) {
+                return nearestArea.path(AREA_NAME_KEY).get(0).path(VALUE_KEY).asText();
+            }
+        }
+        return defaultLocation;
+    }
+
     private String getAirQualityFromEpaIndex(int epaIndex) {
         switch (epaIndex) {
             case 1:
                 return "Good";
             case 2:
-                return "Moderate";
+                return MODERATE_QUALITY;
             case 3:
                 return "Unhealthy for Sensitive Groups";
             case 4:
@@ -330,7 +342,8 @@ public class WeatherServiceImpl implements WeatherService {
             case 6:
                 return "Hazardous";
             default:
-                return "Unknown";
+                log.warn("Unknown EPA index value: {}, defaulting to Moderate", epaIndex);
+                return MODERATE_QUALITY;
         }
     }
 
@@ -341,7 +354,7 @@ public class WeatherServiceImpl implements WeatherService {
         switch (airQuality) {
             case "Good":
                 return hazards; // No hazards for good air quality
-            case "Moderate":
+            case MODERATE_QUALITY:
                 hazards.add("Mild pollen and low-level particulates");
                 break;
             case "Unhealthy for Sensitive Groups":
@@ -355,6 +368,9 @@ public class WeatherServiceImpl implements WeatherService {
                 break;
             case "Hazardous":
                 hazards.add("Serious respiratory effects and health impacts for all");
+                break;
+            default:
+                log.warn("Unknown air quality value: {}, no specific hazards will be added", airQuality);
                 break;
         }
 
@@ -424,7 +440,7 @@ public class WeatherServiceImpl implements WeatherService {
             hazards.add("Heavy rain may lead to soil erosion and waterlogging");
         }
 
-        if (!"Good".equals(weather.getAirQualityIndex()) && !"Moderate".equals(weather.getAirQualityIndex())) {
+        if (!"Good".equals(weather.getAirQualityIndex()) && !MODERATE_QUALITY.equals(weather.getAirQualityIndex())) {
             hazards.add("Poor air quality may affect sensitive plant species");
         }
 
