@@ -54,11 +54,14 @@ build_app() {
 
 # Function to run the application locally
 run_local() {
-   JAR_FILE=$(find target -maxdepth 1 -type f -name "*.jar" | head -n 1)
+   # Specifically look for the main application JAR, excluding javadoc and original JARs
+   JAR_FILE=$(find target -maxdepth 1 -type f -name "twiggle-*.jar" | grep -v "javadoc" | grep -v "original" | head -n 1)
+
    if [ -z "$JAR_FILE" ]; then
-       echo -e "${RED}No JAR file found in the target directory. Build might have failed.${NC}"
+       echo -e "${RED}No main application JAR file found in the target directory. Build might have failed.${NC}"
        exit 1
    fi
+
    echo -e "${CYAN}Running the application from $JAR_FILE...${NC}"
    if ! java -jar "$JAR_FILE"; then
        echo -e "${RED}Application failed to start.${NC}"

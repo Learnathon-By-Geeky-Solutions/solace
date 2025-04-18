@@ -1,0 +1,23 @@
+meta {
+  name: get-disease-pest-by-id
+  type: http
+  seq: 9
+}
+
+get {
+  url: http://localhost:8080/api/plants/external/diseases-pests
+  body: none
+  auth: none
+}
+
+query {
+  id: 1
+}
+
+headers {
+  Content-Type: application/json
+}
+
+assert {
+  status: 200
+}
