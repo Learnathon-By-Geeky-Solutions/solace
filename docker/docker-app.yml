@@ -1,10 +1,10 @@
-version: '3.8'
-
 services:
   app:
     build:
       context: ..
       dockerfile: docker/Dockerfile
+      args:
+        - ENV=dev
     ports:
       - "8080:8080"
     env_file:
@@ -23,6 +23,10 @@ services:
     restart: unless-stopped
     networks:
       - monitoring-network
+    env_file:
+      - ../.env
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
 
 networks:
   monitoring-network:

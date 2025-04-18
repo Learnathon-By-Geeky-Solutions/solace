@@ -1,0 +1,16 @@
+meta {
+  name: get-weather-forecast-coordinates
+  type: http
+  seq: 6
+}
+
+get {
+  url: http://localhost:8080/api/weather/forecast/coordinates
+  query: {
+    latitude: 51.5074
+    longitude: -0.1278
+    days: 5
+  }
+  body: none
+  auth: inherit
+} 
