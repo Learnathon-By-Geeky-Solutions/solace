@@ -31,6 +31,11 @@ server:
     include-stacktrace: never
     include-exception: false
 
+weather:
+  api:
+    key: ${WEATHER_API_KEY:your_api_key_here}
+    baseUrl: https://api.worldweatheronline.com/premium/v1
+
 management:
   info:
     git:
@@ -38,8 +43,8 @@ management:
   endpoints:
     web:
       exposure:
-        include: 'health,info,prometheus,metrics'
-      base-path: '/actuator'
+        include: "health,info,prometheus,metrics"
+      base-path: "/actuator"
   endpoint:
     health:
       show-details: always
@@ -47,7 +52,7 @@ management:
         enabled: true
   metrics:
     tags:
-      application: '${spring.application.name}'
+      application: "${spring.application.name}"
   tracing:
     enabled: false
     sampling:

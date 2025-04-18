@@ -1,0 +1,14 @@
+meta {
+  name: get-current-weather
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8080/api/weather/current
+  query: {
+    location: London
+  }
+  body: none
+  auth: inherit
+} 
