@@ -1,6 +1,5 @@
 package dev.solace.twiggle.dto.weather;
 
-import java.time.LocalDate;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -212,10 +212,10 @@ public class WeatherServiceImpl implements WeatherService {
 
             // Build the weather DTO
             WeatherDTO weatherDTO = builder.build();
-            
+
             // Generate and add plant hazards for all weather endpoints
             weatherDTO.setPlantHazards(generatePlantHazards(weatherDTO));
-            
+
             return weatherDTO;
         } catch (Exception e) {
             log.error("Error parsing weather API response: {}", e.getMessage(), e);
@@ -488,7 +488,8 @@ public class WeatherServiceImpl implements WeatherService {
 
         // Precipitation Tips
         if (precipitation == 0.0) {
-            hazards.add("\ud83d\udca7 No rain today. Ensure manual watering, especially rooftop and container gardens.");
+            hazards.add(
+                    "\ud83d\udca7 No rain today. Ensure manual watering, especially rooftop and container gardens.");
         } else {
             hazards.add("\ud83c\udf27\ufe0f Some rain expected. Check drainage to avoid waterlogged soil.");
         }
