@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop-backend
+      - CI/sonar-1
   pull_request:
     branches:
       - develop-backend
