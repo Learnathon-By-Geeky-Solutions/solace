@@ -128,8 +128,7 @@ public class WeatherServiceImpl implements WeatherService {
                 weather.setGardeningAdvice("Weather conditions are favorable for gardening activities.");
             }
 
-            // Add plant-specific hazards
-            weather.setPlantHazards(generatePlantHazards(weather));
+            // Plant hazards are already set in parseWeatherResponse
 
             return weather;
         } catch (Exception e) {
@@ -166,8 +165,7 @@ public class WeatherServiceImpl implements WeatherService {
                 weather.setGardeningAdvice("Weather conditions are favorable for gardening activities.");
             }
 
-            // Add plant-specific hazards
-            weather.setPlantHazards(generatePlantHazards(weather));
+            // Plant hazards are already set in parseWeatherResponse
 
             return weather;
         } catch (Exception e) {
@@ -212,7 +210,13 @@ public class WeatherServiceImpl implements WeatherService {
             String weatherAlert = parseWeatherAlert(data);
             builder.weatherAlert(weatherAlert);
 
-            return builder.build();
+            // Build the weather DTO
+            WeatherDTO weatherDTO = builder.build();
+            
+            // Generate and add plant hazards for all weather endpoints
+            weatherDTO.setPlantHazards(generatePlantHazards(weatherDTO));
+            
+            return weatherDTO;
         } catch (Exception e) {
             log.error("Error parsing weather API response: {}", e.getMessage(), e);
             throw new CustomException(
@@ -253,7 +257,7 @@ public class WeatherServiceImpl implements WeatherService {
 
         builder.airQualityIndex(airQuality)
                 .airHazards(airHazards)
-                .plantHazards(new ArrayList<>()); // Will be populated in getGardenWeather
+                .plantHazards(new ArrayList<>()); // Initialize with empty list, will be populated later
     }
 
     private List<WeatherDTO.ForecastItem> parseForecast(JsonNode data, int days) {
@@ -444,6 +448,93 @@ public class WeatherServiceImpl implements WeatherService {
             hazards.add("Poor air quality may affect sensitive plant species");
         }
 
+        // Add plant-specific gardening tips with emojis
+        double temperature = weather.getTemperature();
+        double humidity = weather.getHumidity();
+        double uvIndex = weather.getUvIndex();
+        double precipitation = weather.getPrecipitation();
+        String airQuality = weather.getAirQualityIndex();
+
+        // Temperature Tips
+        if (temperature < 15) {
+            hazards.add("\u2744\ufe0f Cold stress possible. Protect delicate plants, especially young seedlings.");
+        } else if (temperature <= 32) {
+            hazards.add("\ud83c\udf3f Ideal temperature range for healthy plant growth.");
+        } else if (temperature <= 36) {
+            hazards.add("\u2600\ufe0f High heat today. Water early in the morning to prevent heat stress.");
+        } else {
+            hazards.add("\u26a1\ufe0f Extreme heat warning! Provide shade and monitor plants closely.");
+        }
+
+        // Humidity Tips
+        if (humidity < 30) {
+            hazards.add("\ud83d\udca7 Very dry conditions. Mist indoor plants and check soil moisture more often.");
+        } else if (humidity <= 70) {
+            hazards.add("\ud83c\udf27\ufe0f Comfortable humidity range for most plants.");
+        } else {
+            hazards.add("\ud83d\udca7 High humidity detected. Watch for fungal diseases and avoid overhead watering.");
+        }
+
+        // UV Index Tips
+        if (uvIndex <= 2) {
+            hazards.add("\ud83c\udf1e Low UV exposure. Good for all outdoor plants.");
+        } else if (uvIndex <= 5) {
+            hazards.add("\u26a1\ufe0f Moderate UV levels. Shade delicate plants if possible.");
+        } else if (uvIndex <= 7) {
+            hazards.add("\ud83d\udd25 High UV levels. Protect sensitive plants during peak hours.");
+        } else {
+            hazards.add("\ud83c\udf1e Very high UV! Ensure shade for vulnerable plants and avoid midday gardening.");
+        }
+
+        // Precipitation Tips
+        if (precipitation == 0.0) {
+            hazards.add("\ud83d\udca7 No rain today. Ensure manual watering, especially rooftop and container gardens.");
+        } else {
+            hazards.add("\ud83c\udf27\ufe0f Some rain expected. Check drainage to avoid waterlogged soil.");
+        }
+
+        // Air Quality Tips
+        int airQualityIndex = getAirQualityIndex(airQuality);
+        if (airQualityIndex <= 2) {
+            hazards.add("\ud83c\udf0d Air quality is good. Great day for outdoor gardening!");
+        } else if (airQualityIndex == 3) {
+            hazards.add("\ud83c\udf0d Moderate air quality. Sensitive individuals should take light precautions.");
+        } else if (airQualityIndex == 4) {
+            hazards.add("\ud83d\udeab Air quality is unhealthy for sensitive groups. Limit heavy outdoor gardening.");
+        } else {
+            hazards.add("\u26a1\ufe0f Very unhealthy air quality. Prefer indoor gardening activities today.");
+        }
+
+        // Plant-Specific Suggestions
+        hazards.add("\ud83c\udf35 **Succulents**: Thriving in sunny, dry weather. Minimal watering needed.");
+        hazards.add("\ud83c\udf3a **Flowering Plants**: Great time to deadhead and fertilize to encourage blooms.");
+        hazards.add("\ud83c\udf45 **Vegetables**: Consistent watering critical. Monitor for heat or pest stress.");
+        hazards.add("\ud83c\udf3f **Herbs**: Harvest early in the day for maximum flavor and aroma.");
+
         return hazards;
+    }
+
+    /**
+     * Converts air quality description to a numerical index similar to EPA index.
+     *
+     * @param airQuality The air quality description
+     * @return A numerical index (1-6)
+     */
+    private int getAirQualityIndex(String airQuality) {
+        if ("Good".equals(airQuality)) {
+            return 1;
+        } else if (MODERATE_QUALITY.equals(airQuality)) {
+            return 2;
+        } else if ("Unhealthy for Sensitive Groups".equals(airQuality)) {
+            return 3;
+        } else if ("Unhealthy".equals(airQuality)) {
+            return 4;
+        } else if ("Very Unhealthy".equals(airQuality)) {
+            return 5;
+        } else if ("Hazardous".equals(airQuality)) {
+            return 6;
+        } else {
+            return 2; // Default to moderate
+        }
     }
 }

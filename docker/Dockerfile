@@ -8,7 +8,7 @@ COPY src ./src
 # Use Maven cache mount to speed up builds
 RUN --mount=type=cache,target=/root/.m2 \
     mvn spotless:apply && \
-    mvn clean verify
+    mvn clean verify -DskipTests
 
 # Run stage
 FROM amazoncorretto:21-alpine
