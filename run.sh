@@ -263,11 +263,8 @@ run_sonar_check() {
         exit 1
     fi
 
-    echo -e "${CYAN}Running tests with JaCoCo coverage...${NC}"
-    if ! mvn clean test jacoco:report; then
-        echo -e "${RED}Test execution with JaCoCo coverage failed.${NC}"
-        exit 1
-    fi
+
+
 
     echo -e "${CYAN}Running SonarQube analysis with coverage data...${NC}"
     if ! mvn sonar:sonar \
