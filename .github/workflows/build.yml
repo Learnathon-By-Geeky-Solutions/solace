@@ -44,13 +44,18 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
 
-      - name: Build and Analyze
+      - name: Build & Analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_solace \
+        run: |
+          # runs clean, compile, test, etc. then the sonar analysis
+          mvn -B clean verify sonar:sonar \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=${SONAR_TOKEN} \
             -Dsonar.organization=learnathon-by-geeky-solutions \
+            -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_solace \
             -Dsonar.java.coveragePlugin=jacoco \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+
 
         # run: mvn sonar:sonar -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
