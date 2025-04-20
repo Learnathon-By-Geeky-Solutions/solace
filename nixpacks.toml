@@ -1,0 +1,8 @@
+[phases.build]
+cmds = [
+  "./mvnw spotless:apply",
+  "./mvnw clean install -DskipTests"
+]
+
+[phases.start]
+cmd = "java -jar target/*SNAPSHOT.jar"

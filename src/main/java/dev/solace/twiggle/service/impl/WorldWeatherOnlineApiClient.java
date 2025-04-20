@@ -82,8 +82,8 @@ public class WorldWeatherOnlineApiClient {
      */
     public String getWeatherForecast(String location, int days) {
         if (days < 1 || days > 14) {
-            log.warn("Invalid days parameter: {}. Using default value of 7", days);
-            days = 7;
+            log.warn("Invalid days parameter: {}. Using default value of 3", days);
+            days = 3;
         }
 
         Map<String, String> queryParams = new HashMap<>();
@@ -92,7 +92,7 @@ public class WorldWeatherOnlineApiClient {
         queryParams.put(NUM_OF_DAYS_PARAM, String.valueOf(days));
         queryParams.put("fx", YES_VALUE);
         queryParams.put("cc", YES_VALUE);
-        queryParams.put("tp", "3"); // 3-hourly forecast
+        queryParams.put("tp", "24"); // 3-hourly forecast
         queryParams.put("aqi", YES_VALUE);
         queryParams.put(ALERTS_PARAM, YES_VALUE);
 
@@ -109,8 +109,8 @@ public class WorldWeatherOnlineApiClient {
      */
     public String getWeatherForecastByCoordinates(double latitude, double longitude, int days) {
         if (days < 1 || days > 14) {
-            log.warn("Invalid days parameter: {}. Using default value of 7", days);
-            days = 7;
+            log.warn("Invalid days parameter: {}. Using default value of 3", days);
+            days = 3;
         }
 
         Map<String, String> queryParams = new HashMap<>();
@@ -119,7 +119,7 @@ public class WorldWeatherOnlineApiClient {
         queryParams.put(NUM_OF_DAYS_PARAM, String.valueOf(days));
         queryParams.put("fx", YES_VALUE);
         queryParams.put("cc", YES_VALUE);
-        queryParams.put("tp", "3"); // 3-hourly forecast
+        queryParams.put("tp", "24"); // 3-hourly forecast
         queryParams.put("aqi", YES_VALUE);
         queryParams.put(ALERTS_PARAM, YES_VALUE);
 

@@ -7,8 +7,6 @@ services:
         - ENV=dev
     ports:
       - "8080:8080"
-    env_file:
-      - ../.env
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s

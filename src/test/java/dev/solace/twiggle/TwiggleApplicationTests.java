@@ -1,12 +1,17 @@
 package dev.solace.twiggle;
 
+import dev.solace.twiggle.config.TestConfig;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
+@Import(TestConfig.class)
+@ActiveProfiles("test")
 class TwiggleApplicationTests {
 
     @Test

@@ -7,7 +7,6 @@ import dev.solace.twiggle.exception.ErrorCode;
 import dev.solace.twiggle.service.WeatherService;
 import dev.solace.twiggle.util.ResponseUtil;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -39,7 +38,7 @@ public class WeatherController {
      * @return the current weather data
      */
     @GetMapping("/current")
-    public ResponseEntity<ApiResponse<@Valid WeatherDTO>> getCurrentWeather(
+    public ResponseEntity<ApiResponse<WeatherDTO>> getCurrentWeather(
             @RequestParam @NotBlank(message = "Location cannot be blank") String location) {
         try {
             log.info("Getting current weather for location: {}", location);
@@ -60,7 +59,7 @@ public class WeatherController {
      * @return the current weather data
      */
     @GetMapping("/current/coordinates")
-    public ResponseEntity<ApiResponse<@Valid WeatherDTO>> getCurrentWeatherByCoordinates(
+    public ResponseEntity<ApiResponse<WeatherDTO>> getCurrentWeatherByCoordinates(
             @RequestParam
                     @Min(value = -90, message = "Latitude must be between -90 and 90")
                     @Max(value = 90, message = "Latitude must be between -90 and 90")
@@ -93,7 +92,7 @@ public class WeatherController {
      * @return the weather forecast data
      */
     @GetMapping("/forecast")
-    public ResponseEntity<ApiResponse<@Valid WeatherDTO>> getWeatherForecast(
+    public ResponseEntity<ApiResponse<WeatherDTO>> getWeatherForecast(
             @RequestParam @NotBlank(message = "Location cannot be blank") String location,
             @RequestParam(defaultValue = "3")
                     @Min(value = 1, message = "Days must be between 1 and 7")
@@ -121,7 +120,7 @@ public class WeatherController {
      * @return the weather forecast data
      */
     @GetMapping("/forecast/coordinates")
-    public ResponseEntity<ApiResponse<@Valid WeatherDTO>> getWeatherForecastByCoordinates(
+    public ResponseEntity<ApiResponse<WeatherDTO>> getWeatherForecastByCoordinates(
             @RequestParam
                     @Min(value = -90, message = "Latitude must be between -90 and 90")
                     @Max(value = 90, message = "Latitude must be between -90 and 90")
@@ -160,7 +159,7 @@ public class WeatherController {
      * @return weather data with gardening-specific information
      */
     @GetMapping("/garden")
-    public ResponseEntity<ApiResponse<@Valid WeatherDTO>> getGardenWeather(
+    public ResponseEntity<ApiResponse<WeatherDTO>> getGardenWeather(
             @RequestParam @NotBlank(message = "Location cannot be blank") String location,
             @RequestParam(required = false) String gardenPlanId) {
         try {
@@ -189,7 +188,7 @@ public class WeatherController {
      * @return weather data with gardening-specific information
      */
     @GetMapping("/garden/coordinates")
-    public ResponseEntity<ApiResponse<@Valid WeatherDTO>> getGardenWeatherByCoordinates(
+    public ResponseEntity<ApiResponse<WeatherDTO>> getGardenWeatherByCoordinates(
             @RequestParam
                     @Min(value = -90, message = "Latitude must be between -90 and 90")
                     @Max(value = 90, message = "Latitude must be between -90 and 90")
@@ -230,7 +229,7 @@ public class WeatherController {
      * @return weather data focusing on plant hazards
      */
     @GetMapping("/hazards")
-    public ResponseEntity<ApiResponse<@Valid WeatherDTO>> getWeatherHazards(
+    public ResponseEntity<ApiResponse<WeatherDTO>> getWeatherHazards(
             @RequestParam @NotBlank(message = "Location cannot be blank") String location) {
         try {
             log.info("Getting weather hazards for location: {}", location);
@@ -253,7 +252,7 @@ public class WeatherController {
      * @return weather data focusing on plant hazards
      */
     @GetMapping("/hazards/coordinates")
-    public ResponseEntity<ApiResponse<@Valid WeatherDTO>> getWeatherHazardsByCoordinates(
+    public ResponseEntity<ApiResponse<WeatherDTO>> getWeatherHazardsByCoordinates(
             @RequestParam
                     @Min(value = -90, message = "Latitude must be between -90 and 90")
                     @Max(value = 90, message = "Latitude must be between -90 and 90")
