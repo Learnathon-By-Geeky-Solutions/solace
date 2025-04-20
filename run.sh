@@ -263,9 +263,6 @@ run_sonar_check() {
         exit 1
     fi
 
-
-
-
     echo -e "${CYAN}Running SonarQube analysis with coverage data...${NC}"
     if ! mvn sonar:sonar \
         -Dsonar.host.url=http://localhost:9000 \

@@ -254,8 +254,7 @@ public class PlantRecommendationService {
 
     private String getCurrentSeason(String location) {
         int month = Calendar.getInstance().get(Calendar.MONTH);
-        boolean isSouthern = location != null
-                && location.toLowerCase().matches(".*(australia|new zealand|argentina|chile|south africa|brazil).*");
+        boolean isSouthern = location != null && isSouthernHemisphereCountry(location.toLowerCase());
 
         return switch (month) {
             case 2, 3, 4 -> isSouthern ? "autumn" : "spring";
@@ -263,5 +262,28 @@ public class PlantRecommendationService {
             case 8, 9, 10 -> isSouthern ? "spring" : "autumn";
             default -> isSouthern ? "summer" : "winter";
         };
+    }
+
+    /**
+     * Checks if the location is in the Southern Hemisphere by looking for specific country names.
+     * Uses a safer approach than regex with potentially catastrophic backtracking.
+     *
+     * @param location The location string in lowercase
+     * @return true if the location is in a Southern Hemisphere country
+     */
+    private boolean isSouthernHemisphereCountry(String location) {
+        if (location == null) {
+            return false;
+        }
+
+        String[] southernCountries = {"australia", "new zealand", "argentina", "chile", "south africa", "brazil"};
+
+        for (String country : southernCountries) {
+            if (location.contains(country)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

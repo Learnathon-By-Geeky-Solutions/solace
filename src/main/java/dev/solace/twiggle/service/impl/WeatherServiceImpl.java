@@ -31,6 +31,7 @@ public class WeatherServiceImpl implements WeatherService {
     private static final String AREA_NAME_KEY = "areaName";
     private static final String MODERATE_QUALITY = "Moderate";
     private static final String CLOUD_COVER_KEY = "cloudcover";
+    private static final String UNHEALTHY_FOR_SENSITIVE_GROUPS = "Unhealthy for Sensitive Groups";
 
     private final WorldWeatherOnlineApiClient weatherApiClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -338,7 +339,7 @@ public class WeatherServiceImpl implements WeatherService {
             case 2:
                 return MODERATE_QUALITY;
             case 3:
-                return "Unhealthy for Sensitive Groups";
+                return UNHEALTHY_FOR_SENSITIVE_GROUPS;
             case 4:
                 return "Unhealthy";
             case 5:
@@ -361,7 +362,7 @@ public class WeatherServiceImpl implements WeatherService {
             case MODERATE_QUALITY:
                 hazards.add("Mild pollen and low-level particulates");
                 break;
-            case "Unhealthy for Sensitive Groups":
+            case UNHEALTHY_FOR_SENSITIVE_GROUPS:
                 hazards.add("May cause respiratory symptoms in sensitive individuals");
                 break;
             case "Unhealthy":
@@ -420,6 +421,31 @@ public class WeatherServiceImpl implements WeatherService {
     private List<String> generatePlantHazards(WeatherDTO weather) {
         List<String> hazards = new ArrayList<>();
 
+        // Add basic weather hazards
+        addBasicWeatherHazards(weather, hazards);
+
+        // Add temperature tips
+        addTemperatureTips(weather.getTemperature(), hazards);
+
+        // Add humidity tips
+        addHumidityTips(weather.getHumidity(), hazards);
+
+        // Add UV index tips
+        addUvIndexTips(weather.getUvIndex(), hazards);
+
+        // Add precipitation tips
+        addPrecipitationTips(weather.getPrecipitation(), hazards);
+
+        // Add air quality tips
+        addAirQualityTips(weather.getAirQualityIndex(), hazards);
+
+        // Add plant-specific suggestions
+        addPlantSpecificSuggestions(hazards);
+
+        return hazards;
+    }
+
+    private void addBasicWeatherHazards(WeatherDTO weather, List<String> hazards) {
         if (weather.getTemperature() > 28) {
             hazards.add("Heat stress risk for sensitive plants");
         }
@@ -447,15 +473,9 @@ public class WeatherServiceImpl implements WeatherService {
         if (!"Good".equals(weather.getAirQualityIndex()) && !MODERATE_QUALITY.equals(weather.getAirQualityIndex())) {
             hazards.add("Poor air quality may affect sensitive plant species");
         }
+    }
 
-        // Add plant-specific gardening tips with emojis
-        double temperature = weather.getTemperature();
-        double humidity = weather.getHumidity();
-        double uvIndex = weather.getUvIndex();
-        double precipitation = weather.getPrecipitation();
-        String airQuality = weather.getAirQualityIndex();
-
-        // Temperature Tips
+    private void addTemperatureTips(double temperature, List<String> hazards) {
         if (temperature < 15) {
             hazards.add("\u2744\ufe0f Cold stress possible. Protect delicate plants, especially young seedlings.");
         } else if (temperature <= 32) {
@@ -465,8 +485,9 @@ public class WeatherServiceImpl implements WeatherService {
         } else {
             hazards.add("\u26a1\ufe0f Extreme heat warning! Provide shade and monitor plants closely.");
         }
+    }
 
-        // Humidity Tips
+    private void addHumidityTips(double humidity, List<String> hazards) {
         if (humidity < 30) {
             hazards.add("\ud83d\udca7 Very dry conditions. Mist indoor plants and check soil moisture more often.");
         } else if (humidity <= 70) {
@@ -474,8 +495,9 @@ public class WeatherServiceImpl implements WeatherService {
         } else {
             hazards.add("\ud83d\udca7 High humidity detected. Watch for fungal diseases and avoid overhead watering.");
         }
+    }
 
-        // UV Index Tips
+    private void addUvIndexTips(double uvIndex, List<String> hazards) {
         if (uvIndex <= 2) {
             hazards.add("\ud83c\udf1e Low UV exposure. Good for all outdoor plants.");
         } else if (uvIndex <= 5) {
@@ -485,17 +507,20 @@ public class WeatherServiceImpl implements WeatherService {
         } else {
             hazards.add("\ud83c\udf1e Very high UV! Ensure shade for vulnerable plants and avoid midday gardening.");
         }
+    }
 
-        // Precipitation Tips
+    private void addPrecipitationTips(double precipitation, List<String> hazards) {
         if (precipitation == 0.0) {
             hazards.add(
                     "\ud83d\udca7 No rain today. Ensure manual watering, especially rooftop and container gardens.");
         } else {
             hazards.add("\ud83c\udf27\ufe0f Some rain expected. Check drainage to avoid waterlogged soil.");
         }
+    }
 
-        // Air Quality Tips
+    private void addAirQualityTips(String airQuality, List<String> hazards) {
         int airQualityIndex = getAirQualityIndex(airQuality);
+
         if (airQualityIndex <= 2) {
             hazards.add("\ud83c\udf0d Air quality is good. Great day for outdoor gardening!");
         } else if (airQualityIndex == 3) {
@@ -505,14 +530,13 @@ public class WeatherServiceImpl implements WeatherService {
         } else {
             hazards.add("\u26a1\ufe0f Very unhealthy air quality. Prefer indoor gardening activities today.");
         }
+    }
 
-        // Plant-Specific Suggestions
+    private void addPlantSpecificSuggestions(List<String> hazards) {
         hazards.add("\ud83c\udf35 **Succulents**: Thriving in sunny, dry weather. Minimal watering needed.");
         hazards.add("\ud83c\udf3a **Flowering Plants**: Great time to deadhead and fertilize to encourage blooms.");
         hazards.add("\ud83c\udf45 **Vegetables**: Consistent watering critical. Monitor for heat or pest stress.");
         hazards.add("\ud83c\udf3f **Herbs**: Harvest early in the day for maximum flavor and aroma.");
-
-        return hazards;
     }
 
     /**
@@ -526,7 +550,7 @@ public class WeatherServiceImpl implements WeatherService {
             return 1;
         } else if (MODERATE_QUALITY.equals(airQuality)) {
             return 2;
-        } else if ("Unhealthy for Sensitive Groups".equals(airQuality)) {
+        } else if (UNHEALTHY_FOR_SENSITIVE_GROUPS.equals(airQuality)) {
             return 3;
         } else if ("Unhealthy".equals(airQuality)) {
             return 4;
