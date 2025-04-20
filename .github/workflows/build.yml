@@ -48,8 +48,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mvn clean verify
-          mvn sonar:sonar -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_solace \
-            -Dsonar.organization=learnathon-by-geeky-solutions \
+          mvn sonar:sonar \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.projectKey=twiggle \
+            -Dsonar.organization=twiggle \
             -Dsonar.java.coveragePlugin=jacoco \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
         # run: mvn sonar:sonar -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
