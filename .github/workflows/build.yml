@@ -30,22 +30,28 @@ jobs:
           overwrite-settings: true
           job-status: 'success'
           token: '${{ secrets.GITHUB_TOKEN }}'
-
+          
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+          
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
 
-      - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@v1
-        with:
-          args: >
-            -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_solace
-            -Dsonar.organization=learnathon-by-geeky-solutions
-            -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.java.coveragePlugin=jacoco
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+      - name: Build and Analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_solace \
+            -Dsonar.organization=learnathon-by-geeky-solutions \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.java.coveragePlugin=jacoco \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+
         # run: mvn sonar:sonar -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
