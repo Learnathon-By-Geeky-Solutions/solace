@@ -22,7 +22,7 @@ jobs:
           context: .
           file: docker/Dockerfile
           push: true
-          tags: yourusername/twiggle-app:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/twiggle-app:latest
           
       - name: Trigger Render Deploy
         run: |
