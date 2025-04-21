@@ -1,0 +1,191 @@
+{
+  "data": {
+    "current_condition": [
+      {
+        "temp_C": "32",
+        "humidity": "45",
+        "windspeedKmph": "8",
+        "winddir16Point": "S",
+        "cloudcover": "15",
+        "precipMM": "0",
+        "uvIndex": "8",
+        "air_quality": {
+          "us-epa-index": 2
+        }
+      }
+    ],
+    "nearest_area": [
+      {
+        "areaName": [
+          {
+            "value": "London"
+          }
+        ]
+      }
+    ],
+    "weather": [
+      {
+        "date": "2023-08-10",
+        "hourly": [
+          {
+            "time": "0",
+            "tempC": "26",
+            "humidity": "55",
+            "cloudcover": "10",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Clear"
+              }
+            ]
+          },
+          {
+            "time": "300",
+            "tempC": "25",
+            "humidity": "58",
+            "cloudcover": "10",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Clear"
+              }
+            ]
+          },
+          {
+            "time": "600",
+            "tempC": "28",
+            "humidity": "50",
+            "cloudcover": "15",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Sunny"
+              }
+            ]
+          },
+          {
+            "time": "900",
+            "tempC": "32",
+            "humidity": "45",
+            "cloudcover": "20",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Sunny"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "date": "2023-08-11",
+        "hourly": [
+          {
+            "time": "0",
+            "tempC": "27",
+            "humidity": "52",
+            "cloudcover": "10",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Clear"
+              }
+            ]
+          },
+          {
+            "time": "300",
+            "tempC": "25",
+            "humidity": "55",
+            "cloudcover": "10",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Clear"
+              }
+            ]
+          },
+          {
+            "time": "600",
+            "tempC": "29",
+            "humidity": "48",
+            "cloudcover": "15",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Sunny"
+              }
+            ]
+          },
+          {
+            "time": "900",
+            "tempC": "33",
+            "humidity": "42",
+            "cloudcover": "20",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Sunny"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "date": "2023-08-12",
+        "hourly": [
+          {
+            "time": "0",
+            "tempC": "28",
+            "humidity": "50",
+            "cloudcover": "10",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Clear"
+              }
+            ]
+          },
+          {
+            "time": "300",
+            "tempC": "26",
+            "humidity": "53",
+            "cloudcover": "10",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Clear"
+              }
+            ]
+          },
+          {
+            "time": "600",
+            "tempC": "30",
+            "humidity": "46",
+            "cloudcover": "15",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Sunny"
+              }
+            ]
+          },
+          {
+            "time": "900",
+            "tempC": "34",
+            "humidity": "40",
+            "cloudcover": "20",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Sunny"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "alerts": {
+      "alert": []
+    }
+  }
+} 
