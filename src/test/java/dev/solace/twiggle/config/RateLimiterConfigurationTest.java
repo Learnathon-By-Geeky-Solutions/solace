@@ -38,6 +38,19 @@ class RateLimiterConfigurationTest {
     }
 
     @Test
+    void defaultRateLimiterConfig_ShouldCreateCorrectConfig() {
+        // When
+        RateLimiterConfig config = configuration.defaultRateLimiterConfig();
+
+        // Then
+        assertNotNull(config, "Default config should not be null");
+        assertEquals(300, config.getLimitForPeriod(), "Default limit for period should be 300");
+        assertEquals(
+                Duration.ofMinutes(1), config.getLimitRefreshPeriod(), "Default refresh period should be 1 minute");
+        assertEquals(Duration.ZERO, config.getTimeoutDuration(), "Default timeout duration should be ZERO");
+    }
+
+    @Test
     void standardApiLimiter_ShouldCreateWithCorrectConfig() {
         // When
         RateLimiter limiter = configuration.standardApiLimiter(rateLimiterRegistry);
@@ -56,29 +69,47 @@ class RateLimiterConfigurationTest {
     void testErrorLimiter_ShouldCreateWithCorrectConfig() {
         // When
         RateLimiter limiter = configuration.testErrorLimiter(rateLimiterRegistry);
+        RateLimiterConfig config = limiter.getRateLimiterConfig();
 
         // Then
         assertNotNull(limiter, "Test error limiter should not be null");
         assertEquals("test-error", limiter.getName(), "Limiter name should match");
-        assertEquals(30, limiter.getRateLimiterConfig().getLimitForPeriod(), "Limit for period should be 30");
-        assertEquals(
-                Duration.ofSeconds(10),
-                limiter.getRateLimiterConfig().getLimitRefreshPeriod(),
-                "Refresh period should be 10 seconds");
+        assertEquals(30, config.getLimitForPeriod(), "Limit for period should be 30");
+        assertEquals(Duration.ofSeconds(10), config.getLimitRefreshPeriod(), "Refresh period should be 10 seconds");
+        assertEquals(Duration.ZERO, config.getTimeoutDuration(), "Timeout duration should be ZERO");
+
+        // Verify that the configuration is built correctly
+        RateLimiterConfig customConfig = RateLimiterConfig.custom()
+                .limitForPeriod(30)
+                .limitRefreshPeriod(Duration.ofSeconds(10))
+                .timeoutDuration(Duration.ZERO)
+                .build();
+        assertEquals(customConfig.getLimitForPeriod(), config.getLimitForPeriod());
+        assertEquals(customConfig.getLimitRefreshPeriod(), config.getLimitRefreshPeriod());
+        assertEquals(customConfig.getTimeoutDuration(), config.getTimeoutDuration());
     }
 
     @Test
     void actuatorLimiter_ShouldCreateWithCorrectConfig() {
         // When
         RateLimiter limiter = configuration.actuatorLimiter(rateLimiterRegistry);
+        RateLimiterConfig config = limiter.getRateLimiterConfig();
 
         // Then
         assertNotNull(limiter, "Actuator limiter should not be null");
         assertEquals("actuator", limiter.getName(), "Limiter name should match");
-        assertEquals(60, limiter.getRateLimiterConfig().getLimitForPeriod(), "Limit for period should be 60");
-        assertEquals(
-                Duration.ofMinutes(1),
-                limiter.getRateLimiterConfig().getLimitRefreshPeriod(),
-                "Refresh period should be 1 minute");
+        assertEquals(60, config.getLimitForPeriod(), "Limit for period should be 60");
+        assertEquals(Duration.ofMinutes(1), config.getLimitRefreshPeriod(), "Refresh period should be 1 minute");
+        assertEquals(Duration.ZERO, config.getTimeoutDuration(), "Timeout duration should be ZERO");
+
+        // Verify that the configuration is built correctly
+        RateLimiterConfig customConfig = RateLimiterConfig.custom()
+                .limitForPeriod(60)
+                .limitRefreshPeriod(Duration.ofMinutes(1))
+                .timeoutDuration(Duration.ZERO)
+                .build();
+        assertEquals(customConfig.getLimitForPeriod(), config.getLimitForPeriod());
+        assertEquals(customConfig.getLimitRefreshPeriod(), config.getLimitRefreshPeriod());
+        assertEquals(customConfig.getTimeoutDuration(), config.getTimeoutDuration());
     }
 }

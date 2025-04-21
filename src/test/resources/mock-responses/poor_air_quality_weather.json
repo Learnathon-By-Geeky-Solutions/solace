@@ -1,0 +1,195 @@
+{
+  "data": {
+    "current_condition": [
+      {
+        "temp_C": "28",
+        "humidity": "60",
+        "windspeedKmph": "5",
+        "winddir16Point": "E",
+        "cloudcover": "40",
+        "precipMM": "0",
+        "uvIndex": "6",
+        "air_quality": {
+          "us-epa-index": 4,
+          "pm2_5": "40.5",
+          "pm10": "85.2",
+          "o3": "120.3",
+          "no2": "65.7"
+        }
+      }
+    ],
+    "nearest_area": [
+      {
+        "areaName": [
+          {
+            "value": "London"
+          }
+        ]
+      }
+    ],
+    "weather": [
+      {
+        "date": "2023-08-10",
+        "hourly": [
+          {
+            "time": "0",
+            "tempC": "25",
+            "humidity": "65",
+            "cloudcover": "35",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Hazy"
+              }
+            ]
+          },
+          {
+            "time": "300",
+            "tempC": "24",
+            "humidity": "68",
+            "cloudcover": "30",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Hazy"
+              }
+            ]
+          },
+          {
+            "time": "600",
+            "tempC": "26",
+            "humidity": "62",
+            "cloudcover": "40",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Hazy"
+              }
+            ]
+          },
+          {
+            "time": "900",
+            "tempC": "28",
+            "humidity": "60",
+            "cloudcover": "45",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Hazy"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "date": "2023-08-11",
+        "hourly": [
+          {
+            "time": "0",
+            "tempC": "24",
+            "humidity": "64",
+            "cloudcover": "35",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Hazy"
+              }
+            ]
+          },
+          {
+            "time": "300",
+            "tempC": "23",
+            "humidity": "67",
+            "cloudcover": "30",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Hazy"
+              }
+            ]
+          },
+          {
+            "time": "600",
+            "tempC": "25",
+            "humidity": "63",
+            "cloudcover": "40",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Hazy"
+              }
+            ]
+          },
+          {
+            "time": "900",
+            "tempC": "27",
+            "humidity": "61",
+            "cloudcover": "45",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Hazy"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "date": "2023-08-12",
+        "hourly": [
+          {
+            "time": "0",
+            "tempC": "25",
+            "humidity": "65",
+            "cloudcover": "35",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Hazy"
+              }
+            ]
+          },
+          {
+            "time": "300",
+            "tempC": "24",
+            "humidity": "67",
+            "cloudcover": "30",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Hazy"
+              }
+            ]
+          },
+          {
+            "time": "600",
+            "tempC": "27",
+            "humidity": "60",
+            "cloudcover": "40",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Hazy"
+              }
+            ]
+          },
+          {
+            "time": "900",
+            "tempC": "29",
+            "humidity": "58",
+            "cloudcover": "45",
+            "precipMM": "0",
+            "weatherDesc": [
+              {
+                "value": "Hazy"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "alerts": {
+      "alert": []
+    }
+  }
+} 

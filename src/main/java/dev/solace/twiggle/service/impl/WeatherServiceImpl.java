@@ -533,10 +533,10 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     private void addPlantSpecificSuggestions(List<String> hazards) {
-        hazards.add("\ud83c\udf35 **Succulents**: Thriving in sunny, dry weather. Minimal watering needed.");
-        hazards.add("\ud83c\udf3a **Flowering Plants**: Great time to deadhead and fertilize to encourage blooms.");
-        hazards.add("\ud83c\udf45 **Vegetables**: Consistent watering critical. Monitor for heat or pest stress.");
-        hazards.add("\ud83c\udf3f **Herbs**: Harvest early in the day for maximum flavor and aroma.");
+        hazards.add("\ud83c\udf35 Succulents: Thriving in sunny, dry weather. Minimal watering needed.");
+        hazards.add("\ud83c\udf3a Flowering Plants: Great time to deadhead and fertilize to encourage blooms.");
+        hazards.add("\ud83c\udf45 Vegetables: Consistent watering critical. Monitor for heat or pest stress.");
+        hazards.add("\ud83c\udf3f Herbs: Harvest early in the day for maximum flavor and aroma.");
     }
 
     /**

@@ -101,4 +101,4 @@ unsplash:
 
 # CORS Configuration
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,https://twiggle.tech,https://*.vercel.app}
