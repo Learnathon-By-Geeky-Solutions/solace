@@ -25,6 +25,23 @@ public class PlantDTO {
 
     private List<String> sunlight;
 
+    private String family;
+
+    private Boolean hybrid;
+
+    private String authority;
+
+    private String subspecies;
+
+    private String cultivar;
+
+    private String variety;
+
+    @JsonProperty("species_epithet")
+    private String speciesEpithet;
+
+    private String genus;
+
     @JsonProperty("default_image")
     private PlantImageDTO defaultImage;
 }

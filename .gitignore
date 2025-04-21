@@ -40,3 +40,5 @@ build/
 .vscode/
 .m2/
 .scannerwork/
+
+/venv/

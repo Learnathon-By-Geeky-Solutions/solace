@@ -18,4 +18,15 @@ public class PlantImageDTO {
 
     @JsonProperty("small_url")
     private String smallUrl;
+
+    @JsonProperty("original_url")
+    private String originalUrl;
+
+    private Integer license;
+
+    @JsonProperty("license_name")
+    private String licenseName;
+
+    @JsonProperty("license_url")
+    private String licenseUrl;
 }
