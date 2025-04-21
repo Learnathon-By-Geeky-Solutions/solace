@@ -4,7 +4,10 @@ import dev.solace.twiggle.config.WeatherApiConfig;
 import dev.solace.twiggle.exception.CustomException;
 import dev.solace.twiggle.exception.ErrorCode;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +34,9 @@ public class WorldWeatherOnlineApiClient {
     private static final String WEATHER_ENDPOINT = "/weather.ashx";
     private static final String YES_VALUE = "yes";
 
+    // List of trusted domains for external API calls
+    private static final List<String> TRUSTED_DOMAINS = Arrays.asList("worldweatheronline.com", "wttr.in");
+
     private final RestTemplate restTemplate = new RestTemplate();
     private final WeatherApiConfig weatherApiConfig;
 
@@ -42,7 +48,8 @@ public class WorldWeatherOnlineApiClient {
      */
     public String getCurrentWeather(String location) {
         Map<String, String> queryParams = new HashMap<>();
-        queryParams.put("q", location);
+        // Validate location input to prevent injection
+        queryParams.put("q", validateLocationInput(location));
         queryParams.put(FORMAT_PARAM, FORMAT_JSON);
         queryParams.put(NUM_OF_DAYS_PARAM, "1");
         queryParams.put("fx", YES_VALUE);
@@ -87,7 +94,8 @@ public class WorldWeatherOnlineApiClient {
         }
 
         Map<String, String> queryParams = new HashMap<>();
-        queryParams.put("q", location);
+        // Validate location input to prevent injection
+        queryParams.put("q", validateLocationInput(location));
         queryParams.put(FORMAT_PARAM, FORMAT_JSON);
         queryParams.put(NUM_OF_DAYS_PARAM, String.valueOf(days));
         queryParams.put("fx", YES_VALUE);
@@ -138,16 +146,23 @@ public class WorldWeatherOnlineApiClient {
             // Add API key to query parameters
             queryParams.put("key", weatherApiConfig.getKey());
 
+            // Validate the base URL before constructing the request
+            String baseUrl = weatherApiConfig.getBaseUrl();
+            validateTrustedDomain(baseUrl);
+
             // Convert Map to MultiValueMap
             MultiValueMap<String, String> multiValueMap = new LinkedMultiValueMap<>();
             queryParams.forEach(multiValueMap::add);
 
             // Build the API URL
-            URI uri = UriComponentsBuilder.fromUriString(weatherApiConfig.getBaseUrl())
+            URI uri = UriComponentsBuilder.fromUriString(baseUrl)
                     .path(endpoint)
                     .queryParams(multiValueMap)
                     .build()
                     .toUri();
+
+            // Final validation of the constructed URI
+            validateTrustedDomain(uri.toString());
 
             log.debug("Making API call to: {}", uri);
             ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
@@ -169,6 +184,57 @@ public class WorldWeatherOnlineApiClient {
     }
 
     /**
+     * Validate that a URL is from a trusted domain
+     *
+     * @param url The URL to validate
+     */
+    private void validateTrustedDomain(String url) {
+        try {
+            URI uri = new URI(url);
+            String host = uri.getHost();
+
+            if (host == null || !TRUSTED_DOMAINS.stream().anyMatch(domain -> host.endsWith(domain))) {
+                throw new CustomException(
+                        "Untrusted domain for external API",
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        ErrorCode.EXTERNAL_API_ERROR);
+            }
+        } catch (URISyntaxException e) {
+            throw new CustomException(
+                    "Invalid URL format for external API",
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    ErrorCode.EXTERNAL_API_ERROR);
+        }
+    }
+
+    /**
+     * Validate location input to prevent injection attacks
+     *
+     * @param location The location to validate
+     * @return The validated location
+     */
+    private String validateLocationInput(String location) {
+        if (location == null || location.isBlank()) {
+            throw new CustomException(
+                    "Location parameter is required", HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
+        }
+
+        // Check for potentially dangerous characters or patterns
+        if (location.contains("<")
+                || location.contains(">")
+                || location.contains("\"")
+                || location.contains("'")
+                || location.contains(";")
+                || location.contains("--")
+                || location.contains("://")) {
+            throw new CustomException(
+                    "Invalid characters in location parameter", HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
+        }
+
+        return location;
+    }
+
+    /**
      * Formats latitude and longitude as a string for the API query parameter.
      *
      * @param latitude The latitude in decimal degrees
@@ -176,6 +242,14 @@ public class WorldWeatherOnlineApiClient {
      * @return Formatted coordinates string
      */
     private String formatCoordinates(double latitude, double longitude) {
+        // Validate coordinate range
+        if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+            throw new CustomException(
+                    "Invalid coordinates: latitude must be between -90 and 90, longitude between -180 and 180",
+                    HttpStatus.BAD_REQUEST,
+                    ErrorCode.VALIDATION_ERROR);
+        }
+
         return String.format("%f,%f", latitude, longitude);
     }
 }
