@@ -1,0 +1,17 @@
+meta {
+  name: get-weather-forecast-coordinates
+  type: http
+  seq: 6
+}
+
+get {
+  url: http://localhost:8080/api/weather/forecast/coordinates?latitude=23.723&longitude=90.39&days=4
+  body: none
+  auth: inherit
+}
+
+params:query {
+  latitude: 23.723
+  longitude: 90.39
+  days: 4
+}

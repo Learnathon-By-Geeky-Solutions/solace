@@ -1,0 +1,27 @@
+meta {
+  name: get-plant-list
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8080/api/plants/external
+  body: none
+  auth: none
+}
+
+query {
+  page: 1
+  order: asc
+  cycle: perennial
+  watering: frequent
+  sunlight: full_sun
+}
+
+headers {
+  Content-Type: application/json
+}
+
+assert {
+  status: 200
+}

@@ -7,6 +7,7 @@ import dev.solace.twiggle.exception.ErrorCode;
 import dev.solace.twiggle.service.ReminderService;
 import dev.solace.twiggle.util.ResponseUtil;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -18,7 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/reminders")
+@RequestMapping("/api/v1/reminders")
 @RequiredArgsConstructor
 @Slf4j
 @RateLimiter(name = "standard-api")
@@ -28,7 +29,8 @@ public class ReminderController {
     private static final String SUCCESS = "success";
 
     @PostMapping("/send")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> sendReminder(@RequestBody ReminderEmailRequest request) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> sendReminder(
+            @Valid @RequestBody ReminderEmailRequest request) {
         log.info("Received request to send reminder for plant: {}", request.getPlantName());
         try {
             Map<String, Object> result = reminderService.sendReminderEmailWithId(request);

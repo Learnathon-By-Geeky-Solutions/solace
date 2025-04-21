@@ -1,0 +1,122 @@
+{
+  "data": {
+    "current_condition": [
+      {
+        "temp_C": "23",
+        "temp_F": "73",
+        "weatherDesc": [
+          {
+            "value": "Sunny"
+          }
+        ],
+        "humidity": "55",
+        "windspeedKmph": "8",
+        "winddir16Point": "SW",
+        "precipMM": "0.0",
+        "pressure": "1012",
+        "cloudcover": "20",
+        "uvIndex": "6",
+        "air_quality": {
+          "us-epa-index": "2",
+          "co": "150.1",
+          "no2": "5.2",
+          "o3": "65.5",
+          "pm2_5": "8.4",
+          "pm10": "12.1"
+        }
+      }
+    ],
+    "weather": [
+      {
+        "date": "2023-07-01",
+        "astronomy": [
+          {
+            "sunrise": "04:45 AM",
+            "sunset": "09:21 PM",
+            "moonrise": "06:12 PM",
+            "moonset": "02:30 AM",
+            "moon_phase": "Waxing Gibbous"
+          }
+        ],
+        "garden_data": {
+          "soil_temperature": "21.5",
+          "soil_moisture": "72",
+          "light_level": "85",
+          "pollen_count": "Medium",
+          "recommendations": [
+            "Plants need watering today due to dry soil conditions",
+            "Good day for planting new seedlings",
+            "Consider adding shade for heat-sensitive plants"
+          ]
+        },
+        "hourly": [
+          {
+            "time": "0",
+            "temp_C": "20",
+            "temp_F": "68",
+            "weatherDesc": [
+              {
+                "value": "Clear"
+              }
+            ],
+            "precipMM": "0.0",
+            "humidity": "60",
+            "windspeedKmph": "6",
+            "winddir16Point": "SW"
+          },
+          {
+            "time": "300",
+            "temp_C": "18",
+            "temp_F": "64",
+            "weatherDesc": [
+              {
+                "value": "Clear"
+              }
+            ],
+            "precipMM": "0.0",
+            "humidity": "65",
+            "windspeedKmph": "5",
+            "winddir16Point": "SW"
+          },
+          {
+            "time": "600",
+            "temp_C": "22",
+            "temp_F": "72",
+            "weatherDesc": [
+              {
+                "value": "Sunny"
+              }
+            ],
+            "precipMM": "0.0",
+            "humidity": "55",
+            "windspeedKmph": "7",
+            "winddir16Point": "SW"
+          }
+        ]
+      }
+    ],
+    "nearest_area": [
+      {
+        "areaName": [
+          {
+            "value": "London"
+          }
+        ],
+        "country": [
+          {
+            "value": "United Kingdom"
+          }
+        ]
+      }
+    ],
+    "request": [
+      {
+        "type": "LatLon",
+        "query": "51.507,-0.127"
+      }
+    ],
+    "alerts": {
+      "alert": []
+    }
+  }
+}

@@ -1,0 +1,28 @@
+meta {
+  name: get-plant-recommendations-empty-existingplants
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8080/api/v1/plant-recommendations
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "gardenType": "Indoor",
+    "location": "Office with fluorescent lighting",
+    "existingPlants": [],
+    "message": "Starting my first plant collection. Need recommendations for plants that can survive with artificial lighting.",
+    "userPreferences": {
+      "experience": "Beginner",
+      "harvestGoals": [
+        "Aesthetics",
+        "Air Purification"
+      ],
+      "timeCommitment": "Low"
+    }
+  }
+}

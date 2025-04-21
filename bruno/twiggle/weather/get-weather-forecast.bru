@@ -1,0 +1,16 @@
+meta {
+  name: get-weather-forecast
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8080/api/weather/forecast?location=Dhaka&days=4
+  body: none
+  auth: inherit
+}
+
+params:query {
+  location: Dhaka
+  days: 4
+}

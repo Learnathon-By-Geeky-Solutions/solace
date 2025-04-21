@@ -54,11 +54,14 @@ build_app() {
 
 # Function to run the application locally
 run_local() {
-   JAR_FILE=$(find target -maxdepth 1 -type f -name "*.jar" | head -n 1)
+   # Specifically look for the main application JAR, excluding javadoc and original JARs
+   JAR_FILE=$(find target -maxdepth 1 -type f -name "twiggle-*.jar" | grep -v "javadoc" | grep -v "original" | head -n 1)
+
    if [ -z "$JAR_FILE" ]; then
-       echo -e "${RED}No JAR file found in the target directory. Build might have failed.${NC}"
+       echo -e "${RED}No main application JAR file found in the target directory. Build might have failed.${NC}"
        exit 1
    fi
+
    echo -e "${CYAN}Running the application from $JAR_FILE...${NC}"
    if ! java -jar "$JAR_FILE"; then
        echo -e "${RED}Application failed to start.${NC}"
@@ -229,7 +232,7 @@ run_sonar_check() {
     fi
 
     echo -e "${CYAN}Starting SonarQube service...${NC}"
-    if ! docker-compose -f ${DOCKER_SERVICES} up -d sonarqube; then
+    if ! docker compose -f ${DOCKER_SERVICES} up -d sonarqube; then
         echo -e "${RED}Failed to start SonarQube.${NC}"
         exit 1
     fi
@@ -260,10 +263,11 @@ run_sonar_check() {
         exit 1
     fi
 
-    echo -e "${CYAN}Running SonarQube analysis...${NC}"
-    if ! mvn clean verify sonar:sonar \
+    echo -e "${CYAN}Running SonarQube analysis with coverage data...${NC}"
+    if ! mvn sonar:sonar \
         -Dsonar.host.url=http://localhost:9000 \
-        -Dsonar.token="${SONAR_TOKEN}"; then
+        -Dsonar.token="${SONAR_TOKEN}" \
+        -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml; then
         echo -e "${RED}SonarQube analysis failed.${NC}"
         exit 1
     fi

@@ -35,6 +35,9 @@
 		<sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
 		<sonar.java.source>21</sonar.java.source>
 		<testcontainers.version>1.19.3</testcontainers.version>
+		<sonar.coverage.jacoco.xmlReportPaths>
+			target/site/jacoco/jacoco.xml
+		</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>
 
 	<!-- Dependencies -->
@@ -56,6 +59,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
+		</dependency>
+
+		<!-- WebClient for HTTP calls -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
 
 		<!-- Boilerplate Code Generators -->
@@ -157,6 +166,11 @@
 			<groupId>org.testcontainers</groupId>
 			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+    		<groupId>com.h2database</groupId>
+    		<artifactId>h2</artifactId>
+   			<scope>runtime</scope>
 		</dependency>
 	</dependencies>
 
@@ -299,6 +313,42 @@
 						<phase>test</phase>
 						<goals>
 							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.11.2</version>
+				<configuration>
+					<doclet>nl.talsmasoftware.umldoclet.UMLDoclet</doclet>
+					<docletArtifact>
+						<groupId>nl.talsmasoftware</groupId>
+						<artifactId>umldoclet</artifactId>
+						<version>2.2.1</version>
+					</docletArtifact>
+					<additionalOptions>
+						<additionalOption>-umlImageFormat SVG</additionalOption>
+						<additionalOption>-createPumlFiles</additionalOption>
+						<additionalOption>-umlEncoding UTF-8</additionalOption>
+					</additionalOptions>
+					<excludePackageNames>dev.solace.twiggle.service.impl</excludePackageNames>
+					<failOnError>false</failOnError>
+					<show>private</show>
+				</configuration>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>generate-javadoc</id>
+						<phase>site</phase>
+						<goals>
+							<goal>javadoc</goal>
 						</goals>
 					</execution>
 				</executions>

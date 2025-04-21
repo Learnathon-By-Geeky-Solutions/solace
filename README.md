@@ -1,25 +1,163 @@
-# Twiggle - Urban Garden Planner (Backend)
+# 🌱 Twiggle - Your Gardening Companion
 
-Twiggle is a web application designed to help urban gardeners plan and manage their gardens. It provides personalized gardening suggestions, space-optimized layout designing, and resource management for urban environments, making gardening accessible and enjoyable for everyone.
+<div align="center">
 
----
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.4-brightgreen.svg)
+![Java](https://img.shields.io/badge/Java-21-orange.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)
+![Redis](https://img.shields.io/badge/Redis-7.0-red.svg)
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
-## Project Setup
+[![Deploy Status](https://img.shields.io/badge/Deploy-Status-success.svg)](https://twiggle.com)
+[![Documentation](https://img.shields.io/badge/Docs-API-blue.svg)](docs/API.md)
+[![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen.svg)](https://github.com/your-org/twiggle/actions)
 
-This project uses **Spring Boot** to build the backend application. Below are the steps to set up the backend on your local machine.
+</div>
 
----
+## 📑 Table of Contents
+- [Overview](#-overview)
+- [Team](#-team)
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Project Structure](#-project-structure)
+- [Quick Links](#-quick-links)
+- [Installation](#-installation)
+- [Configuration](#-configuration)
+- [Documentation](#-documentation)
+- [Resources](#-resources)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+## 🌟 Overview
+
+Twiggle is a comprehensive gardening and plant management platform that helps users plan, maintain, and track their gardens while connecting with a community of fellow gardening enthusiasts. Built with Spring Boot, it provides a robust backend for managing gardens, plants, weather data, and community interactions.
+
+<div align="center">
+  <img src="docs/assets/indoor-garden.jpg" alt="Beautiful indoor garden with hanging plants and natural lighting" width="800"/>
+  <p><em>Transform your space into a thriving indoor garden with Twiggle's plant management features</em></p>
+</div>
+
+### Project Context
+- **Purpose**: Simplify garden management and plant care
+- **Target Users**: Home gardeners, plant enthusiasts, and gardening professionals
+- **Key Value**: All-in-one solution for garden planning and maintenance
+
+## 👥 Team
+
+| Name                  | GitHub                                                    |
+|-----------------------|-----------------------------------------------------------|
+| Tasriad Ahmed Tias    | [@tasriad](https://github.com/tasriad)                    |
+| MD. AS-AID RAHMAN     | [@aar-rafi](https://github.com/aar-rafi)                  |
+| Munim Thahmid         | [@munimthahmid](https://github.com/munimthahmid)          |
+| Moonwar AL Wardiful (Mentor) | [@moonwarnishan](https://github.com/moonwarnishan) |
+
+
+## ✨ Features
+
+- 🌿 **Garden Planning**
+  - Create and manage multiple gardens
+  - Visual garden layout designer
+  - Plant placement and arrangement
+  - Garden sharing and privacy settings
+
+- 🌱 **Plant Management**
+  - Comprehensive plant database
+  - Smart plant recommendations
+  - Growth tracking and maintenance
+  - Care instructions and tips
+
+- 🌤️ **Weather Integration**
+  - Real-time weather monitoring
+  - Garden-specific weather advice
+  - Weather-based maintenance alerts
+  - Forecast integration
+
+- 🔔 **Smart Reminders**
+  - Customizable maintenance schedules
+  - Multi-channel notifications
+  - Task completion tracking
+  - Seasonal care reminders
+
+- 👥 **Community Features**
+  - Garden photo sharing
+  - Expert advice system
+  - Community discussions
+  - Progress tracking
+
+## 🛠️ Tech Stack
+
+### Backend
+- **Framework**: Spring Boot 3.4.4
+- **Language**: Java 21
+- **API Style**: RESTful
+- **Authentication**: JWT with OAuth 2.0
+
+### Databases
+- **Primary**: PostgreSQL 15
+- **Document Store**: MongoDB 6.0
+- **Cache**: Redis 7.0
+- **ORM**: Hibernate 6.0
+
+### Infrastructure
+- **Containerization**: Docker
+- **Orchestration**: Kubernetes
+- **CI/CD**: GitHub Actions
+- **Cloud**: AWS
+- **CDN**: CloudFront
+
+### External Services
+- **Weather**: OpenWeatherMap API
+- **Plant Database**: Trefle API
+- **Storage**: AWS S3
+- **Email**: SendGrid
+- **Push Notifications**: Firebase Cloud Messaging
+
+## 📁 Project Structure
+
+```
+twiggle/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── dev/solace/twiggle/
+│   │   │       ├── config/        # Configuration classes
+│   │   │       ├── controller/    # REST controllers
+│   │   │       ├── dto/          # Data Transfer Objects
+│   │   │       ├── exception/    # Custom exceptions
+│   │   │       ├── mapper/       # Object mappers
+│   │   │       ├── model/        # Entity models
+│   │   │       ├── repository/   # Data access layer
+│   │   │       ├── service/      # Business logic
+│   │   │       └── util/         # Utility classes
+│   │   └── resources/
+│   │       ├── application.yml   # Main configuration
+│   │       └── db/              # Database migrations
+│   └── test/                    # Test classes
+├── docs/                        # Documentation
+├── bruno/                       # API collections
+└── docker/                      # Docker configuration
+```
+
+## 🔗 Quick Links
+
+- 🌐 [Live Application](https://twiggle.com)
+- 📚 [API Documentation](docs/API.md)
+- 📋 [Product Requirements](docs/Product_Requirements_Document.md)
+- 🏗️ [Technical Specification](docs/Technical_Specification.md)
+- 📐 [System Architecture](docs/System_Architecture.md)
+- 🐳 [Docker Hub](https://hub.docker.com/r/your-org/twiggle)
+
+## 🚀 Installation
 
 ### Prerequisites
+- Java 21 or higher
+- Maven 3.8+
+- Docker and Docker Compose
+- PostgreSQL 15
+- MongoDB 6.0
+- Redis 7.0
 
-Ensure the following tools are installed on your system:
-
-- **Java 21** or above
-- **JDK** (version 21 or 21+ recommended) with JAVA_HOME environment variable set
-- **Maven** (version 3.6+ recommended)
----
-
-### Getting Started
+### 🚀 Local Setup
 
 1. **Clone the Repository**
 
@@ -108,49 +246,53 @@ Ensure the following tools are installed on your system:
 
 ---
 
-### Current Code Structure
+**Access the application**
 
-```
-twiggle/
-├── src/                    # Source code
-│   ├── main
-│   │   ├── java
-│   │   │   ├── dev.solace
-│   │   │   │   ├── twiggle
-│   │   │   │   │   ├── controller            # API endpoints (REST controllers)
-│   │   │   │   │   ├── model                 # Domain models (e.g., Plant, Layout)
-│   │   │   │   │   ├── repository            # Database repositories (JPA repositories)
-│   │   │   │   │   ├── service               # Business logic (service layer)
-│   │   │   │   │   ├── dto                   # Data Transfer Objects (DTOs for API requests/responses)
-│   │   │   │   │   ├── exception             # Custom exception handling (global exception handler)
-│   │   │   │   │   ├── config                # Configuration classes (security, Swagger, etc.)
-│   │   │   │   │   ├── util                  # Utility classes (e.g., date, validation)
-│   │   │   │   │   ├── security              # Security (JWT, OAuth2, etc.)
-│   │   │   │   │   ├── ai                    # AI/ML integration (plant disease detection, recommendations)
-│   │   │   │   │   ├── scheduler             # Scheduling tasks (for watering, fertilizing)
-│   │   ├── resources
-│   │   │   ├── application.properties        # Application config properties
-│   │   │   ├── static                       # Static files (if needed, e.g., images for plant database)
-│   │   │   ├── templates                    # Thymeleaf templates (if using for server-side rendering)
-│   └── test
-│       ├── java
-│       │   ├── dev.solace
-│       │   │   ├── twiggle
-│       │   │   │   ├── controller            # Tests for controllers (API layer)
-│       │   │   │   ├── service               # Tests for services (business logic layer)
-│       │   │   │   ├── repository            # Tests for repositories (data layer)
-│       │   │   │   ├── util                  # Tests for utility classes
-├── docker/                 # Docker configuration
-│   ├── Dockerfile         # Application Dockerfile
-│   ├── docker-compose.yml # Docker services configuration
-│   ├── prometheus/        # Prometheus configuration
-│   └── grafana/           # Grafana configuration
-├── .env                    # Environment variables
-├── pom.xml                # Maven dependencies
-└── run.sh                 # Script for various operations
-```
+Backend API: http://localhost:8080
 
----
+Swagger UI: http://localhost:8080/swagger-ui/index.html
+
+## ⚙️ Configuration
+
+### Environment Variables
+
+| Variable                    | Description                         | Example                                   |
+|-----------------------------|-------------------------------------|-------------------------------------------|
+| `GRAFANA_USER`              | Grafana admin username              | `admin`                                   |
+| `GRAFANA_PASSWORD`          | Grafana admin password              | `securepassword`                          |
+| `SONARQUBE_USER`            | SonarQube login username            | `admin`                                   |
+| `SONARQUBE_PASSWORD`        | SonarQube login password            | `sonarpass`                               |
+| `SONAR_TOKEN`               | SonarQube API token                 | `123abc456xyz789token`                    |
+| `SUPABASE_URL`              | Supabase project URL                | `https://xyzcompany.supabase.co`          |
+| `SUPABASE_USERNAME`         | Supabase DB username                | `postgres`                                |
+| `SUPABASE_PASSWORD`         | Supabase DB password                | `supabasepass`                            |
+| `SUPABASE_API_URL`          | Supabase API base URL               | `https://xyzcompany.supabase.co/rest/v1`  |
+| `SUPABASE_DB_URL`           | Supabase JDBC DB URL                | `jdbc:postgresql://xyz.supabase.co:5432/postgres` |
+| `SUPABASE_ANON_KEY`         | Supabase public anon key            | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`  |
+| `SUPABASE_SERVICE_ROLE_KEY`| Supabase service role key           | `service-role-key-goes-here`              |
+| `OPENAI_API_KEY`            | OpenAI API key                      | `sk-abc123xyz456789...`                   |
+| `UNSPLASH_ACCESS_KEY`       | Unsplash API access key             | `unsplash-access-key`                     |
+| `RESEND_API_KEY`            | Resend email API key                | `re_abc123xyz456...`                      |
+| `RESEND_FROM_EMAIL`         | Default from email for Resend       | `no-reply@example.com`                    |
+| `WEATHER_API_KEY`           | Weather API key                     | `weather-123-api-key`                     |
+| `GOOGLE_CLIENT_ID`          | Google OAuth client ID              | `12345-abc.apps.googleusercontent.com`    |
+| `GOOGLE_CLIENT_SECRET`      | Google OAuth client secret          | `google-client-secret-here`               |
+
+### Configuration Files
+
+- `application.yml`: Main Spring Boot configuration
+- `application-dev.yml`: Development profile settings
+- `application-prod.yml`: Production profile settings
+- `logback-spring.xml`: Logging configuration
+
+## 📚 Documentation
+
+- [API Documentation](docs/API.md)
+- [Product Requirements](docs/Product_Requirements_Document.md)
+- [Technical Specification](docs/Technical_Specification.md)
+- [System Architecture](docs/System_Architecture.md)
+
+## 📖 Resources
 
 ### Maven Dependencies
 
@@ -178,62 +320,28 @@ The project includes the following dependencies for backend development:
 
 ---
 
-### Available Commands
 
-The `run.sh` script provides various commands to manage the application. 
+### External Services
+- [OpenWeatherMap API](https://openweathermap.org/api)
+- [Trefle API](https://trefle.io/)
+- [SendGrid](https://sendgrid.com/)
+- [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging)
 
-```bash
-./run.sh [command]
-```
-Use the following commands to display the list of available commands:
+## 🤝 Contributing
 
-```bash
-./run.sh help
-```
----
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-### Testing
+## 📄 License
 
-Run unit and integration tests using:
-
-```bash
-mvn test
-```
-
-Alternatively, use the provided shell script to run the tests:
-
-```bash
-./run.sh test
-```
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-### Logging and Monitoring
-
-The application uses Spring Boot Actuator for health checks and monitoring. Access these endpoints at:
-
-- **Health Check**: `http://localhost:8080/actuator/health`
-- **Metrics**: `http://localhost:8080/actuator/metrics`
-
----
-
-### Deployment
-
-Package the application as a JAR file:
-
-```bash
-mvn clean package
-```
-
-Deploy the `twiggle.jar` file to your preferred environment.
-
----
-
-### Contact
-
-For any questions or inquiries, contact us at:
-
-**Email**: [Tasriad Ahmed Tias](mailto:trisn.eclipse@gmail.com)
-
-**Repository**: [Twiggle GitHub](https://github.com/Learnathon-By-Geeky-Solutions/solace.git)
+<div align="center">
+Made with ❤️ by Team Solace
+</div>
 

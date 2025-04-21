@@ -1,0 +1,31 @@
+meta {
+  name: get-plant-recommendations
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/api/v1/plant-recommendations
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "gardenType": "Indoor",
+    "location": "Living Room",
+    "existingPlants": [
+      "Snake Plant",
+      "Pothos"
+    ],
+    "message": "I'm looking for low-maintenance plants that can thrive in indirect light.",
+    "userPreferences": {
+      "experience": "Beginner",
+      "harvestGoals": [
+        "Aesthetics",
+        "Air Purification"
+      ],
+      "timeCommitment": "Low"
+    }
+  }
+}

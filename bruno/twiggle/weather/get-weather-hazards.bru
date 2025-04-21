@@ -1,0 +1,15 @@
+meta {
+  name: get-weather-hazards
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://localhost:8080/api/weather/hazards?location=London
+  body: none
+  auth: inherit
+}
+
+params:query {
+  location: London
+}

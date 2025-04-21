@@ -26,7 +26,10 @@ public enum ErrorCode {
     RATE_LIMIT_EXCEEDED(
             "Please wait and try your request again later. Contact support if you need a higher rate limit."),
     EMAIL_SENDING_FAILED("Please check the email service configuration and try again."),
-    DUPLICATE("Please ensure the resource you're trying to create does not already exist.");
+    EXTERNAL_API_ERROR("External API request failed. Please try again later or contact support."),
+    DUPLICATE("Please ensure the resource you're trying to create does not already exist."),
+    VALIDATION_ERROR("Please review the validation errors and correct your request."),
+    CONFIGURATION_ERROR("Please check the application configuration for any issues.");
 
     private final String suggestion;
 

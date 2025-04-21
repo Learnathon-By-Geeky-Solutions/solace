@@ -1,0 +1,189 @@
+{
+  "data": {
+    "current_condition": [
+      {
+        "temp_C": "24",
+        "temp_F": "75",
+        "weatherDesc": [
+          {
+            "value": "Partly cloudy"
+          }
+        ],
+        "humidity": "60",
+        "windspeedKmph": "12",
+        "winddir16Point": "SE",
+        "precipMM": "0.0",
+        "pressure": "1010",
+        "cloudcover": "35",
+        "uvIndex": "5",
+        "air_quality": {
+          "us-epa-index": "2",
+          "co": "145.5",
+          "no2": "4.8",
+          "o3": "68.2",
+          "pm2_5": "7.9",
+          "pm10": "11.5"
+        }
+      }
+    ],
+    "weather": [
+      {
+        "date": "2023-07-01",
+        "astronomy": [
+          {
+            "sunrise": "04:45 AM",
+            "sunset": "09:21 PM",
+            "moonrise": "06:12 PM",
+            "moonset": "02:30 AM",
+            "moon_phase": "Waxing Gibbous"
+          }
+        ],
+        "garden_data": {
+          "soil_temperature": "20.5",
+          "soil_moisture": "68",
+          "light_level": "80",
+          "pollen_count": "High",
+          "recommendations": [
+            "Water plants in the evening",
+            "Apply mulch to retain moisture",
+            "Protect pollen-sensitive plants"
+          ]
+        },
+        "hourly": [
+          {
+            "time": "0",
+            "temp_C": "18",
+            "temp_F": "64",
+            "weatherDesc": [
+              {
+                "value": "Clear"
+              }
+            ],
+            "precipMM": "0.0",
+            "humidity": "75",
+            "windspeedKmph": "5",
+            "winddir16Point": "E"
+          },
+          {
+            "time": "600",
+            "temp_C": "20",
+            "temp_F": "68",
+            "weatherDesc": [
+              {
+                "value": "Sunny"
+              }
+            ],
+            "precipMM": "0.0",
+            "humidity": "70",
+            "windspeedKmph": "7",
+            "winddir16Point": "SE"
+          },
+          {
+            "time": "1200",
+            "temp_C": "25",
+            "temp_F": "77",
+            "weatherDesc": [
+              {
+                "value": "Partly cloudy"
+              }
+            ],
+            "precipMM": "0.0",
+            "humidity": "55",
+            "windspeedKmph": "10",
+            "winddir16Point": "S"
+          }
+        ]
+      },
+      {
+        "date": "2023-07-02",
+        "astronomy": [
+          {
+            "sunrise": "04:46 AM",
+            "sunset": "09:20 PM",
+            "moonrise": "07:25 PM",
+            "moonset": "03:15 AM",
+            "moon_phase": "Waxing Gibbous"
+          }
+        ],
+        "garden_data": {
+          "soil_temperature": "21.0",
+          "soil_moisture": "62",
+          "light_level": "85",
+          "pollen_count": "Medium",
+          "recommendations": [
+            "Increased watering recommended",
+            "Consider light shade for delicate plants",
+            "Good day for harvesting"
+          ]
+        },
+        "hourly": [
+          {
+            "time": "0",
+            "temp_C": "19",
+            "temp_F": "66",
+            "weatherDesc": [
+              {
+                "value": "Clear"
+              }
+            ],
+            "precipMM": "0.0",
+            "humidity": "72",
+            "windspeedKmph": "6",
+            "winddir16Point": "SE"
+          },
+          {
+            "time": "600",
+            "temp_C": "21",
+            "temp_F": "70",
+            "weatherDesc": [
+              {
+                "value": "Sunny"
+              }
+            ],
+            "precipMM": "0.0",
+            "humidity": "68",
+            "windspeedKmph": "8",
+            "winddir16Point": "S"
+          },
+          {
+            "time": "1200",
+            "temp_C": "26",
+            "temp_F": "79",
+            "weatherDesc": [
+              {
+                "value": "Sunny"
+              }
+            ],
+            "precipMM": "0.0",
+            "humidity": "52",
+            "windspeedKmph": "12",
+            "winddir16Point": "S"
+          }
+        ]
+      }
+    ],
+    "nearest_area": [
+      {
+        "areaName": [
+          {
+            "value": "London"
+          }
+        ],
+        "country": [
+          {
+            "value": "United Kingdom"
+          }
+        ]
+      }
+    ],
+    "request": [
+      {
+        "type": "City",
+        "query": "London, United Kingdom"
+      }
+    ],
+    "alerts": {
+      "alert": []
+    }
+  }
+}

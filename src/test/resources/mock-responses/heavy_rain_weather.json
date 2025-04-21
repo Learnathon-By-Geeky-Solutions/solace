@@ -1,0 +1,191 @@
+{
+  "data": {
+    "current_condition": [
+      {
+        "temp_C": "18",
+        "humidity": "80",
+        "windspeedKmph": "25",
+        "winddir16Point": "SW",
+        "cloudcover": "95",
+        "precipMM": "15",
+        "uvIndex": "2",
+        "air_quality": {
+          "us-epa-index": 1
+        }
+      }
+    ],
+    "nearest_area": [
+      {
+        "areaName": [
+          {
+            "value": "London"
+          }
+        ]
+      }
+    ],
+    "weather": [
+      {
+        "date": "2023-08-10",
+        "hourly": [
+          {
+            "time": "0",
+            "tempC": "17",
+            "humidity": "75",
+            "cloudcover": "90",
+            "precipMM": "12",
+            "weatherDesc": [
+              {
+                "value": "Heavy rain"
+              }
+            ]
+          },
+          {
+            "time": "300",
+            "tempC": "16",
+            "humidity": "78",
+            "cloudcover": "95",
+            "precipMM": "18",
+            "weatherDesc": [
+              {
+                "value": "Heavy rain"
+              }
+            ]
+          },
+          {
+            "time": "600",
+            "tempC": "17",
+            "humidity": "75",
+            "cloudcover": "90",
+            "precipMM": "15",
+            "weatherDesc": [
+              {
+                "value": "Heavy rain"
+              }
+            ]
+          },
+          {
+            "time": "900",
+            "tempC": "18",
+            "humidity": "70",
+            "cloudcover": "85",
+            "precipMM": "12",
+            "weatherDesc": [
+              {
+                "value": "Moderate rain"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "date": "2023-08-11",
+        "hourly": [
+          {
+            "time": "0",
+            "tempC": "17",
+            "humidity": "75",
+            "cloudcover": "90",
+            "precipMM": "10",
+            "weatherDesc": [
+              {
+                "value": "Moderate rain"
+              }
+            ]
+          },
+          {
+            "time": "300",
+            "tempC": "16",
+            "humidity": "78",
+            "cloudcover": "95",
+            "precipMM": "12",
+            "weatherDesc": [
+              {
+                "value": "Moderate rain"
+              }
+            ]
+          },
+          {
+            "time": "600",
+            "tempC": "17",
+            "humidity": "75",
+            "cloudcover": "85",
+            "precipMM": "8",
+            "weatherDesc": [
+              {
+                "value": "Light rain"
+              }
+            ]
+          },
+          {
+            "time": "900",
+            "tempC": "19",
+            "humidity": "70",
+            "cloudcover": "75",
+            "precipMM": "5",
+            "weatherDesc": [
+              {
+                "value": "Light rain"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "date": "2023-08-12",
+        "hourly": [
+          {
+            "time": "0",
+            "tempC": "18",
+            "humidity": "72",
+            "cloudcover": "80",
+            "precipMM": "6",
+            "weatherDesc": [
+              {
+                "value": "Light rain"
+              }
+            ]
+          },
+          {
+            "time": "300",
+            "tempC": "17",
+            "humidity": "75",
+            "cloudcover": "85",
+            "precipMM": "8",
+            "weatherDesc": [
+              {
+                "value": "Light rain"
+              }
+            ]
+          },
+          {
+            "time": "600",
+            "tempC": "18",
+            "humidity": "70",
+            "cloudcover": "75",
+            "precipMM": "4",
+            "weatherDesc": [
+              {
+                "value": "Light rain"
+              }
+            ]
+          },
+          {
+            "time": "900",
+            "tempC": "20",
+            "humidity": "65",
+            "cloudcover": "65",
+            "precipMM": "2",
+            "weatherDesc": [
+              {
+                "value": "Patchy rain possible"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "alerts": {
+      "alert": []
+    }
+  }
+} 

@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
  * REST controller for user profiles.
  */
 @RestController
-@RequestMapping("/api/profiles")
+@RequestMapping("/api/v1/profiles")
 @RequiredArgsConstructor
 @Slf4j
 @RateLimiter(name = "standard-api")
@@ -89,9 +89,9 @@ public class ProfileController {
     }
 
     /**
-     * Enhanced search for profiles with closest match capability.
+     * Enhanced search for profiles with the closest match capability.
      * This endpoint allows searching specifically by full name and returns results ordered by
-     * relevance, with closest matches to partial entries ranked higher.
+     * relevance, with the closest matches to partial entries ranked higher.
      *
      * @param fullName search term for full name (optional)
      * @param query general search term for any field (optional)
@@ -217,7 +217,7 @@ public class ProfileController {
     public ResponseEntity<ApiResponse<ProfileDTO>> createProfile(@Valid @RequestBody ProfileDTO profileDTO) {
         try {
             ProfileDTO createdProfile = profileService.create(profileDTO);
-            return ResponseUtil.success("Profile created successfully", createdProfile);
+            return ResponseUtil.created("Profile created successfully", createdProfile);
         } catch (Exception e) {
             log.error("Error creating profile: {}", e.getMessage(), e);
             throw new CustomException(
@@ -254,17 +254,44 @@ public class ProfileController {
      * Delete a profile.
      *
      * @param id the profile ID
-     * @return success response
+     * @return success response or 404 if not found
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteProfile(@PathVariable UUID id) {
+        // Check if profile exists first
+        if (!profileService.findById(id).isPresent()) {
+            throw new CustomException(
+                    "Profile not found for deletion", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
+        }
         try {
             profileService.delete(id);
             return ResponseUtil.success("Profile deleted successfully", null);
-        } catch (Exception e) {
+        } catch (Exception e) { // Catch potential errors during deletion itself
             log.error("Error deleting profile with id {}: {}", id, e.getMessage(), e);
             throw new CustomException(
                     "Failed to delete profile", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
         }
+    }
+
+    /**
+     * Exception handler for CustomExceptions thrown within this controller.
+     *
+     * @param ex The CustomException
+     * @return ResponseEntity with appropriate status and error message
+     */
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<ApiResponse<Object>> handleCustomException(CustomException ex) {
+        log.warn(
+                "Handling CustomException: Status={}, Code={}, Message={}",
+                ex.getStatus(),
+                ex.getErrorCode(),
+                ex.getMessage());
+        ApiResponse<Object> errorResponse = ApiResponse.builder()
+                .timestamp(java.time.LocalDateTime.now(java.time.ZoneOffset.UTC))
+                .status(ex.getStatus().value())
+                .message(ex.getMessage() + " (Code: " + ex.getErrorCode() + ")") // Include code in message
+                .data(null) // No data for error response
+                .build();
+        return new ResponseEntity<>(errorResponse, ex.getStatus());
     }
 }
