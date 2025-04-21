@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [main, develop-backend]
+    branches: [main, deployment-fix]
 
 jobs:
   build-and-deploy:
@@ -21,7 +21,6 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile
-          build-args: ENV=prod
           push: true
           tags: yourusername/twiggle-app:latest
           
