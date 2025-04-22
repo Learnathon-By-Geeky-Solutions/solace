@@ -5,12 +5,13 @@ meta {
 }
 
 get {
-  url: http://localhost:8080/api/plants-library/search/advanced
+  url: http://localhost:8080/api/plants-library/search/advanced?size=medium
   body: none
   auth: none
 }
 
 params:query {
+  size: medium
   ~commonName: snake
   ~scientificName: sansevieria
   ~plantType: succulent
@@ -18,7 +19,6 @@ params:query {
   ~lifeCycle: perennial
   ~wateringFrequency: low
   ~soilType: well-draining
-  ~size: medium
   ~sunlightRequirement: low
   ~growthRate: slow
   ~idealPlace: indoor
