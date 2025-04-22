@@ -5,4 +5,4 @@ cmds = [
 ]
 
 [phases.start]
-cmd = "java -jar target/*SNAPSHOT.jar"
+cmd = "java -Dserver.port=$PORT $JAVA_OPTS -jar target/*SNAPSHOT.jar"

@@ -4,6 +4,10 @@ import dev.solace.twiggle.config.PlantApiConfig;
 import dev.solace.twiggle.dto.plant.*;
 import dev.solace.twiggle.exception.CustomException;
 import dev.solace.twiggle.exception.ErrorCode;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,6 +25,9 @@ public class PlantApiService {
     private final PlantApiConfig plantApiConfig;
     private final RestTemplate restTemplate;
 
+    // List of trusted domains for external API calls
+    private static final List<String> TRUSTED_DOMAINS = Arrays.asList("perenual.com");
+
     /**
      * Get a list of plants based on various filter criteria.
      *
@@ -31,8 +38,11 @@ public class PlantApiService {
         try {
             validateApiKey();
 
-            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(plantApiConfig.getSpeciesListUrl())
-                    .queryParam("key", plantApiConfig.getApiKey());
+            String baseUrl = plantApiConfig.getSpeciesListUrl();
+            validateTrustedDomain(baseUrl);
+
+            UriComponentsBuilder builder =
+                    UriComponentsBuilder.fromUriString(baseUrl).queryParam("key", plantApiConfig.getApiKey());
 
             addQueryParameters(builder, request);
 
@@ -62,9 +72,93 @@ public class PlantApiService {
      * @param request The request containing filter parameters
      */
     private void addQueryParameters(UriComponentsBuilder builder, PlantListRequestDTO request) {
+        validateRequestParameters(request);
         addBasicParameters(builder, request);
         addBooleanParameters(builder, request);
         addStringParameters(builder, request);
+    }
+
+    /**
+     * Validate that the request parameters meet security requirements
+     *
+     * @param request The request to validate
+     */
+    private void validateRequestParameters(PlantListRequestDTO request) {
+        if (request.getPage() != null && (request.getPage() < 1)) {
+            throw new CustomException("Invalid page parameter", HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
+        }
+
+        if (request.getOrder() != null && !Arrays.asList("asc", "desc").contains(request.getOrder())) {
+            throw new CustomException("Invalid order parameter", HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
+        }
+
+        if (request.getCycle() != null
+                && !Arrays.asList("perennial", "annual", "biennial", "biannual").contains(request.getCycle())) {
+            throw new CustomException("Invalid cycle parameter", HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
+        }
+
+        if (request.getWatering() != null
+                && !Arrays.asList("frequent", "average", "minimum", "none").contains(request.getWatering())) {
+            throw new CustomException("Invalid watering parameter", HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
+        }
+
+        if (request.getSunlight() != null
+                && !Arrays.asList("full_shade", "part_shade", "sun-part_shade", "full_sun")
+                        .contains(request.getSunlight())) {
+            throw new CustomException("Invalid sunlight parameter", HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
+        }
+
+        if (request.getHardiness() != null && (request.getHardiness() < 1 || request.getHardiness() > 13)) {
+            throw new CustomException(
+                    "Invalid hardiness parameter", HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
+        }
+
+        if (request.getQ() != null) {
+            // Validate search query to prevent injection attacks
+            validateSearchQuery(request.getQ());
+        }
+    }
+
+    /**
+     * Validate that a URL is from a trusted domain
+     *
+     * @param url The URL to validate
+     */
+    private void validateTrustedDomain(String url) {
+        try {
+            URI uri = new URI(url);
+            String host = uri.getHost();
+
+            if (host == null || !TRUSTED_DOMAINS.stream().anyMatch(domain -> host.endsWith(domain))) {
+                throw new CustomException(
+                        "Untrusted domain for external API",
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        ErrorCode.EXTERNAL_API_ERROR);
+            }
+        } catch (URISyntaxException e) {
+            throw new CustomException(
+                    "Invalid URL format for external API",
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    ErrorCode.EXTERNAL_API_ERROR);
+        }
+    }
+
+    /**
+     * Validate search query to prevent injection attacks
+     *
+     * @param query The search query to validate
+     */
+    private void validateSearchQuery(String query) {
+        // Check for potentially dangerous characters or patterns
+        if (query.contains("<")
+                || query.contains(">")
+                || query.contains("\"")
+                || query.contains("'")
+                || query.contains(";")
+                || query.contains("--")) {
+            throw new CustomException(
+                    "Invalid characters in search query", HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
+        }
     }
 
     private void addBasicParameters(UriComponentsBuilder builder, PlantListRequestDTO request) {
@@ -120,6 +214,9 @@ public class PlantApiService {
             String url = buildPlantDetailsUrl(id);
             log.debug("Calling Perenual API for plant details: {}", url);
 
+            // Validate the URL before making the request
+            validateTrustedDomain(url);
+
             ResponseEntity<PlantDetailsDTO> response = restTemplate.getForEntity(url, PlantDetailsDTO.class);
 
             return response.getBody();
@@ -144,8 +241,11 @@ public class PlantApiService {
         try {
             validateApiKey();
 
-            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(plantApiConfig.getDiseasePestListUrl())
-                    .queryParam("key", plantApiConfig.getApiKey());
+            String baseUrl = plantApiConfig.getDiseasePestListUrl();
+            validateTrustedDomain(baseUrl);
+
+            UriComponentsBuilder builder =
+                    UriComponentsBuilder.fromUriString(baseUrl).queryParam("key", plantApiConfig.getApiKey());
 
             addDiseasePestQueryParameters(builder, request);
 
@@ -189,6 +289,11 @@ public class PlantApiService {
     }
 
     private void addDiseasePestQueryParameters(UriComponentsBuilder builder, DiseasePestListRequestDTO request) {
+        // Validate disease/pest request parameters
+        if (request.getQ() != null) {
+            validateSearchQuery(request.getQ());
+        }
+
         if (request.getId() != null) {
             builder.queryParam("id", request.getId());
         }
