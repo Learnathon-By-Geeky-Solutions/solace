@@ -1,0 +1,19 @@
+meta {
+  name: get-medicinal-plants
+  type: http
+  seq: 10
+}
+
+get {
+  url: http://localhost:8080/api/plants-library/medicinal
+  body: none
+  auth: none
+}
+
+query {
+  page: 0
+  size: 10
+  sort: commonName
+  direction: ASC
+}
+

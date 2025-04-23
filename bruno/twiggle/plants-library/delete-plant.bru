@@ -1,0 +1,32 @@
+meta {
+  name: delete-plant
+  type: http
+  seq: 5
+}
+
+delete {
+  url: http://localhost:8080/api/plants-library/{{plant_id}}
+  body: none
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+assert {
+  status: 200
+}
+
+tests {
+  test: Status code is 200
+  status: 200
+}
+
+tests {
+  test: Response has success message
+  body: {
+    message: string
+    data: null
+  }
+} 
