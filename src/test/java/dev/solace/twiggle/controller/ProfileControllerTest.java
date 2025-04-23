@@ -2,7 +2,6 @@ package dev.solace.twiggle.controller;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -44,7 +43,6 @@ class ProfileControllerTest {
 
     private ProfileDTO profile1;
     private ProfileDTO profile2;
-    private String profile1Json;
     private UUID profile1Uuid;
 
     @BeforeEach
@@ -65,9 +63,6 @@ class ProfileControllerTest {
                 .createdAt(now.minusHours(5))
                 .updatedAt(now.minusHours(1))
                 .build();
-
-        profile1Json = String.format(
-                "{\"fullName\":\"%s\",\"avatarUrl\":\"%s\"}", profile1.getFullName(), profile1.getAvatarUrl());
     }
 
     @Test
@@ -100,7 +95,7 @@ class ProfileControllerTest {
     @Test
     void getProfileById_WithValidId_ShouldReturnProfile() throws Exception {
         // Arrange
-        when(profileService.findById(eq(profile1Uuid))).thenReturn(Optional.of(profile1));
+        when(profileService.findById(profile1Uuid)).thenReturn(Optional.of(profile1));
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/profiles/{id}", profile1Uuid).contentType(MediaType.APPLICATION_JSON))
@@ -115,7 +110,7 @@ class ProfileControllerTest {
     void getProfileById_WithInvalidId_ShouldReturnNotFound() throws Exception {
         // Arrange
         UUID invalidUuid = UUID.randomUUID();
-        when(profileService.findById(eq(invalidUuid))).thenReturn(Optional.empty());
+        when(profileService.findById(invalidUuid)).thenReturn(Optional.empty());
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/profiles/{id}", invalidUuid).contentType(MediaType.APPLICATION_JSON))
@@ -165,7 +160,7 @@ class ProfileControllerTest {
                 .updatedAt(OffsetDateTime.now())
                 .build();
 
-        when(profileService.update(eq(profile1Uuid), any(ProfileDTO.class))).thenReturn(Optional.of(updatedDto));
+        when(profileService.update(any(UUID.class), any(ProfileDTO.class))).thenReturn(Optional.of(updatedDto));
 
         // Act & Assert
         mockMvc.perform(put("/api/v1/profiles/{id}", profile1Uuid)
@@ -187,7 +182,7 @@ class ProfileControllerTest {
                 .avatarUrl("http://example.com/fail.png")
                 .build();
 
-        when(profileService.update(eq(invalidUuid), any(ProfileDTO.class))).thenReturn(Optional.empty());
+        when(profileService.update(any(UUID.class), any(ProfileDTO.class))).thenReturn(Optional.empty());
 
         // Act & Assert
         mockMvc.perform(put("/api/v1/profiles/{id}", invalidUuid)
@@ -199,7 +194,7 @@ class ProfileControllerTest {
     @Test
     void deleteProfile_WithValidId_ShouldReturnSuccess() throws Exception {
         // Arrange
-        when(profileService.findById(eq(profile1Uuid))).thenReturn(Optional.of(profile1));
+        when(profileService.findById(profile1Uuid)).thenReturn(Optional.of(profile1));
         doNothing().when(profileService).delete(profile1Uuid);
 
         // Act & Assert
@@ -213,7 +208,7 @@ class ProfileControllerTest {
     void deleteProfile_WithInvalidId_ShouldReturnNotFound() throws Exception {
         // Arrange
         UUID invalidUuid = UUID.randomUUID();
-        when(profileService.findById(eq(invalidUuid))).thenReturn(Optional.empty());
+        when(profileService.findById(invalidUuid)).thenReturn(Optional.empty());
 
         // Act & Assert
         mockMvc.perform(delete("/api/v1/profiles/{id}", invalidUuid).contentType(MediaType.APPLICATION_JSON))

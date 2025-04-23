@@ -294,7 +294,7 @@ class PlantServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         Page<Plant> plantPage = new PageImpl<>(List.of(plant1), pageable, 1);
 
-        when(plantRepository.searchPlants(eq(query), eq(specificGardenPlanId), eq(pageable)))
+        when(plantRepository.searchPlants(query, specificGardenPlanId, pageable))
                 .thenReturn(plantPage);
         when(plantMapper.toDto(plant1)).thenReturn(plantDTO1);
 
@@ -303,25 +303,25 @@ class PlantServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals(plantDTO1, result.getContent().get(0));
-        verify(plantRepository).searchPlants(eq(query), eq(specificGardenPlanId), eq(pageable));
+        verify(plantRepository).searchPlants(query, specificGardenPlanId, pageable);
         verify(plantMapper).toDto(plant1);
     }
 
     @Test
-    void searchPlants_WithoutGardenPlanId_ShouldReturnMatchingPlantDTOs() {
-        String query = "Basil";
+    void searchPlants_WithNullGardenPlanId_ShouldReturnMatchingPlantDTOs() {
+        String query = "Tomato";
         Pageable pageable = PageRequest.of(0, 5);
-        Page<Plant> plantPage = new PageImpl<>(List.of(plant2), pageable, 1);
+        Page<Plant> plantPage = new PageImpl<>(List.of(plant1), pageable, 1);
 
         when(plantRepository.searchPlants(eq(query), isNull(), eq(pageable))).thenReturn(plantPage);
-        when(plantMapper.toDto(plant2)).thenReturn(plantDTO2);
+        when(plantMapper.toDto(plant1)).thenReturn(plantDTO1);
 
         Page<PlantDTO> result = plantService.searchPlants(query, null, pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
-        assertEquals(plantDTO2, result.getContent().get(0));
+        assertEquals(plantDTO1, result.getContent().get(0));
         verify(plantRepository).searchPlants(eq(query), isNull(), eq(pageable));
-        verify(plantMapper).toDto(plant2);
+        verify(plantMapper).toDto(plant1);
     }
 }

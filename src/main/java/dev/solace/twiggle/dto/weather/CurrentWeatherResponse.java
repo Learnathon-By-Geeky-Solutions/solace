@@ -6,15 +6,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Response object representing current weather conditions from World Weather Online API.
+ * Response object representing current weather conditions from World Weather
+ * Online API.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class CurrentWeatherResponse {
-    private String observation_time;
-    private String temp_C;
-    private String temp_F;
+    private String observationTime;
+    private String tempC;
+    private String tempF;
     private String weatherCode;
     private List<WeatherIconUrl> weatherIconUrl;
     private List<WeatherDesc> weatherDesc;
@@ -30,10 +31,10 @@ public class CurrentWeatherResponse {
     private String pressure;
     private String pressureInches;
     private String cloudcover;
-    private String FeelsLikeC;
-    private String FeelsLikeF;
+    private String feelsLikeC;
+    private String feelsLikeF;
     private String uvIndex;
-    private WeatherDataPoint.AirQualityData air_quality;
+    private WeatherDataPoint.AirQualityData airQuality;
 
     @Data
     @NoArgsConstructor

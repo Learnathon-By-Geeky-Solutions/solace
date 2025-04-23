@@ -108,5 +108,6 @@ class PlantRecommendationControllerTest {
                 .andExpect(status().isInternalServerError());
     }
 
-    // Removed tests for getCompanionPlants as the method doesn't exist in the service anymore
+    // Removed tests for getCompanionPlants as the method doesn't exist in the
+    // service anymore
 }

@@ -32,7 +32,7 @@ public class ReminderEmailRequest {
     private String reminderDate;
 
     @NotBlank(message = "Reminder time is required")
-    @Pattern(regexp = "^([01]?[0-9]|2[0-3]):[0-5][0-9]$", message = "Time must be in the format HH:MM (24-hour)")
+    @Pattern(regexp = "^([01]?\\d|2[0-3]):\\d{2}$", message = "Time must be in the format HH:MM (24-hour)")
     private String reminderTime;
 
     @Size(max = 1000, message = "Notes must be less than 1000 characters")

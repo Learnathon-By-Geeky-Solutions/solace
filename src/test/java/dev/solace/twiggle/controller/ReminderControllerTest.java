@@ -98,9 +98,6 @@ class ReminderControllerTest {
 
         // Assuming the controller uses the boolean returning method
         when(reminderService.sendReminderEmail(any(ReminderEmailRequest.class))).thenReturn(false);
-        // Or if it throws an exception:
-        // when(reminderService.sendReminderEmail(any(ReminderEmailRequest.class)))
-        //      .thenThrow(new RuntimeException("Email service unavailable"));
 
         // Act & Assert
         mockMvc.perform(
@@ -108,10 +105,5 @@ class ReminderControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isInternalServerError()); // Or map based on boolean return
-        // Adjust expected status based on how the controller handles service failure (boolean vs exception)
-        // If the controller returns 500 based on `false` return:
-        // .andExpect(jsonPath("$.status").value(500))
-        // .andExpect(jsonPath("$.message").value("Failed to send reminder email"));
-
     }
 }

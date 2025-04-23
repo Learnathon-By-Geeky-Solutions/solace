@@ -61,9 +61,10 @@ public class WorldWeatherOnlineApiClient {
     }
 
     /**
-     * Get current weather data from the World Weather Online API using latitude and longitude.
+     * Get current weather data from the World Weather Online API using latitude and
+     * longitude.
      *
-     * @param latitude The latitude in decimal degrees
+     * @param latitude  The latitude in decimal degrees
      * @param longitude The longitude in decimal degrees
      * @return The JSON response from the API
      */
@@ -84,7 +85,7 @@ public class WorldWeatherOnlineApiClient {
      * Get weather forecast data from the World Weather Online API.
      *
      * @param location The location to get forecast for
-     * @param days Number of days for the forecast (1-14)
+     * @param days     Number of days for the forecast (1-14)
      * @return The JSON response from the API
      */
     public String getWeatherForecast(String location, int days) {
@@ -108,11 +109,12 @@ public class WorldWeatherOnlineApiClient {
     }
 
     /**
-     * Get weather forecast data from the World Weather Online API using latitude and longitude.
+     * Get weather forecast data from the World Weather Online API using latitude
+     * and longitude.
      *
-     * @param latitude The latitude in decimal degrees
+     * @param latitude  The latitude in decimal degrees
      * @param longitude The longitude in decimal degrees
-     * @param days Number of days for the forecast (1-14)
+     * @param days      Number of days for the forecast (1-14)
      * @return The JSON response from the API
      */
     public String getWeatherForecastByCoordinates(double latitude, double longitude, int days) {
@@ -137,7 +139,7 @@ public class WorldWeatherOnlineApiClient {
     /**
      * Makes a request to the World Weather Online API.
      *
-     * @param endpoint The API endpoint
+     * @param endpoint    The API endpoint
      * @param queryParams The query parameters
      * @return The API response
      */
@@ -193,7 +195,7 @@ public class WorldWeatherOnlineApiClient {
             URI uri = new URI(url);
             String host = uri.getHost();
 
-            if (host == null || !TRUSTED_DOMAINS.stream().anyMatch(domain -> host.endsWith(domain))) {
+            if (host == null || TRUSTED_DOMAINS.stream().noneMatch(host::endsWith)) {
                 throw new CustomException(
                         "Untrusted domain for external API",
                         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -237,7 +239,7 @@ public class WorldWeatherOnlineApiClient {
     /**
      * Formats latitude and longitude as a string for the API query parameter.
      *
-     * @param latitude The latitude in decimal degrees
+     * @param latitude  The latitude in decimal degrees
      * @param longitude The longitude in decimal degrees
      * @return Formatted coordinates string
      */
