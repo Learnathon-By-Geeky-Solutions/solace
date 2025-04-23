@@ -370,13 +370,13 @@ public class WeatherServiceImpl implements WeatherService {
             case UNHEALTHY_FOR_SENSITIVE_GROUPS:
                 hazards.add("May cause respiratory symptoms in sensitive individuals");
                 break;
-            case "Unhealthy":
+            case UNHEALTHY:
                 hazards.add("Increased likelihood of adverse respiratory effects in general population");
                 break;
-            case "Very Unhealthy":
+            case VERY_UNHEALTHY:
                 hazards.add("Significant respiratory effects can be expected in general population");
                 break;
-            case "Hazardous":
+            case HAZARDOUS:
                 hazards.add("Serious respiratory effects and health impacts for all");
                 break;
             default:

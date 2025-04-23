@@ -23,7 +23,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 @WebMvcTest(PlantReminderController.class)
-public class PlantReminderControllerTest {
+class PlantReminderControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

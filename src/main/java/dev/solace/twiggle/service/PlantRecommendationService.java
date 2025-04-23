@@ -10,7 +10,6 @@ import dev.solace.twiggle.dto.recommendation.PlantRecommendationResponse;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -18,7 +17,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class PlantRecommendationService {
 
@@ -28,6 +26,13 @@ public class PlantRecommendationService {
     private final WebClient openaiWebClient;
     private final WebClient unsplashWebClient;
     private final ObjectMapper objectMapper;
+
+    public PlantRecommendationService(
+            WebClient openaiWebClient, WebClient unsplashWebClient, ObjectMapper objectMapper) {
+        this.openaiWebClient = openaiWebClient;
+        this.unsplashWebClient = unsplashWebClient;
+        this.objectMapper = objectMapper;
+    }
 
     public PlantRecommendationResponse getPlantRecommendations(PlantRecommendationRequest request) {
         logRequestDetails(request);
