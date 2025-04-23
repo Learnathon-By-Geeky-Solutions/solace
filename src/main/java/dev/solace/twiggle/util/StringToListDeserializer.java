@@ -46,11 +46,16 @@ public class StringToListDeserializer extends JsonDeserializer<List<String>> {
                         .filter(s -> !s.isEmpty())
                         .toList();
             }
-            case VALUE_NULL -> new ArrayList<>();
+            case VALUE_NULL -> getNullValue(ctxt);
             default -> {
                 log.warn("Unexpected token type for companion_plants: {}", token);
                 yield List.of(parser.getValueAsString());
             }
         };
+    }
+
+    @Override
+    public List<String> getNullValue(DeserializationContext ctxt) {
+        return new ArrayList<>();
     }
 }
