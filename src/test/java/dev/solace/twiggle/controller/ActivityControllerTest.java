@@ -2,10 +2,7 @@ package dev.solace.twiggle.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -25,6 +22,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 @WebMvcTest(ActivityController.class)
 class ActivityControllerTest {
@@ -56,7 +54,10 @@ class ActivityControllerTest {
         Page<ActivityDTO> page = new PageImpl<>(List.of(dto));
         Mockito.when(activityService.findAll(any(Pageable.class))).thenReturn(page);
 
-        mockMvc.perform(get("/api/activities?page=0&size=10"))
+        MockHttpServletRequestBuilder request =
+                get("/api/activities").param("page", "0").param("size", "10");
+
+        mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content").isArray());
     }
@@ -66,7 +67,9 @@ class ActivityControllerTest {
         UUID id = UUID.randomUUID();
         Mockito.when(activityService.findById(id)).thenReturn(Optional.of(dto));
 
-        mockMvc.perform(get("/api/activities/{id}", id))
+        MockHttpServletRequestBuilder request = get("/api/activities/{id}", id);
+
+        mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.activityType").value("WATERING"));
     }
@@ -76,19 +79,23 @@ class ActivityControllerTest {
         UUID id = UUID.randomUUID();
         Mockito.when(activityService.findById(id)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/activities/{id}", id)).andExpect(status().isNotFound());
+        MockHttpServletRequestBuilder request = get("/api/activities/{id}", id);
+
+        mockMvc.perform(request).andExpect(status().isNotFound());
     }
 
     @Test
     void testCreateActivity() throws Exception {
         Mockito.when(activityService.create(any())).thenReturn(dto);
 
-        mockMvc.perform(post("/api/activities")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isOk()) // updated from isCreated()
+        MockHttpServletRequestBuilder request = post("/api/activities")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.activityType").value("WATERING"))
-                .andExpect(jsonPath("$.message").value("Activity created successfully")); // updated message
+                .andExpect(jsonPath("$.message").value("Activity created successfully"));
     }
 
     @Test
@@ -96,9 +103,11 @@ class ActivityControllerTest {
         UUID id = UUID.randomUUID();
         Mockito.when(activityService.update(eq(id), any())).thenReturn(Optional.of(dto));
 
-        mockMvc.perform(put("/api/activities/{id}", id)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+        MockHttpServletRequestBuilder request = put("/api/activities/{id}", id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.activityType").value("WATERING"));
     }
@@ -108,18 +117,21 @@ class ActivityControllerTest {
         UUID id = UUID.randomUUID();
         Mockito.when(activityService.update(eq(id), any())).thenReturn(Optional.empty());
 
-        mockMvc.perform(put("/api/activities/{id}", id)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isNotFound());
+        MockHttpServletRequestBuilder request = put("/api/activities/{id}", id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request).andExpect(status().isNotFound());
     }
 
     @Test
     void testDeleteActivity() throws Exception {
         UUID id = UUID.randomUUID();
 
-        mockMvc.perform(delete("/api/activities/{id}", id))
-                .andExpect(status().isOk()) // updated from isNoContent()
-                .andExpect(jsonPath("$.message").value("Activity deleted successfully")); // updated message
+        MockHttpServletRequestBuilder request = delete("/api/activities/{id}", id);
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Activity deleted successfully"));
     }
 }

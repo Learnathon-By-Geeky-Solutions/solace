@@ -18,6 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.*;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 @WebMvcTest(GardenPlanController.class)
 class GardenPlanControllerTest {
@@ -53,7 +54,9 @@ class GardenPlanControllerTest {
         Page<GardenPlanDTO> page = new PageImpl<>(List.of(dto));
         Mockito.when(gardenPlanService.findAll(any())).thenReturn(page);
 
-        mockMvc.perform(get("/api/garden-plans"))
+        MockHttpServletRequestBuilder request = get("/api/garden-plans");
+
+        mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content[0].name").value("Urban Garden"));
     }
@@ -62,7 +65,9 @@ class GardenPlanControllerTest {
     void testGetAllGardenPlansWithoutPagination() throws Exception {
         Mockito.when(gardenPlanService.findAll()).thenReturn(List.of(dto));
 
-        mockMvc.perform(get("/api/garden-plans/all"))
+        MockHttpServletRequestBuilder request = get("/api/garden-plans/all");
+
+        mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].type").value("Balcony"));
     }
@@ -72,7 +77,9 @@ class GardenPlanControllerTest {
         UUID id = UUID.randomUUID();
         Mockito.when(gardenPlanService.findById(id)).thenReturn(Optional.of(dto));
 
-        mockMvc.perform(get("/api/garden-plans/{id}", id))
+        MockHttpServletRequestBuilder request = get("/api/garden-plans/{id}", id);
+
+        mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.name").value("Urban Garden"));
     }
@@ -82,16 +89,20 @@ class GardenPlanControllerTest {
         UUID id = UUID.randomUUID();
         Mockito.when(gardenPlanService.findById(id)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/garden-plans/{id}", id)).andExpect(status().isNotFound());
+        MockHttpServletRequestBuilder request = get("/api/garden-plans/{id}", id);
+
+        mockMvc.perform(request).andExpect(status().isNotFound());
     }
 
     @Test
     void testCreateGardenPlan() throws Exception {
         Mockito.when(gardenPlanService.create(any())).thenReturn(dto);
 
-        mockMvc.perform(post("/api/garden-plans")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+        MockHttpServletRequestBuilder request = post("/api/garden-plans")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Garden plan created successfully"));
     }
@@ -101,9 +112,11 @@ class GardenPlanControllerTest {
         UUID id = UUID.randomUUID();
         Mockito.when(gardenPlanService.update(eq(id), any())).thenReturn(Optional.of(dto));
 
-        mockMvc.perform(put("/api/garden-plans/{id}", id)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+        MockHttpServletRequestBuilder request = put("/api/garden-plans/{id}", id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.name").value("Urban Garden"));
     }
@@ -113,17 +126,20 @@ class GardenPlanControllerTest {
         UUID id = UUID.randomUUID();
         Mockito.when(gardenPlanService.update(eq(id), any())).thenReturn(Optional.empty());
 
-        mockMvc.perform(put("/api/garden-plans/{id}", id)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isNotFound());
+        MockHttpServletRequestBuilder request = put("/api/garden-plans/{id}", id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request).andExpect(status().isNotFound());
     }
 
     @Test
     void testDeleteGardenPlan() throws Exception {
         UUID id = UUID.randomUUID();
 
-        mockMvc.perform(delete("/api/garden-plans/{id}", id))
+        MockHttpServletRequestBuilder request = delete("/api/garden-plans/{id}", id);
+
+        mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Garden plan deleted successfully"));
     }
@@ -134,7 +150,9 @@ class GardenPlanControllerTest {
         Mockito.when(gardenPlanService.searchGardenPlans(any(), any(), any(), any()))
                 .thenReturn(page);
 
-        mockMvc.perform(get("/api/garden-plans/search?query=garden"))
+        MockHttpServletRequestBuilder request = get("/api/garden-plans/search").param("query", "garden");
+
+        mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content").isArray());
     }
@@ -145,7 +163,10 @@ class GardenPlanControllerTest {
         Mockito.when(gardenPlanService.searchGardenPlansWithRelevance(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(page);
 
-        mockMvc.perform(get("/api/garden-plans/search/advanced?name=Urban&type=Balcony"))
+        MockHttpServletRequestBuilder request =
+                get("/api/garden-plans/search/advanced").param("name", "Urban").param("type", "Balcony");
+
+        mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content[0].location").value("Dhaka"));
     }
