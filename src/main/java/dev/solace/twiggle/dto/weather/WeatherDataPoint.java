@@ -6,7 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Represents a single day's weather forecast data point from World Weather Online API.
+ * Represents a single day's weather forecast data point from World Weather
+ * Online API.
  */
 @Data
 @NoArgsConstructor
@@ -20,10 +21,10 @@ public class WeatherDataPoint {
     private String mintempF;
     private String avgtempC;
     private String avgtempF;
-    private String totalSnow_cm;
+    private String totalSnowCm;
     private String sunHour;
     private String uvIndex;
-    private AirQualityData air_quality;
+    private AirQualityData airQuality;
 
     @Data
     @NoArgsConstructor
@@ -33,8 +34,8 @@ public class WeatherDataPoint {
         private String sunset;
         private String moonrise;
         private String moonset;
-        private String moon_phase;
-        private String moon_illumination;
+        private String moonPhase;
+        private String moonIllumination;
     }
 
     @Data
@@ -45,9 +46,9 @@ public class WeatherDataPoint {
         private String no2;
         private String o3;
         private String so2;
-        private String pm2_5;
+        private String pm25;
         private String pm10;
-        private String us_epa_index;
-        private String gb_defra_index;
+        private String usEpaIndex;
+        private String gbDefraIndex;
     }
 }

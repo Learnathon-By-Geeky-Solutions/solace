@@ -31,14 +31,15 @@ import org.springframework.web.bind.annotation.*;
 @RateLimiter(name = "standard-api")
 public class PlantReminderController {
 
+    private static final String PLANT_REMINDER_NOT_FOUND = "Plant reminder not found";
     private final PlantReminderService plantReminderService;
 
     /**
      * Get all plant reminders with pagination and sorting.
      *
-     * @param page page number (0-based)
-     * @param size page size
-     * @param sort sort property
+     * @param page      page number (0-based)
+     * @param size      page size
+     * @param sort      sort property
      * @param direction sort direction (ASC or DESC)
      * @return page of plant reminder DTOs
      */
@@ -90,7 +91,7 @@ public class PlantReminderController {
                     .findById(id)
                     .map(reminder -> ResponseUtil.success("Successfully retrieved plant reminder", reminder))
                     .orElseThrow(() -> new CustomException(
-                            "Plant reminder not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
+                            PLANT_REMINDER_NOT_FOUND, HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
         } catch (CustomException e) {
             throw e;
         } catch (Exception e) {
@@ -103,10 +104,10 @@ public class PlantReminderController {
     /**
      * Get plant reminders by plant ID with pagination and sorting.
      *
-     * @param plantId the plant ID
-     * @param page page number (0-based)
-     * @param size page size
-     * @param sort sort property
+     * @param plantId   the plant ID
+     * @param page      page number (0-based)
+     * @param size      page size
+     * @param sort      sort property
      * @param direction sort direction (ASC or DESC)
      * @return page of plant reminder DTOs
      */
@@ -135,10 +136,10 @@ public class PlantReminderController {
      * Get plant reminders by garden plan ID with pagination and sorting.
      *
      * @param gardenPlanId the garden plan ID
-     * @param page page number (0-based)
-     * @param size page size
-     * @param sort sort property
-     * @param direction sort direction (ASC or DESC)
+     * @param page         page number (0-based)
+     * @param size         page size
+     * @param sort         sort property
+     * @param direction    sort direction (ASC or DESC)
      * @return page of plant reminder DTOs
      */
     @GetMapping("/garden-plan/{gardenPlanId}")
@@ -229,7 +230,7 @@ public class PlantReminderController {
     /**
      * Update an existing plant reminder.
      *
-     * @param id the reminder ID
+     * @param id          the reminder ID
      * @param reminderDTO the updated reminder DTO (validated)
      * @return the updated reminder DTO
      */
@@ -242,7 +243,7 @@ public class PlantReminderController {
                     .map(updatedReminder ->
                             ResponseUtil.success("Plant reminder updated successfully", updatedReminder))
                     .orElseThrow(() -> new CustomException(
-                            "Plant reminder not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
+                            PLANT_REMINDER_NOT_FOUND, HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
         } catch (CustomException e) {
             throw e;
         } catch (Exception e) {
@@ -265,7 +266,7 @@ public class PlantReminderController {
                     .markAsCompleted(id)
                     .map(updatedReminder -> ResponseUtil.success("Plant reminder marked as completed", updatedReminder))
                     .orElseThrow(() -> new CustomException(
-                            "Plant reminder not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
+                            PLANT_REMINDER_NOT_FOUND, HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
         } catch (CustomException e) {
             throw e;
         } catch (Exception e) {

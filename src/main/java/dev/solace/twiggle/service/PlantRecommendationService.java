@@ -159,10 +159,11 @@ public class PlantRecommendationService {
             int openBrackets = (int) content.chars().filter(ch -> ch == '[').count();
             int closeBrackets = (int) content.chars().filter(ch -> ch == ']').count();
 
-            while (closeBraces < openBraces) content += "}";
-            while (closeBrackets < openBrackets) content += "]";
+            StringBuilder sb = new StringBuilder(content);
+            while (closeBraces < openBraces) sb.append('}');
+            while (closeBrackets < openBrackets) sb.append(']');
 
-            return content;
+            return sb.toString();
         }
     }
 
@@ -265,7 +266,8 @@ public class PlantRecommendationService {
     }
 
     /**
-     * Checks if the location is in the Southern Hemisphere by looking for specific country names.
+     * Checks if the location is in the Southern Hemisphere by looking for specific
+     * country names.
      * Uses a safer approach than regex with potentially catastrophic backtracking.
      *
      * @param location The location string in lowercase

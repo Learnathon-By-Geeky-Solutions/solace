@@ -6,7 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Response object representing the complete weather data from World Weather Online API.
+ * Response object representing the complete weather data from World Weather
+ * Online API.
  */
 @Data
 @NoArgsConstructor
@@ -19,7 +20,7 @@ public class ForecastResponse {
     @AllArgsConstructor
     public static class DataBlock {
         private List<Request> request;
-        private List<CurrentWeatherResponse> current_condition;
+        private List<CurrentWeatherResponse> currentCondition;
         private List<WeatherDataPoint> weather;
         private AlertBlock alerts;
     }
