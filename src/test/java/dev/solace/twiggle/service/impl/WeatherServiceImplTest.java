@@ -25,7 +25,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 
 @ExtendWith(MockitoExtension.class)
-public class WeatherServiceImplTest {
+class WeatherServiceImplTest {
 
     @Mock
     private WorldWeatherOnlineApiClient weatherApiClient;
@@ -39,7 +39,6 @@ public class WeatherServiceImplTest {
     private static final int FORECAST_DAYS = 5;
     private static final String CURRENT_WEATHER_FILE = "current_weather.json";
     private static final String FORECAST_WEATHER_FILE = "forecast_weather.json";
-    private static final String GARDEN_CURRENT_WEATHER_FILE = "garden_current_weather.json";
     private static final String GARDEN_FORECAST_WEATHER_FILE = "garden_forecast_weather.json";
     private static final String HIGH_HUMIDITY_WEATHER_FILE = "high_humidity_weather.json";
     private static final String HIGH_TEMP_WEATHER_FILE = "high_temp_weather.json";
@@ -49,7 +48,6 @@ public class WeatherServiceImplTest {
 
     private String mockCurrentWeatherResponse;
     private String mockForecastResponse;
-    private String mockGardenCurrentWeatherResponse;
     private String mockGardenForecastResponse;
     private String mockHighHumidityResponse;
     private String mockHighTempResponse;
@@ -62,7 +60,6 @@ public class WeatherServiceImplTest {
         // Load mock responses from resource files
         mockCurrentWeatherResponse = loadResourceFile(CURRENT_WEATHER_FILE);
         mockForecastResponse = loadResourceFile(FORECAST_WEATHER_FILE);
-        mockGardenCurrentWeatherResponse = loadResourceFile(GARDEN_CURRENT_WEATHER_FILE);
         mockGardenForecastResponse = loadResourceFile(GARDEN_FORECAST_WEATHER_FILE);
         mockHighHumidityResponse = loadResourceFile(HIGH_HUMIDITY_WEATHER_FILE);
         mockHighTempResponse = loadResourceFile(HIGH_TEMP_WEATHER_FILE);

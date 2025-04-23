@@ -15,7 +15,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -126,8 +125,7 @@ class WeatherControllerTest {
     @DisplayName("getGardenWeather should return garden-specific weather data for a location")
     void getGardenWeather_ShouldReturnGardenWeatherData() throws Exception {
         // Arrange
-        when(weatherService.getGardenWeather(anyString(), ArgumentMatchers.<Optional<String>>any()))
-                .thenReturn(mockWeatherDTO);
+        when(weatherService.getGardenWeather(anyString(), any(Optional.class))).thenReturn(mockWeatherDTO);
 
         // Act & Assert
         mockMvc.perform(get("/api/weather/garden")
@@ -143,8 +141,7 @@ class WeatherControllerTest {
     @DisplayName("getGardenWeatherByCoordinates should return garden-specific weather data for coordinates")
     void getGardenWeatherByCoordinates_ShouldReturnGardenWeatherData() throws Exception {
         // Arrange
-        when(weatherService.getGardenWeatherByCoordinates(
-                        any(double.class), any(double.class), ArgumentMatchers.<Optional<String>>any()))
+        when(weatherService.getGardenWeatherByCoordinates(any(double.class), any(double.class), any(Optional.class)))
                 .thenReturn(mockWeatherDTO);
 
         // Act & Assert
