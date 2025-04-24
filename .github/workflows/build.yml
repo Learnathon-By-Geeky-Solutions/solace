@@ -5,9 +5,11 @@ on:
     branches:
       - develop-backend
       - CI/sonar-1
+      - 'test/**'
   pull_request:
     branches:
       - develop-backend
+      - main
 
 jobs:
   sonar:
@@ -51,7 +53,7 @@ jobs:
           # runs clean, compile, test, etc. then the sonar analysis
           mvn -B clean verify sonar:sonar \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=${SONAR_TOKEN} \
+            -Dsonar.token=${SONAR_TOKEN} \
             -Dsonar.organization=learnathon-by-geeky-solutions \
             -Dsonar.projectKey=Learnathon-By-Geeky-Solutions_solace \
             -Dsonar.java.coveragePlugin=jacoco \
