@@ -76,6 +76,19 @@ class ActivityControllerTest {
     }
 
     @Test
+    void testGetAllActivitiesWithoutPagination() throws Exception {
+        List<ActivityDTO> activities = List.of(dto);
+        Mockito.when(activityService.findAll()).thenReturn(activities);
+
+        MockHttpServletRequestBuilder request = get("/api/activities/all");
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.message").value("Successfully retrieved all activities"));
+    }
+
+    @Test
     void testGetById_found() throws Exception {
         UUID id = UUID.randomUUID();
         Mockito.when(activityService.findById(id)).thenReturn(Optional.of(dto));
@@ -95,6 +108,58 @@ class ActivityControllerTest {
         MockHttpServletRequestBuilder request = get("/api/activities/{id}", id);
 
         mockMvc.perform(request).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testGetActivitiesByUserId() throws Exception {
+        UUID userId = UUID.randomUUID();
+        Page<ActivityDTO> page = new PageImpl<>(List.of(dto));
+        Mockito.when(activityService.findByUserId(eq(userId), any(Pageable.class)))
+                .thenReturn(page);
+
+        MockHttpServletRequestBuilder request =
+                get("/api/activities/user/{userId}", userId).param("page", "0").param("size", "10");
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.message").value("Successfully retrieved activities for user"));
+    }
+
+    @Test
+    void testGetActivitiesByGardenPlanId() throws Exception {
+        UUID gardenPlanId = UUID.randomUUID();
+        Page<ActivityDTO> page = new PageImpl<>(List.of(dto));
+        Mockito.when(activityService.findByGardenPlanId(eq(gardenPlanId), any(Pageable.class)))
+                .thenReturn(page);
+
+        MockHttpServletRequestBuilder request = get("/api/activities/garden-plan/{gardenPlanId}", gardenPlanId)
+                .param("page", "0")
+                .param("size", "10");
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.message").value("Successfully retrieved activities for garden plan"));
+    }
+
+    @Test
+    void testGetActivitiesByUserIdAndType() throws Exception {
+        UUID userId = UUID.randomUUID();
+        String activityType = "WATERING";
+        Page<ActivityDTO> page = new PageImpl<>(List.of(dto));
+        Mockito.when(activityService.findByUserIdAndActivityType(eq(userId), eq(activityType), any(Pageable.class)))
+                .thenReturn(page);
+
+        MockHttpServletRequestBuilder request = get(
+                        "/api/activities/user/{userId}/type/{activityType}", userId, activityType)
+                .param("page", "0")
+                .param("size", "10");
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.message").value("Successfully retrieved activities for user and type"));
     }
 
     @Test
