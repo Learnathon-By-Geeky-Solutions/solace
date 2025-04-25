@@ -1,0 +1,18 @@
+meta {
+  name: Add Plants
+  type: collection
+  version: 1
+}
+
+post {
+  url: http://localhost:8080/api/plants/from-library
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "gardenPlanId": "123e4567-e89b-12d3-a456-426614174000",
+    "plantsLibraryId": "123e4567-e89b-12d3-a456-426614174001"
+  }
+}
