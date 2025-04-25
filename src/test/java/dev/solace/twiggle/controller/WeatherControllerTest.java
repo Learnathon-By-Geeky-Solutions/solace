@@ -3,10 +3,11 @@ package dev.solace.twiggle.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.solace.twiggle.config.RateLimiterConfiguration;
 import dev.solace.twiggle.dto.WeatherDTO;
 import dev.solace.twiggle.service.WeatherService;
@@ -17,20 +18,34 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(WeatherController.class)
-@Import({RateLimiterConfiguration.class})
+@Import({RateLimiterConfiguration.class, WeatherControllerTest.WeatherTestConfig.class})
 class WeatherControllerTest {
+
+    @TestConfiguration
+    static class WeatherTestConfig {
+        @Bean
+        @Primary
+        public WeatherService weatherService() {
+            return org.mockito.Mockito.mock(WeatherService.class);
+        }
+    }
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Autowired
     private WeatherService weatherService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private WeatherDTO mockWeatherDTO;
 

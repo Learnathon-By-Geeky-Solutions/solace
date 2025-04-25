@@ -265,7 +265,7 @@ run_sonar_check() {
 
     echo -e "${CYAN}Running SonarQube analysis with coverage data...${NC}"
     if ! mvn sonar:sonar \
-        -Dsonar.host.url=http://localhost:55000 \
+        -Dsonar.host.url=http://localhost:9000 \
         -Dsonar.token="${SONAR_TOKEN}" \
         -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml; then
         echo -e "${RED}SonarQube analysis failed.${NC}"
