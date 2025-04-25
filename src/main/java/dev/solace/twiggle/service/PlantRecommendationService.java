@@ -125,22 +125,30 @@ public class PlantRecommendationService {
                 .build();
     }
 
-    private List<PlantRecommendation> parseRecommendationsFromJson(String openAiResponse)
-            throws JsonProcessingException {
-        JsonNode responseNode = objectMapper.readTree(openAiResponse);
-        String rawContent = responseNode
-                .path("choices")
-                .path(0)
-                .path("message")
-                .path(CONTENT)
-                .asText()
-                .trim();
+    private List<PlantRecommendation> parseRecommendationsFromJson(String openAiResponse) {
+        try {
+            JsonNode responseNode = objectMapper.readTree(openAiResponse);
+            String rawContent = responseNode
+                    .path("choices")
+                    .path(0)
+                    .path("message")
+                    .path(CONTENT)
+                    .asText()
+                    .trim();
 
-        String validJson = cleanAndRepairJson(rawContent);
-        return objectMapper.readValue(validJson, new TypeReference<>() {});
+            String validJson = cleanAndRepairJson(rawContent);
+            return objectMapper.readValue(validJson, new TypeReference<>() {});
+        } catch (JsonProcessingException e) {
+            log.error("Error parsing recommendations from JSON: {}", e.getMessage(), e);
+            return new ArrayList<>(); // Return empty list as fallback
+        }
     }
 
-    private String cleanAndRepairJson(String content) throws JsonProcessingException {
+    String cleanAndRepairJson(String content) {
+        if (content == null || content.trim().isEmpty()) {
+            return "[]";
+        }
+
         if (!content.startsWith("[")) {
             Matcher matcher =
                     Pattern.compile("\\[\\s*\\{.*?\\}\\s*\\]", Pattern.DOTALL).matcher(content);
@@ -149,17 +157,18 @@ public class PlantRecommendationService {
             } else if (content.startsWith("{") && content.endsWith("}")) {
                 content = "[" + content + "]";
             } else {
-                throw new JsonProcessingException("Unable to extract valid JSON") {};
+                return "[]"; // Return empty array if no valid JSON structure found
             }
         }
 
         try {
-            JsonNode jsonNode = objectMapper.readTree(content);
-            return objectMapper.writeValueAsString(jsonNode);
+            // Validate JSON
+            objectMapper.readTree(content);
+            return content;
         } catch (JsonProcessingException e) {
-            log.warn("Invalid JSON, attempting to repair...");
-            content = content.replaceAll(",\\s*]", "]").replaceAll(",\\s*}", "}");
+            log.warn("Invalid JSON detected, attempting to fix: {}", e.getMessage());
 
+            // Count braces and brackets
             int openBraces = (int) content.chars().filter(ch -> ch == '{').count();
             int closeBraces = (int) content.chars().filter(ch -> ch == '}').count();
             int openBrackets = (int) content.chars().filter(ch -> ch == '[').count();
@@ -169,7 +178,14 @@ public class PlantRecommendationService {
             while (closeBraces < openBraces) sb.append('}');
             while (closeBrackets < openBrackets) sb.append(']');
 
-            return sb.toString();
+            try {
+                // Validate the fixed JSON
+                objectMapper.readTree(sb.toString());
+                return sb.toString();
+            } catch (JsonProcessingException ex) {
+                log.warn("Could not fix JSON, returning empty array: {}", ex.getMessage());
+                return "[]"; // Return empty array if fixing failed
+            }
         }
     }
 
@@ -259,27 +275,20 @@ public class PlantRecommendationService {
         return prompt.toString();
     }
 
-    private String getCurrentSeason(String location) {
+    String getCurrentSeason(String location) {
         int month = Calendar.getInstance().get(Calendar.MONTH);
         boolean isSouthern = location != null && isSouthernHemisphereCountry(location.toLowerCase());
 
         return switch (month) {
+            case 0, 1 -> isSouthern ? "summer" : "winter"; // January and February
             case 2, 3, 4 -> isSouthern ? "autumn" : "spring";
             case 5, 6, 7 -> isSouthern ? "winter" : "summer";
             case 8, 9, 10 -> isSouthern ? "spring" : "autumn";
-            default -> isSouthern ? "summer" : "winter";
+            default -> isSouthern ? "summer" : "winter"; // December (month 11)
         };
     }
 
-    /**
-     * Checks if the location is in the Southern Hemisphere by looking for specific
-     * country names.
-     * Uses a safer approach than regex with potentially catastrophic backtracking.
-     *
-     * @param location The location string in lowercase
-     * @return true if the location is in a Southern Hemisphere country
-     */
-    private boolean isSouthernHemisphereCountry(String location) {
+    boolean isSouthernHemisphereCountry(String location) {
         if (location == null) {
             return false;
         }
