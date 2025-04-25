@@ -14,13 +14,26 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.*;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ImageCommentController.class)
+@Import(ImageCommentControllerTest.ImageCommentTestConfig.class)
 class ImageCommentControllerTest {
+
+    @TestConfiguration
+    static class ImageCommentTestConfig {
+        @Bean
+        @Primary
+        public ImageCommentService imageCommentService() {
+            return Mockito.mock(ImageCommentService.class);
+        }
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -28,7 +41,7 @@ class ImageCommentControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @Autowired
     private ImageCommentService imageCommentService;
 
     private ImageCommentDTO dto;

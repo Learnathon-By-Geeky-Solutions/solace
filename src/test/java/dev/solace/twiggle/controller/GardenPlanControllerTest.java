@@ -14,14 +14,27 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.*;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 @WebMvcTest(GardenPlanController.class)
+@Import(GardenPlanControllerTest.GardenPlanTestConfig.class)
 class GardenPlanControllerTest {
+
+    @TestConfiguration
+    static class GardenPlanTestConfig {
+        @Bean
+        @Primary
+        public GardenPlanService gardenPlanService() {
+            return Mockito.mock(GardenPlanService.class);
+        }
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -29,7 +42,7 @@ class GardenPlanControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @Autowired
     private GardenPlanService gardenPlanService;
 
     private GardenPlanDTO dto;
