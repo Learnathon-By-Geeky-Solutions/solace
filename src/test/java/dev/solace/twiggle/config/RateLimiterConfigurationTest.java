@@ -112,4 +112,33 @@ class RateLimiterConfigurationTest {
         assertEquals(customConfig.getLimitRefreshPeriod(), config.getLimitRefreshPeriod());
         assertEquals(customConfig.getTimeoutDuration(), config.getTimeoutDuration());
     }
+
+    @Test
+    void multipleRateLimiters_ShouldCreateIndependentInstances() {
+        // When
+        RateLimiter standardLimiter = configuration.standardApiLimiter(rateLimiterRegistry);
+        RateLimiter errorLimiter = configuration.testErrorLimiter(rateLimiterRegistry);
+        RateLimiter actuatorLimiter = configuration.actuatorLimiter(rateLimiterRegistry);
+
+        // Then
+        assertNotNull(standardLimiter, "Standard limiter should not be null");
+        assertNotNull(errorLimiter, "Error limiter should not be null");
+        assertNotNull(actuatorLimiter, "Actuator limiter should not be null");
+
+        // Verify they are different instances with different configurations
+        assertNotEquals(
+                standardLimiter.getRateLimiterConfig().getLimitForPeriod(),
+                errorLimiter.getRateLimiterConfig().getLimitForPeriod());
+        assertNotEquals(
+                standardLimiter.getRateLimiterConfig().getLimitForPeriod(),
+                actuatorLimiter.getRateLimiterConfig().getLimitForPeriod());
+        assertNotEquals(
+                errorLimiter.getRateLimiterConfig().getLimitForPeriod(),
+                actuatorLimiter.getRateLimiterConfig().getLimitForPeriod());
+
+        // Verify they have different names
+        assertNotEquals(standardLimiter.getName(), errorLimiter.getName());
+        assertNotEquals(standardLimiter.getName(), actuatorLimiter.getName());
+        assertNotEquals(errorLimiter.getName(), actuatorLimiter.getName());
+    }
 }
