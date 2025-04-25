@@ -1,6 +1,7 @@
 services:
   sonarqube:
     image: sonarqube:25.1.0.102122-community
+    # image: sonarqube
     ports:
       - "9000:9000"
     env_file:
