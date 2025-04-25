@@ -1,13 +1,18 @@
 package dev.solace.twiggle.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.solace.twiggle.dto.PlantReminderDTO;
+import dev.solace.twiggle.exception.CustomException;
+import dev.solace.twiggle.exception.ErrorCode;
 import dev.solace.twiggle.service.PlantReminderService;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +24,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -49,13 +56,20 @@ class PlantReminderControllerTest {
 
     private PlantReminderDTO reminderDTO;
     private UUID reminderId;
+    private UUID plantId;
+    private UUID gardenPlanId;
 
     @BeforeEach
     void setUp() {
+        // Reset mock to clear any interactions
+        reset(plantReminderService);
+
         reminderId = UUID.randomUUID();
+        plantId = UUID.randomUUID();
+        gardenPlanId = UUID.randomUUID();
         reminderDTO = PlantReminderDTO.builder()
-                .plantId(UUID.randomUUID())
-                .gardenPlanId(UUID.randomUUID())
+                .plantId(plantId)
+                .gardenPlanId(gardenPlanId)
                 .reminderType("Watering")
                 .reminderDate(LocalDate.now().plusDays(2))
                 .notes("Water the basil plant")
@@ -74,6 +88,26 @@ class PlantReminderControllerTest {
     }
 
     @Test
+    void testGetPlantReminderByIdNotFound() throws Exception {
+        when(plantReminderService.findById(reminderId)).thenReturn(Optional.empty());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/" + reminderId))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Plant reminder not found"));
+    }
+
+    @Test
+    void testGetPlantReminderByIdError() throws Exception {
+        when(plantReminderService.findById(reminderId))
+                .thenThrow(
+                        new CustomException("Test error", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/" + reminderId))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Test error"));
+    }
+
+    @Test
     void testCreatePlantReminder() throws Exception {
         when(plantReminderService.create(any(PlantReminderDTO.class))).thenReturn(reminderDTO);
 
@@ -85,8 +119,21 @@ class PlantReminderControllerTest {
     }
 
     @Test
+    void testCreatePlantReminderError() throws Exception {
+        when(plantReminderService.create(any(PlantReminderDTO.class)))
+                .thenThrow(
+                        new CustomException("Test error", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR));
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/plant-reminders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(reminderDTO)))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to create plant reminder"));
+    }
+
+    @Test
     void testUpdatePlantReminder() throws Exception {
-        when(plantReminderService.update(eq(reminderId), any(PlantReminderDTO.class)))
+        when(plantReminderService.update(any(UUID.class), any(PlantReminderDTO.class)))
                 .thenReturn(Optional.of(reminderDTO));
 
         mockMvc.perform(MockMvcRequestBuilders.put("/api/plant-reminders/" + reminderId)
@@ -94,6 +141,33 @@ class PlantReminderControllerTest {
                         .content(objectMapper.writeValueAsString(reminderDTO)))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Plant reminder updated successfully"));
+    }
+
+    @Test
+    void testUpdatePlantReminderNotFound() throws Exception {
+        when(plantReminderService.update(any(UUID.class), any(PlantReminderDTO.class)))
+                .thenReturn(Optional.empty());
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/plant-reminders/" + reminderId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(reminderDTO)))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Plant reminder not found"));
+    }
+
+    @Test
+    void testUpdatePlantReminderError() throws Exception {
+        // Don't use CustomException directly here since controller catches it and
+        // translates the message
+        doThrow(new RuntimeException("Service error"))
+                .when(plantReminderService)
+                .update(eq(reminderId), any(PlantReminderDTO.class));
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/plant-reminders/" + reminderId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(reminderDTO)))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to update plant reminder"));
     }
 
     @Test
@@ -106,12 +180,43 @@ class PlantReminderControllerTest {
     }
 
     @Test
+    void testMarkReminderAsCompletedNotFound() throws Exception {
+        when(plantReminderService.markAsCompleted(reminderId)).thenReturn(Optional.empty());
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/plant-reminders/" + reminderId + "/complete"))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Plant reminder not found"));
+    }
+
+    @Test
+    void testMarkReminderAsCompletedError() throws Exception {
+        when(plantReminderService.markAsCompleted(reminderId))
+                .thenThrow(
+                        new CustomException("Test error", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR));
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/plant-reminders/" + reminderId + "/complete"))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Test error"));
+    }
+
+    @Test
     void testDeletePlantReminder() throws Exception {
         doNothing().when(plantReminderService).delete(reminderId);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/api/plant-reminders/" + reminderId))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Plant reminder deleted successfully"));
+    }
+
+    @Test
+    void testDeletePlantReminderError() throws Exception {
+        doThrow(new RuntimeException("Service error"))
+                .when(plantReminderService)
+                .delete(any(UUID.class));
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/plant-reminders/" + reminderId))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to delete plant reminder"));
     }
 
     @Test
@@ -123,5 +228,149 @@ class PlantReminderControllerTest {
                         .param("date", LocalDate.now().toString()))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Successfully retrieved due reminders"));
+    }
+
+    @Test
+    void testGetRemindersDueByDateError() throws Exception {
+        when(plantReminderService.findByReminderDateLessThanEqual(any(LocalDate.class), any(Pageable.class)))
+                .thenThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/due")
+                        .param("date", LocalDate.now().toString()))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to retrieve due reminders"));
+    }
+
+    @Test
+    void testGetAllPlantReminders() throws Exception {
+        Page<PlantReminderDTO> page = new PageImpl<>(Arrays.asList(reminderDTO));
+        when(plantReminderService.findAll(any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "reminderDate")
+                        .param("direction", "ASC"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Successfully retrieved plant reminders"));
+    }
+
+    @Test
+    void testGetAllPlantRemindersError() throws Exception {
+        when(plantReminderService.findAll(any(Pageable.class))).thenThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "reminderDate")
+                        .param("direction", "ASC"))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to retrieve plant reminders"));
+    }
+
+    @Test
+    void testGetAllPlantRemindersWithoutPagination() throws Exception {
+        List<PlantReminderDTO> reminders = Arrays.asList(reminderDTO);
+        when(plantReminderService.findAll()).thenReturn(reminders);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/all"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
+                        .value("Successfully retrieved all plant reminders"));
+    }
+
+    @Test
+    void testGetAllPlantRemindersWithoutPaginationError() throws Exception {
+        // Use RuntimeException instead of CustomException for consistent exception handling
+        when(plantReminderService.findAll()).thenThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/all"))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to retrieve plant reminders"));
+    }
+
+    @Test
+    void testGetRemindersByPlantId() throws Exception {
+        Page<PlantReminderDTO> page = new PageImpl<>(Arrays.asList(reminderDTO));
+        when(plantReminderService.findByPlantId(any(UUID.class), any(Pageable.class)))
+                .thenReturn(page);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/plant/" + plantId)
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "reminderDate")
+                        .param("direction", "ASC"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
+                        .value("Successfully retrieved reminders for plant"));
+    }
+
+    @Test
+    void testGetRemindersByPlantIdError() throws Exception {
+        when(plantReminderService.findByPlantId(any(UUID.class), any(Pageable.class)))
+                .thenThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/plant/" + plantId)
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "reminderDate")
+                        .param("direction", "ASC"))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to retrieve reminders for plant"));
+    }
+
+    @Test
+    void testGetRemindersByGardenPlanId() throws Exception {
+        Page<PlantReminderDTO> page = new PageImpl<>(Arrays.asList(reminderDTO));
+        when(plantReminderService.findByGardenPlanId(any(UUID.class), any(Pageable.class)))
+                .thenReturn(page);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/garden-plan/" + gardenPlanId)
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "reminderDate")
+                        .param("direction", "ASC"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
+                        .value("Successfully retrieved reminders for garden plan"));
+    }
+
+    @Test
+    void testGetRemindersByGardenPlanIdError() throws Exception {
+        when(plantReminderService.findByGardenPlanId(any(UUID.class), any(Pageable.class)))
+                .thenThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/garden-plan/" + gardenPlanId)
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "reminderDate")
+                        .param("direction", "ASC"))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
+                        .value("Failed to retrieve reminders for garden plan"));
+    }
+
+    @Test
+    void testGetIncompleteRemindersByPlantId() throws Exception {
+        List<PlantReminderDTO> reminders = Arrays.asList(reminderDTO);
+        when(plantReminderService.findByPlantIdAndIsCompleted(eq(plantId), eq(false)))
+                .thenReturn(reminders);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/plant/" + plantId + "/incomplete"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
+                        .value("Successfully retrieved incomplete reminders for plant"));
+    }
+
+    @Test
+    void testGetIncompleteRemindersByPlantIdError() throws Exception {
+        // Use RuntimeException instead of CustomException for consistent behavior
+        when(plantReminderService.findByPlantIdAndIsCompleted(any(UUID.class), eq(false)))
+                .thenThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/plant/" + plantId + "/incomplete"))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
+                        .value("Failed to retrieve incomplete reminders for plant"));
     }
 }
