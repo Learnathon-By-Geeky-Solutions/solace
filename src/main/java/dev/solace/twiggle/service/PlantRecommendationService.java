@@ -23,6 +23,10 @@ public class PlantRecommendationService {
     private static final Logger log = LoggerFactory.getLogger(PlantRecommendationService.class);
     private static final String UNKNOWN = "Unknown";
     private static final String CONTENT = "content";
+    private static final String SUMMER = "summer";
+    private static final String WINTER = "winter";
+    private static final String SPRING = "spring";
+    private static final String AUTUMN = "autumn";
 
     private final WebClient openaiWebClient;
     private final WebClient unsplashWebClient;
@@ -280,11 +284,11 @@ public class PlantRecommendationService {
         boolean isSouthern = location != null && isSouthernHemisphereCountry(location.toLowerCase());
 
         return switch (month) {
-            case 0, 1 -> isSouthern ? "summer" : "winter"; // January and February
-            case 2, 3, 4 -> isSouthern ? "autumn" : "spring";
-            case 5, 6, 7 -> isSouthern ? "winter" : "summer";
-            case 8, 9, 10 -> isSouthern ? "spring" : "autumn";
-            default -> isSouthern ? "summer" : "winter"; // December (month 11)
+            case 0, 1 -> isSouthern ? SUMMER : WINTER; // January and February
+            case 2, 3, 4 -> isSouthern ? AUTUMN : SPRING;
+            case 5, 6, 7 -> isSouthern ? WINTER : SUMMER;
+            case 8, 9, 10 -> isSouthern ? SPRING : AUTUMN;
+            default -> isSouthern ? SUMMER : WINTER; // December (month 11)
         };
     }
 

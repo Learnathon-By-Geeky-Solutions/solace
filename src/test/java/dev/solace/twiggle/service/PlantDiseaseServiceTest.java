@@ -43,7 +43,6 @@ class PlantDiseaseServiceTest {
     private PlantsLibrary plantLibrary;
     private UUID plantLibraryId;
     private List<String> commonDiseases;
-    private List<String> lowerCaseDiseases;
 
     @BeforeEach
     void setUp() {
@@ -66,7 +65,6 @@ class PlantDiseaseServiceTest {
         diseaseDTO2.setCommonName(disease2.getCommonName());
 
         commonDiseases = Arrays.asList("Leaf Blight", "Root Rot");
-        lowerCaseDiseases = Arrays.asList("leaf blight", "root rot");
 
         plantLibrary = new PlantsLibrary();
         plantLibrary.setId(plantLibraryId);
