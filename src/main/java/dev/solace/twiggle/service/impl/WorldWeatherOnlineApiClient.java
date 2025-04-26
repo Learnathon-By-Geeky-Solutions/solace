@@ -37,7 +37,7 @@ public class WorldWeatherOnlineApiClient {
     // List of trusted domains for external API calls
     private static final List<String> TRUSTED_DOMAINS = Arrays.asList("worldweatheronline.com", "wttr.in");
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final WeatherApiConfig weatherApiConfig;
 
     /**
@@ -163,11 +163,8 @@ public class WorldWeatherOnlineApiClient {
                     .build()
                     .toUri();
 
-            // Final validation of the constructed URI
-            validateTrustedDomain(uri.toString());
-
             log.debug("Making API call to: {}", uri);
-            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
+            ResponseEntity<String> response = restTemplate.getForEntity(uri.toString(), String.class);
 
             if (response.getStatusCode() == HttpStatus.OK) {
                 return response.getBody();
@@ -178,6 +175,9 @@ public class WorldWeatherOnlineApiClient {
                         HttpStatus.INTERNAL_SERVER_ERROR,
                         ErrorCode.EXTERNAL_API_ERROR);
             }
+        } catch (CustomException e) {
+            // Re-throw custom exceptions to preserve their original message
+            throw e;
         } catch (Exception e) {
             log.error("Error making API call: {}", e.getMessage(), e);
             throw new CustomException(

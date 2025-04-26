@@ -1,65 +1,213 @@
 package dev.solace.twiggle.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.Emails;
+import com.resend.services.emails.model.CreateEmailOptions;
+import com.resend.services.emails.model.CreateEmailResponse;
 import dev.solace.twiggle.config.TestConfig;
 import dev.solace.twiggle.dto.ReminderEmailRequest;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @SpringBootTest
 @Import(TestConfig.class)
 @ActiveProfiles("test")
 class ReminderServiceTest {
 
-    @Autowired
-    private ReminderService reminderService;
+    @Mock
+    private Resend resend;
 
-    @Test
-    void sendReminderEmail_ShouldReturnSuccess() {
-        // Arrange
-        ReminderEmailRequest request = ReminderEmailRequest.builder()
+    @Mock
+    private Emails emails;
+
+    private ReminderService reminderService;
+    private ReminderEmailRequest validRequest;
+
+    @BeforeEach
+    void setUp() {
+        // Create the service with test configuration
+        reminderService = new ReminderService("test-api-key", "test@example.com", "https://test.supabase.co");
+
+        // Mock the Emails service
+        when(resend.emails()).thenReturn(emails);
+
+        // Set the mocked Resend client
+        ReflectionTestUtils.setField(reminderService, "resend", resend);
+
+        // Create a valid request for testing
+        validRequest = ReminderEmailRequest.builder()
                 .userEmail("test@example.com")
                 .plantName("Test Plant")
                 .reminderType("Watering")
                 .reminderDate("2024-05-01")
                 .reminderTime("09:00")
                 .gardenSpaceName("Test Garden")
+                .gardenSpaceId("test-garden-id")
                 .notes("Sample notes")
                 .imageUrl("https://example.com/image.jpg")
                 .build();
-
-        // Act
-        boolean result = reminderService.sendReminderEmail(request);
-
-        // Assert
-        assertTrue(result, "The mock ReminderService should return true");
     }
 
     @Test
-    void sendReminderEmailWithId_ShouldReturnSuccessMap() {
+    void sendReminderEmail_WithValidRequest_ShouldReturnTrue() throws Exception {
         // Arrange
-        ReminderEmailRequest request = ReminderEmailRequest.builder()
+        CreateEmailResponse mockResponse = new CreateEmailResponse();
+        mockResponse.setId("test-email-id");
+        when(emails.send(any(CreateEmailOptions.class))).thenReturn(mockResponse);
+
+        // Act
+        boolean result = reminderService.sendReminderEmail(validRequest);
+
+        // Assert
+        assertTrue(result);
+        verify(emails).send(any(CreateEmailOptions.class));
+    }
+
+    @Test
+    void sendReminderEmail_WithResendException_ShouldReturnFalse() throws Exception {
+        // Arrange
+        when(emails.send(any(CreateEmailOptions.class))).thenThrow(new ResendException("Test error"));
+
+        // Act
+        boolean result = reminderService.sendReminderEmail(validRequest);
+
+        // Assert
+        assertFalse(result);
+        verify(emails).send(any(CreateEmailOptions.class));
+    }
+
+    @Test
+    void sendReminderEmail_WithNullResendClient_ShouldReturnFalse() {
+        // Arrange
+        ReminderService serviceWithNullClient =
+                new ReminderService("YOUR_RESEND_API_KEY_HERE", "test@example.com", "https://test.supabase.co");
+
+        // Act
+        boolean result = serviceWithNullClient.sendReminderEmail(validRequest);
+
+        // Assert
+        assertFalse(result);
+        // No verification needed as we're testing the null client case
+    }
+
+    @Test
+    void sendReminderEmailWithId_WithValidRequest_ShouldReturnSuccessMap() throws Exception {
+        // Arrange
+        CreateEmailResponse mockResponse = new CreateEmailResponse();
+        mockResponse.setId("test-email-id");
+        when(emails.send(any(CreateEmailOptions.class))).thenReturn(mockResponse);
+
+        // Act
+        Map<String, Object> result = reminderService.sendReminderEmailWithId(validRequest);
+
+        // Assert
+        assertTrue((Boolean) result.get("success"));
+        assertEquals("test-email-id", result.get("id"));
+        verify(emails).send(any(CreateEmailOptions.class));
+    }
+
+    @Test
+    void sendReminderEmailWithId_WithResendException_ShouldReturnFailureMap() throws Exception {
+        // Arrange
+        when(emails.send(any(CreateEmailOptions.class))).thenThrow(new ResendException("Test error"));
+
+        // Act
+        Map<String, Object> result = reminderService.sendReminderEmailWithId(validRequest);
+
+        // Assert
+        assertFalse((Boolean) result.get("success"));
+        assertNull(result.get("id"));
+        verify(emails).send(any(CreateEmailOptions.class));
+    }
+
+    @Test
+    void sendReminderEmailWithId_WithNullResendClient_ShouldReturnFailureMap() {
+        // Arrange
+        ReminderService serviceWithNullClient =
+                new ReminderService("YOUR_RESEND_API_KEY_HERE", "test@example.com", "https://test.supabase.co");
+
+        // Act
+        Map<String, Object> result = serviceWithNullClient.sendReminderEmailWithId(validRequest);
+
+        // Assert
+        assertFalse((Boolean) result.get("success"));
+        assertNull(result.get("id"));
+        // No verification needed as we're testing the null client case
+    }
+
+    @Test
+    void sendReminderEmail_WithMinimalRequest_ShouldReturnTrue() throws Exception {
+        // Arrange
+        CreateEmailResponse mockResponse = new CreateEmailResponse();
+        mockResponse.setId("test-email-id");
+        when(emails.send(any(CreateEmailOptions.class))).thenReturn(mockResponse);
+
+        ReminderEmailRequest minimalRequest = ReminderEmailRequest.builder()
                 .userEmail("test@example.com")
                 .plantName("Test Plant")
                 .reminderType("Watering")
                 .reminderDate("2024-05-01")
                 .reminderTime("09:00")
                 .gardenSpaceName("Test Garden")
+                .gardenSpaceId("test-garden-id")
+                .build();
+
+        // Act
+        boolean result = reminderService.sendReminderEmail(minimalRequest);
+
+        // Assert
+        assertTrue(result);
+        verify(emails).send(any(CreateEmailOptions.class));
+    }
+
+    @Test
+    void sendReminderEmail_WithInvalidDate_ShouldStillSendEmail() throws Exception {
+        // Arrange
+        CreateEmailResponse mockResponse = new CreateEmailResponse();
+        mockResponse.setId("test-email-id");
+        when(emails.send(any(CreateEmailOptions.class))).thenReturn(mockResponse);
+
+        ReminderEmailRequest requestWithInvalidDate = ReminderEmailRequest.builder()
+                .userEmail("test@example.com")
+                .plantName("Test Plant")
+                .reminderType("Watering")
+                .reminderDate("invalid-date")
+                .reminderTime("09:00")
+                .gardenSpaceName("Test Garden")
+                .gardenSpaceId("test-garden-id")
                 .notes("Sample notes")
                 .imageUrl("https://example.com/image.jpg")
                 .build();
 
         // Act
-        Map<String, Object> result = reminderService.sendReminderEmailWithId(request);
+        boolean result = reminderService.sendReminderEmail(requestWithInvalidDate);
 
         // Assert
-        assertTrue((Boolean) result.get("success"), "The success key should be true");
-        assertEquals("mock-email-id", result.get("id"), "The id should match the mock value");
+        assertTrue(result);
+        verify(emails).send(any(CreateEmailOptions.class));
+    }
+
+    @Test
+    void sendReminderEmail_WithGeneralException_ShouldReturnFalse() throws Exception {
+        // Arrange
+        when(emails.send(any(CreateEmailOptions.class))).thenThrow(new RuntimeException("Unexpected error"));
+
+        // Act
+        boolean result = reminderService.sendReminderEmail(validRequest);
+
+        // Assert
+        assertFalse(result);
+        verify(emails).send(any(CreateEmailOptions.class));
     }
 }

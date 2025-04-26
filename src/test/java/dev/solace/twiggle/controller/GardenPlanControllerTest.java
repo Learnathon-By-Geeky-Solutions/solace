@@ -183,4 +183,103 @@ class GardenPlanControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content[0].location").value("Dhaka"));
     }
+
+    @Test
+    void testGetGardenPlansByUserId() throws Exception {
+        UUID userId = UUID.randomUUID();
+        Page<GardenPlanDTO> page = new PageImpl<>(List.of(dto));
+        Mockito.when(gardenPlanService.findByUserId(eq(userId), any())).thenReturn(page);
+
+        MockHttpServletRequestBuilder request = get("/api/garden-plans/user/{userId}", userId)
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "createdAt")
+                .param("direction", "DESC");
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].name").value("Urban Garden"));
+    }
+
+    @Test
+    void testGetGardenPlansByUserIdWithoutPagination() throws Exception {
+        UUID userId = UUID.randomUUID();
+        Mockito.when(gardenPlanService.findByUserId(userId)).thenReturn(List.of(dto));
+
+        MockHttpServletRequestBuilder request = get("/api/garden-plans/user/{userId}/all", userId);
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].type").value("Balcony"));
+    }
+
+    @Test
+    void testGetPublicGardenPlans() throws Exception {
+        Page<GardenPlanDTO> page = new PageImpl<>(List.of(dto));
+        Mockito.when(gardenPlanService.findPublicPlans(any())).thenReturn(page);
+
+        MockHttpServletRequestBuilder request = get("/api/garden-plans/public")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "createdAt")
+                .param("direction", "DESC");
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].name").value("Urban Garden"));
+    }
+
+    @Test
+    void testGetPublicGardenPlansWithoutPagination() throws Exception {
+        Mockito.when(gardenPlanService.findPublicPlans()).thenReturn(List.of(dto));
+
+        MockHttpServletRequestBuilder request = get("/api/garden-plans/public/all");
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].type").value("Balcony"));
+    }
+
+    @Test
+    void testSearchGardenPlansWithAllParameters() throws Exception {
+        UUID userId = UUID.randomUUID();
+        Page<GardenPlanDTO> page = new PageImpl<>(List.of(dto));
+        Mockito.when(gardenPlanService.searchGardenPlans(any(), any(), any(), any()))
+                .thenReturn(page);
+
+        MockHttpServletRequestBuilder request = get("/api/garden-plans/search")
+                .param("query", "garden")
+                .param("userId", userId.toString())
+                .param("isPublic", "true")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "createdAt")
+                .param("direction", "DESC");
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content").isArray());
+    }
+
+    @Test
+    void testSearchGardenPlansAdvancedWithAllParameters() throws Exception {
+        UUID userId = UUID.randomUUID();
+        Page<GardenPlanDTO> page = new PageImpl<>(List.of(dto));
+        Mockito.when(gardenPlanService.searchGardenPlansWithRelevance(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(page);
+
+        MockHttpServletRequestBuilder request = get("/api/garden-plans/search/advanced")
+                .param("name", "Urban")
+                .param("type", "Balcony")
+                .param("location", "Dhaka")
+                .param("query", "garden")
+                .param("userId", userId.toString())
+                .param("isPublic", "true")
+                .param("page", "0")
+                .param("size", "10");
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].location").value("Dhaka"));
+    }
 }
