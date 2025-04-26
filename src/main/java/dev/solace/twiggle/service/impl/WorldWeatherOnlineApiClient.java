@@ -163,6 +163,9 @@ public class WorldWeatherOnlineApiClient {
                     .build()
                     .toUri();
 
+            // Validate the final URI to prevent SSRF
+            validateFinalUri(uri);
+
             log.debug("Making API call to: {}", uri);
             ResponseEntity<String> response = restTemplate.getForEntity(uri.toString(), String.class);
 
@@ -206,6 +209,38 @@ public class WorldWeatherOnlineApiClient {
                     "Invalid URL format for external API",
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     ErrorCode.EXTERNAL_API_ERROR);
+        }
+    }
+
+    /**
+     * Validate that the final URI is safe to access
+     *
+     * @param uri The URI to validate
+     */
+    private void validateFinalUri(URI uri) {
+        String host = uri.getHost();
+
+        // Ensure the host is from a trusted domain
+        if (host == null || TRUSTED_DOMAINS.stream().noneMatch(host::endsWith)) {
+            throw new CustomException(
+                    "Untrusted domain for external API",
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    ErrorCode.EXTERNAL_API_ERROR);
+        }
+
+        // Validate scheme (only allow https)
+        if (!"https".equalsIgnoreCase(uri.getScheme())) {
+            throw new CustomException(
+                    "Only HTTPS is allowed for external API calls",
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    ErrorCode.EXTERNAL_API_ERROR);
+        }
+
+        // Validate path to ensure it only contains allowed endpoints
+        String path = uri.getPath();
+        if (!path.endsWith(WEATHER_ENDPOINT)) {
+            throw new CustomException(
+                    "Invalid API endpoint", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.EXTERNAL_API_ERROR);
         }
     }
 
