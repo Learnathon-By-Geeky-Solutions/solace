@@ -37,7 +37,7 @@ public class WorldWeatherOnlineApiClient {
     // List of trusted domains for external API calls
     private static final List<String> TRUSTED_DOMAINS = Arrays.asList("worldweatheronline.com", "wttr.in");
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final WeatherApiConfig weatherApiConfig;
 
     /**
@@ -61,9 +61,10 @@ public class WorldWeatherOnlineApiClient {
     }
 
     /**
-     * Get current weather data from the World Weather Online API using latitude and longitude.
+     * Get current weather data from the World Weather Online API using latitude and
+     * longitude.
      *
-     * @param latitude The latitude in decimal degrees
+     * @param latitude  The latitude in decimal degrees
      * @param longitude The longitude in decimal degrees
      * @return The JSON response from the API
      */
@@ -84,7 +85,7 @@ public class WorldWeatherOnlineApiClient {
      * Get weather forecast data from the World Weather Online API.
      *
      * @param location The location to get forecast for
-     * @param days Number of days for the forecast (1-14)
+     * @param days     Number of days for the forecast (1-14)
      * @return The JSON response from the API
      */
     public String getWeatherForecast(String location, int days) {
@@ -108,11 +109,12 @@ public class WorldWeatherOnlineApiClient {
     }
 
     /**
-     * Get weather forecast data from the World Weather Online API using latitude and longitude.
+     * Get weather forecast data from the World Weather Online API using latitude
+     * and longitude.
      *
-     * @param latitude The latitude in decimal degrees
+     * @param latitude  The latitude in decimal degrees
      * @param longitude The longitude in decimal degrees
-     * @param days Number of days for the forecast (1-14)
+     * @param days      Number of days for the forecast (1-14)
      * @return The JSON response from the API
      */
     public String getWeatherForecastByCoordinates(double latitude, double longitude, int days) {
@@ -137,7 +139,7 @@ public class WorldWeatherOnlineApiClient {
     /**
      * Makes a request to the World Weather Online API.
      *
-     * @param endpoint The API endpoint
+     * @param endpoint    The API endpoint
      * @param queryParams The query parameters
      * @return The API response
      */
@@ -161,8 +163,8 @@ public class WorldWeatherOnlineApiClient {
                     .build()
                     .toUri();
 
-            // Final validation of the constructed URI
-            validateTrustedDomain(uri.toString());
+            // Validate the final URI to prevent SSRF
+            validateFinalUri(uri);
 
             log.debug("Making API call to: {}", uri);
             ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
@@ -176,6 +178,9 @@ public class WorldWeatherOnlineApiClient {
                         HttpStatus.INTERNAL_SERVER_ERROR,
                         ErrorCode.EXTERNAL_API_ERROR);
             }
+        } catch (CustomException e) {
+            // Re-throw custom exceptions to preserve their original message
+            throw e;
         } catch (Exception e) {
             log.error("Error making API call: {}", e.getMessage(), e);
             throw new CustomException(
@@ -193,7 +198,7 @@ public class WorldWeatherOnlineApiClient {
             URI uri = new URI(url);
             String host = uri.getHost();
 
-            if (host == null || !TRUSTED_DOMAINS.stream().anyMatch(domain -> host.endsWith(domain))) {
+            if (host == null || TRUSTED_DOMAINS.stream().noneMatch(host::endsWith)) {
                 throw new CustomException(
                         "Untrusted domain for external API",
                         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -204,6 +209,38 @@ public class WorldWeatherOnlineApiClient {
                     "Invalid URL format for external API",
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     ErrorCode.EXTERNAL_API_ERROR);
+        }
+    }
+
+    /**
+     * Validate that the final URI is safe to access
+     *
+     * @param uri The URI to validate
+     */
+    private void validateFinalUri(URI uri) {
+        String host = uri.getHost();
+
+        // Ensure the host is from a trusted domain
+        if (host == null || TRUSTED_DOMAINS.stream().noneMatch(host::endsWith)) {
+            throw new CustomException(
+                    "Untrusted domain for external API",
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    ErrorCode.EXTERNAL_API_ERROR);
+        }
+
+        // Validate scheme (only allow https)
+        if (!"https".equalsIgnoreCase(uri.getScheme())) {
+            throw new CustomException(
+                    "Only HTTPS is allowed for external API calls",
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    ErrorCode.EXTERNAL_API_ERROR);
+        }
+
+        // Validate path to ensure it only contains allowed endpoints
+        String path = uri.getPath();
+        if (!path.endsWith(WEATHER_ENDPOINT)) {
+            throw new CustomException(
+                    "Invalid API endpoint", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.EXTERNAL_API_ERROR);
         }
     }
 
@@ -237,7 +274,7 @@ public class WorldWeatherOnlineApiClient {
     /**
      * Formats latitude and longitude as a string for the API query parameter.
      *
-     * @param latitude The latitude in decimal degrees
+     * @param latitude  The latitude in decimal degrees
      * @param longitude The longitude in decimal degrees
      * @return Formatted coordinates string
      */

@@ -10,24 +10,34 @@ import dev.solace.twiggle.dto.recommendation.PlantRecommendationResponse;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class PlantRecommendationService {
 
+    private static final Logger log = LoggerFactory.getLogger(PlantRecommendationService.class);
     private static final String UNKNOWN = "Unknown";
     private static final String CONTENT = "content";
+    private static final String SUMMER = "summer";
+    private static final String WINTER = "winter";
+    private static final String SPRING = "spring";
+    private static final String AUTUMN = "autumn";
 
     private final WebClient openaiWebClient;
     private final WebClient unsplashWebClient;
     private final ObjectMapper objectMapper;
+
+    public PlantRecommendationService(
+            WebClient openaiWebClient, WebClient unsplashWebClient, ObjectMapper objectMapper) {
+        this.openaiWebClient = openaiWebClient;
+        this.unsplashWebClient = unsplashWebClient;
+        this.objectMapper = objectMapper;
+    }
 
     public PlantRecommendationResponse getPlantRecommendations(PlantRecommendationRequest request) {
         logRequestDetails(request);
@@ -51,12 +61,13 @@ public class PlantRecommendationService {
 
     private void logRequestDetails(PlantRecommendationRequest request) {
         log.info("Getting plant recommendations for {} garden", request.getGardenType());
-        log.info("Location: {}", Optional.ofNullable(request.getLocation()).orElse(UNKNOWN));
+        log.info("Location: {}", request.getLocation() != null ? request.getLocation() : UNKNOWN);
         log.info(
                 "Existing plants: {}",
-                Optional.ofNullable(request.getExistingPlants())
-                        .map(list -> String.join(", ", list))
-                        .orElse("None"));
+                request.getExistingPlants() != null
+                                && !request.getExistingPlants().isEmpty()
+                        ? String.join(", ", request.getExistingPlants())
+                        : "None");
         log.info("User message: {}", request.getMessage());
     }
 
@@ -97,7 +108,7 @@ public class PlantRecommendationService {
                 .recommendations(recommendations)
                 .meta(PlantRecommendationResponse.MetaData.builder()
                         .season(season)
-                        .location(Optional.ofNullable(request.getLocation()).orElse(UNKNOWN))
+                        .location(request.getLocation() != null ? request.getLocation() : UNKNOWN)
                         .gardenType(request.getGardenType())
                         .build())
                 .build();
@@ -119,22 +130,30 @@ public class PlantRecommendationService {
                 .build();
     }
 
-    private List<PlantRecommendation> parseRecommendationsFromJson(String openAiResponse)
-            throws JsonProcessingException {
-        JsonNode responseNode = objectMapper.readTree(openAiResponse);
-        String rawContent = responseNode
-                .path("choices")
-                .path(0)
-                .path("message")
-                .path(CONTENT)
-                .asText()
-                .trim();
+    private List<PlantRecommendation> parseRecommendationsFromJson(String openAiResponse) {
+        try {
+            JsonNode responseNode = objectMapper.readTree(openAiResponse);
+            String rawContent = responseNode
+                    .path("choices")
+                    .path(0)
+                    .path("message")
+                    .path(CONTENT)
+                    .asText()
+                    .trim();
 
-        String validJson = cleanAndRepairJson(rawContent);
-        return objectMapper.readValue(validJson, new TypeReference<>() {});
+            String validJson = cleanAndRepairJson(rawContent);
+            return objectMapper.readValue(validJson, new TypeReference<>() {});
+        } catch (JsonProcessingException e) {
+            log.error("Error parsing recommendations from JSON: {}", e.getMessage(), e);
+            return new ArrayList<>(); // Return empty list as fallback
+        }
     }
 
-    private String cleanAndRepairJson(String content) throws JsonProcessingException {
+    String cleanAndRepairJson(String content) {
+        if (content == null || content.trim().isEmpty()) {
+            return "[]";
+        }
+
         if (!content.startsWith("[")) {
             Matcher matcher =
                     Pattern.compile("\\[\\s*\\{.*?\\}\\s*\\]", Pattern.DOTALL).matcher(content);
@@ -143,26 +162,35 @@ public class PlantRecommendationService {
             } else if (content.startsWith("{") && content.endsWith("}")) {
                 content = "[" + content + "]";
             } else {
-                throw new JsonProcessingException("Unable to extract valid JSON") {};
+                return "[]"; // Return empty array if no valid JSON structure found
             }
         }
 
         try {
-            JsonNode jsonNode = objectMapper.readTree(content);
-            return objectMapper.writeValueAsString(jsonNode);
+            // Validate JSON
+            objectMapper.readTree(content);
+            return content;
         } catch (JsonProcessingException e) {
-            log.warn("Invalid JSON, attempting to repair...");
-            content = content.replaceAll(",\\s*]", "]").replaceAll(",\\s*}", "}");
+            log.warn("Invalid JSON detected, attempting to fix: {}", e.getMessage());
 
+            // Count braces and brackets
             int openBraces = (int) content.chars().filter(ch -> ch == '{').count();
             int closeBraces = (int) content.chars().filter(ch -> ch == '}').count();
             int openBrackets = (int) content.chars().filter(ch -> ch == '[').count();
             int closeBrackets = (int) content.chars().filter(ch -> ch == ']').count();
 
-            while (closeBraces < openBraces) content += "}";
-            while (closeBrackets < openBrackets) content += "]";
+            StringBuilder sb = new StringBuilder(content);
+            while (closeBraces < openBraces) sb.append('}');
+            while (closeBrackets < openBrackets) sb.append(']');
 
-            return content;
+            try {
+                // Validate the fixed JSON
+                objectMapper.readTree(sb.toString());
+                return sb.toString();
+            } catch (JsonProcessingException ex) {
+                log.warn("Could not fix JSON, returning empty array: {}", ex.getMessage());
+                return "[]"; // Return empty array if fixing failed
+            }
         }
     }
 
@@ -219,16 +247,16 @@ public class PlantRecommendationService {
                 .append(request.getGardenType())
                 .append("\n")
                 .append("- Location: ")
-                .append(Optional.ofNullable(request.getLocation()).orElse(UNKNOWN))
+                .append(request.getLocation() != null ? request.getLocation() : UNKNOWN)
                 .append("\n")
                 .append("- Current season: ")
                 .append(season)
                 .append("\n")
                 .append("- Gardening experience: ")
-                .append(Optional.ofNullable(prefs.getExperience()).orElse("beginner"))
+                .append(prefs.getExperience() != null ? prefs.getExperience() : "beginner")
                 .append("\n")
                 .append("- Time commitment: ")
-                .append(Optional.ofNullable(prefs.getTimeCommitment()).orElse("moderate"))
+                .append(prefs.getTimeCommitment() != null ? prefs.getTimeCommitment() : "moderate")
                 .append("\n")
                 .append("- Harvest goals: ")
                 .append(
@@ -252,26 +280,20 @@ public class PlantRecommendationService {
         return prompt.toString();
     }
 
-    private String getCurrentSeason(String location) {
+    String getCurrentSeason(String location) {
         int month = Calendar.getInstance().get(Calendar.MONTH);
         boolean isSouthern = location != null && isSouthernHemisphereCountry(location.toLowerCase());
 
         return switch (month) {
-            case 2, 3, 4 -> isSouthern ? "autumn" : "spring";
-            case 5, 6, 7 -> isSouthern ? "winter" : "summer";
-            case 8, 9, 10 -> isSouthern ? "spring" : "autumn";
-            default -> isSouthern ? "summer" : "winter";
+            case 0, 1 -> isSouthern ? SUMMER : WINTER; // January and February
+            case 2, 3, 4 -> isSouthern ? AUTUMN : SPRING;
+            case 5, 6, 7 -> isSouthern ? WINTER : SUMMER;
+            case 8, 9, 10 -> isSouthern ? SPRING : AUTUMN;
+            default -> isSouthern ? SUMMER : WINTER; // December (month 11)
         };
     }
 
-    /**
-     * Checks if the location is in the Southern Hemisphere by looking for specific country names.
-     * Uses a safer approach than regex with potentially catastrophic backtracking.
-     *
-     * @param location The location string in lowercase
-     * @return true if the location is in a Southern Hemisphere country
-     */
-    private boolean isSouthernHemisphereCountry(String location) {
+    boolean isSouthernHemisphereCountry(String location) {
         if (location == null) {
             return false;
         }

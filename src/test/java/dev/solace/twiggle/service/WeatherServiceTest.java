@@ -1,7 +1,6 @@
 package dev.solace.twiggle.service;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import dev.solace.twiggle.dto.WeatherDTO;
@@ -35,7 +34,9 @@ class WeatherServiceTest { // Rename class later if desired (e.g., WeatherServic
 
     // Mock JSON responses (can be simple valid JSON strings)
     private String mockApiResponse =
-            "{\"data\": {\"current_condition\": [{\"temp_C\":\"15\"}], \"weather\": []}}"; // Minimal valid structure
+            "{\"data\": {\"current_condition\": [{\"temp_C\":\"15\"}], \"weather\": []}}"; // Minimal
+    // valid
+    // structure
 
     @BeforeEach
     void setUp() {

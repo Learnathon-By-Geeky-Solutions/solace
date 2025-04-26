@@ -15,11 +15,16 @@ public class RateLimiterConfiguration {
 
     @Bean
     public RateLimiterRegistry rateLimiterRegistry() {
-        return RateLimiterRegistry.of(RateLimiterConfig.custom()
-                .limitForPeriod(300)
+        return RateLimiterRegistry.of(defaultRateLimiterConfig());
+    }
+
+    @Bean
+    public RateLimiterConfig defaultRateLimiterConfig() {
+        return RateLimiterConfig.custom()
                 .limitRefreshPeriod(Duration.ofMinutes(1))
+                .limitForPeriod(300)
                 .timeoutDuration(Duration.ZERO)
-                .build());
+                .build();
     }
 
     @Bean

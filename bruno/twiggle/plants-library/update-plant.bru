@@ -1,0 +1,34 @@
+meta {
+  name: update-plant
+  type: http
+  seq: 4
+}
+put {
+  url: http://localhost:8080/api/plants-library/{{plant_id}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "commonName": "Snake Plant",
+    "scientificName": "Sansevieria trifasciata",
+    "otherName": "Mother-in-law's Tongue",
+    "origin": "West Africa",
+    "plantType": "Succulent",
+    "climate": "Tropical",
+    "lifeCycle": "Perennial",
+    "wateringFrequency": "Low",
+    "soilType": "Well-draining",
+    "size": "Medium",
+    "sunlightRequirement": "Low to Bright Indirect",
+    "growthRate": "Slow",
+    "idealPlace": "Indoor",
+    "careLevel": "Easy",
+    "bestPlantingSeason": "Spring",
+    "timeToHarvest": null,
+    "flower": false,
+    "fruit": false,
+    "medicinal": true
+  }
+}

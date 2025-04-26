@@ -18,7 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 /**
- * Implementation of WeatherService that provides weather data using the World Weather Online API.
+ * Implementation of WeatherService that provides weather data using the World
+ * Weather Online API.
  */
 @Service
 @RequiredArgsConstructor
@@ -32,6 +33,9 @@ public class WeatherServiceImpl implements WeatherService {
     private static final String MODERATE_QUALITY = "Moderate";
     private static final String CLOUD_COVER_KEY = "cloudcover";
     private static final String UNHEALTHY_FOR_SENSITIVE_GROUPS = "Unhealthy for Sensitive Groups";
+    private static final String UNHEALTHY = "Unhealthy";
+    private static final String VERY_UNHEALTHY = "Very Unhealthy";
+    private static final String HAZARDOUS = "Hazardous";
 
     private final WorldWeatherOnlineApiClient weatherApiClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -180,11 +184,12 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     /**
-     * Parse the JSON response from the World Weather Online API into a WeatherDTO object.
+     * Parse the JSON response from the World Weather Online API into a WeatherDTO
+     * object.
      *
      * @param apiResponse The JSON response from the API
-     * @param days The number of forecast days
-     * @param location The location string used in the request
+     * @param days        The number of forecast days
+     * @param location    The location string used in the request
      * @return A WeatherDTO object
      */
     private WeatherDTO parseWeatherResponse(String apiResponse, int days, String location) {
@@ -239,10 +244,9 @@ public class WeatherServiceImpl implements WeatherService {
                                 ? currentCondition.path("uvIndex").asDouble()
                                 : 0);
 
-        int cloudCover = currentCondition.path(CLOUD_COVER_KEY).asInt();
-        double temperature = currentCondition.path("temp_C").asDouble();
-
-        builder.cloudType(getCloudType(cloudCover)).precipitationType(getPrecipitationType(temperature));
+        builder.cloudType(getCloudType(currentCondition.path(CLOUD_COVER_KEY).asInt()))
+                .precipitationType(
+                        getPrecipitationType(currentCondition.path("temp_C").asDouble()));
     }
 
     private void parseAirQuality(JsonNode currentCondition, WeatherDTO.WeatherDTOBuilder builder) {
@@ -251,8 +255,8 @@ public class WeatherServiceImpl implements WeatherService {
 
         if (currentCondition.has("air_quality")) {
             JsonNode airQualityNode = currentCondition.path("air_quality");
-            int epaIndex = airQualityNode.path("us-epa-index").asInt();
-            airQuality = getAirQualityFromEpaIndex(epaIndex);
+            airQuality = getAirQualityFromEpaIndex(
+                    airQualityNode.path("us-epa-index").asInt());
             airHazards = getAirHazardsFromAirQuality(airQuality, airQualityNode);
         }
 
@@ -341,11 +345,11 @@ public class WeatherServiceImpl implements WeatherService {
             case 3:
                 return UNHEALTHY_FOR_SENSITIVE_GROUPS;
             case 4:
-                return "Unhealthy";
+                return UNHEALTHY;
             case 5:
-                return "Very Unhealthy";
+                return VERY_UNHEALTHY;
             case 6:
-                return "Hazardous";
+                return HAZARDOUS;
             default:
                 log.warn("Unknown EPA index value: {}, defaulting to Moderate", epaIndex);
                 return MODERATE_QUALITY;
@@ -365,13 +369,13 @@ public class WeatherServiceImpl implements WeatherService {
             case UNHEALTHY_FOR_SENSITIVE_GROUPS:
                 hazards.add("May cause respiratory symptoms in sensitive individuals");
                 break;
-            case "Unhealthy":
+            case UNHEALTHY:
                 hazards.add("Increased likelihood of adverse respiratory effects in general population");
                 break;
-            case "Very Unhealthy":
+            case VERY_UNHEALTHY:
                 hazards.add("Significant respiratory effects can be expected in general population");
                 break;
-            case "Hazardous":
+            case HAZARDOUS:
                 hazards.add("Serious respiratory effects and health impacts for all");
                 break;
             default:
@@ -552,11 +556,11 @@ public class WeatherServiceImpl implements WeatherService {
             return 2;
         } else if (UNHEALTHY_FOR_SENSITIVE_GROUPS.equals(airQuality)) {
             return 3;
-        } else if ("Unhealthy".equals(airQuality)) {
+        } else if (UNHEALTHY.equals(airQuality)) {
             return 4;
-        } else if ("Very Unhealthy".equals(airQuality)) {
+        } else if (VERY_UNHEALTHY.equals(airQuality)) {
             return 5;
-        } else if ("Hazardous".equals(airQuality)) {
+        } else if (HAZARDOUS.equals(airQuality)) {
             return 6;
         } else {
             return 2; // Default to moderate

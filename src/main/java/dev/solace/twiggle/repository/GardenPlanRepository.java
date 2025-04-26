@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Repository interface for the GardenPlan entity.
@@ -23,6 +24,7 @@ public interface GardenPlanRepository extends JpaRepository<GardenPlan, UUID> {
      * @param pageable pagination and sorting parameters
      * @return page of garden plans
      */
+    @Transactional(readOnly = true)
     Page<GardenPlan> findByUserId(UUID userId, Pageable pageable);
 
     /**
@@ -31,6 +33,7 @@ public interface GardenPlanRepository extends JpaRepository<GardenPlan, UUID> {
      * @param userId the user ID
      * @return list of garden plans
      */
+    @Transactional(readOnly = true)
     List<GardenPlan> findByUserId(UUID userId);
 
     /**
@@ -39,6 +42,7 @@ public interface GardenPlanRepository extends JpaRepository<GardenPlan, UUID> {
      * @param pageable pagination and sorting parameters
      * @return page of public garden plans
      */
+    @Transactional(readOnly = true)
     Page<GardenPlan> findByIsPublicTrue(Pageable pageable);
 
     /**
@@ -46,6 +50,7 @@ public interface GardenPlanRepository extends JpaRepository<GardenPlan, UUID> {
      *
      * @return list of public garden plans
      */
+    @Transactional(readOnly = true)
     List<GardenPlan> findByIsPublicTrue();
 
     /**
@@ -62,6 +67,7 @@ public interface GardenPlanRepository extends JpaRepository<GardenPlan, UUID> {
      * @param pageable pagination and sorting parameters
      * @return page of matching garden plans ordered by relevance
      */
+    @Transactional(readOnly = true)
     @Query(
             value = "SELECT g.*, " + "CASE "
                     + "  WHEN LOWER(g.name) = LOWER(:name) THEN 100 "
@@ -123,6 +129,7 @@ public interface GardenPlanRepository extends JpaRepository<GardenPlan, UUID> {
      * @param pageable pagination and sorting parameters
      * @return page of matching garden plans
      */
+    @Transactional(readOnly = true)
     @Query("SELECT g FROM GardenPlan g WHERE "
             + "(:query IS NULL OR LOWER(g.name) LIKE LOWER(CONCAT('%', :query, '%')) OR "
             + "LOWER(g.description) LIKE LOWER(CONCAT('%', :query, '%')) OR "
