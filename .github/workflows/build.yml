@@ -1,4 +1,4 @@
-name: Build and Analyze
+name: SonarQube Analyze
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - develop-backend
       - CI/sonar-1
       - 'test/**'
+      - main
   pull_request:
     branches:
       - develop-backend
