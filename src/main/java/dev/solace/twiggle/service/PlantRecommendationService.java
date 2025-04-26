@@ -61,12 +61,13 @@ public class PlantRecommendationService {
 
     private void logRequestDetails(PlantRecommendationRequest request) {
         log.info("Getting plant recommendations for {} garden", request.getGardenType());
-        log.info("Location: {}", Optional.ofNullable(request.getLocation()).orElse(UNKNOWN));
+        log.info("Location: {}", request.getLocation() != null ? request.getLocation() : UNKNOWN);
         log.info(
                 "Existing plants: {}",
-                Optional.ofNullable(request.getExistingPlants())
-                        .map(list -> String.join(", ", list))
-                        .orElse("None"));
+                request.getExistingPlants() != null
+                                && !request.getExistingPlants().isEmpty()
+                        ? String.join(", ", request.getExistingPlants())
+                        : "None");
         log.info("User message: {}", request.getMessage());
     }
 
@@ -107,7 +108,7 @@ public class PlantRecommendationService {
                 .recommendations(recommendations)
                 .meta(PlantRecommendationResponse.MetaData.builder()
                         .season(season)
-                        .location(Optional.ofNullable(request.getLocation()).orElse(UNKNOWN))
+                        .location(request.getLocation() != null ? request.getLocation() : UNKNOWN)
                         .gardenType(request.getGardenType())
                         .build())
                 .build();
@@ -246,16 +247,16 @@ public class PlantRecommendationService {
                 .append(request.getGardenType())
                 .append("\n")
                 .append("- Location: ")
-                .append(Optional.ofNullable(request.getLocation()).orElse(UNKNOWN))
+                .append(request.getLocation() != null ? request.getLocation() : UNKNOWN)
                 .append("\n")
                 .append("- Current season: ")
                 .append(season)
                 .append("\n")
                 .append("- Gardening experience: ")
-                .append(Optional.ofNullable(prefs.getExperience()).orElse("beginner"))
+                .append(prefs.getExperience() != null ? prefs.getExperience() : "beginner")
                 .append("\n")
                 .append("- Time commitment: ")
-                .append(Optional.ofNullable(prefs.getTimeCommitment()).orElse("moderate"))
+                .append(prefs.getTimeCommitment() != null ? prefs.getTimeCommitment() : "moderate")
                 .append("\n")
                 .append("- Harvest goals: ")
                 .append(

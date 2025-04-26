@@ -80,7 +80,7 @@ class PlantReminderControllerTest {
 
     @Test
     void testGetPlantReminderById() throws Exception {
-        when(plantReminderService.findById(reminderId)).thenReturn(Optional.of(reminderDTO));
+        when(plantReminderService.findById(eq(reminderId))).thenReturn(Optional.of(reminderDTO));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/" + reminderId))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -89,7 +89,7 @@ class PlantReminderControllerTest {
 
     @Test
     void testGetPlantReminderByIdNotFound() throws Exception {
-        when(plantReminderService.findById(reminderId)).thenReturn(Optional.empty());
+        when(plantReminderService.findById(eq(reminderId))).thenReturn(Optional.empty());
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/" + reminderId))
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
@@ -98,7 +98,7 @@ class PlantReminderControllerTest {
 
     @Test
     void testGetPlantReminderByIdError() throws Exception {
-        when(plantReminderService.findById(reminderId))
+        when(plantReminderService.findById(eq(reminderId)))
                 .thenThrow(
                         new CustomException("Test error", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR));
 
@@ -157,8 +157,6 @@ class PlantReminderControllerTest {
 
     @Test
     void testUpdatePlantReminderError() throws Exception {
-        // Don't use CustomException directly here since controller catches it and
-        // translates the message
         doThrow(new RuntimeException("Service error"))
                 .when(plantReminderService)
                 .update(eq(reminderId), any(PlantReminderDTO.class));
@@ -172,7 +170,7 @@ class PlantReminderControllerTest {
 
     @Test
     void testMarkReminderAsCompleted() throws Exception {
-        when(plantReminderService.markAsCompleted(reminderId)).thenReturn(Optional.of(reminderDTO));
+        when(plantReminderService.markAsCompleted(eq(reminderId))).thenReturn(Optional.of(reminderDTO));
 
         mockMvc.perform(MockMvcRequestBuilders.put("/api/plant-reminders/" + reminderId + "/complete"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -181,7 +179,7 @@ class PlantReminderControllerTest {
 
     @Test
     void testMarkReminderAsCompletedNotFound() throws Exception {
-        when(plantReminderService.markAsCompleted(reminderId)).thenReturn(Optional.empty());
+        when(plantReminderService.markAsCompleted(eq(reminderId))).thenReturn(Optional.empty());
 
         mockMvc.perform(MockMvcRequestBuilders.put("/api/plant-reminders/" + reminderId + "/complete"))
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
@@ -190,7 +188,7 @@ class PlantReminderControllerTest {
 
     @Test
     void testMarkReminderAsCompletedError() throws Exception {
-        when(plantReminderService.markAsCompleted(reminderId))
+        when(plantReminderService.markAsCompleted(eq(reminderId)))
                 .thenThrow(
                         new CustomException("Test error", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR));
 
@@ -212,7 +210,7 @@ class PlantReminderControllerTest {
     void testDeletePlantReminderError() throws Exception {
         doThrow(new RuntimeException("Service error"))
                 .when(plantReminderService)
-                .delete(any(UUID.class));
+                .delete(eq(reminderId));
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/api/plant-reminders/" + reminderId))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())

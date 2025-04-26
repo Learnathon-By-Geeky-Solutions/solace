@@ -244,10 +244,9 @@ public class WeatherServiceImpl implements WeatherService {
                                 ? currentCondition.path("uvIndex").asDouble()
                                 : 0);
 
-        int cloudCover = currentCondition.path(CLOUD_COVER_KEY).asInt();
-        double temperature = currentCondition.path("temp_C").asDouble();
-
-        builder.cloudType(getCloudType(cloudCover)).precipitationType(getPrecipitationType(temperature));
+        builder.cloudType(getCloudType(currentCondition.path(CLOUD_COVER_KEY).asInt()))
+                .precipitationType(
+                        getPrecipitationType(currentCondition.path("temp_C").asDouble()));
     }
 
     private void parseAirQuality(JsonNode currentCondition, WeatherDTO.WeatherDTOBuilder builder) {
@@ -256,8 +255,8 @@ public class WeatherServiceImpl implements WeatherService {
 
         if (currentCondition.has("air_quality")) {
             JsonNode airQualityNode = currentCondition.path("air_quality");
-            int epaIndex = airQualityNode.path("us-epa-index").asInt();
-            airQuality = getAirQualityFromEpaIndex(epaIndex);
+            airQuality = getAirQualityFromEpaIndex(
+                    airQualityNode.path("us-epa-index").asInt());
             airHazards = getAirHazardsFromAirQuality(airQuality, airQualityNode);
         }
 

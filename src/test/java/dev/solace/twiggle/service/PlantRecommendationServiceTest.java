@@ -304,4 +304,36 @@ class PlantRecommendationServiceTest {
 
         assertNull(recommendation.getImageURL());
     }
+
+    @Test
+    void logRequestDetails_WithNullFields_ShouldHandleGracefully() {
+        // Test with null fields to ensure the modified code works correctly
+        PlantRecommendationRequest request = new PlantRecommendationRequest();
+        request.setGardenType("test");
+        // Let other fields remain null
+
+        // No exception should be thrown
+        assertDoesNotThrow(() -> {
+            Method method = PlantRecommendationService.class.getDeclaredMethod(
+                    "logRequestDetails", PlantRecommendationRequest.class);
+            method.setAccessible(true);
+            method.invoke(plantRecommendationService, request);
+        });
+    }
+
+    @Test
+    void setDefaultUserPreferencesIfAbsent_ShouldSetDefaults() throws Exception {
+        PlantRecommendationRequest request = new PlantRecommendationRequest();
+        request.setUserPreferences(null);
+
+        Method method = PlantRecommendationService.class.getDeclaredMethod(
+                "setDefaultUserPreferencesIfAbsent", PlantRecommendationRequest.class);
+        method.setAccessible(true);
+        method.invoke(plantRecommendationService, request);
+
+        assertNotNull(request.getUserPreferences());
+        assertEquals("beginner", request.getUserPreferences().getExperience());
+        assertEquals("moderate", request.getUserPreferences().getTimeCommitment());
+        assertTrue(request.getUserPreferences().getHarvestGoals().isEmpty());
+    }
 }
