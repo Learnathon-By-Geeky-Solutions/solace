@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [main, deployment-fix]
+    branches: [main, develop-backend, 'hotfix/**', deployment-fix]
 
 jobs:
   build-and-deploy:

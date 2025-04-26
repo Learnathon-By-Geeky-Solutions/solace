@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Repository interface for the Plant entity.
@@ -23,6 +24,7 @@ public interface PlantRepository extends JpaRepository<Plant, UUID> {
      * @param pageable pagination and sorting parameters
      * @return page of plants
      */
+    @Transactional(readOnly = true)
     Page<Plant> findByGardenPlanId(UUID gardenPlanId, Pageable pageable);
 
     /**
@@ -31,6 +33,7 @@ public interface PlantRepository extends JpaRepository<Plant, UUID> {
      * @param gardenPlanId the garden plan ID
      * @return list of plants
      */
+    @Transactional(readOnly = true)
     List<Plant> findByGardenPlanId(UUID gardenPlanId);
 
     /**
@@ -40,6 +43,7 @@ public interface PlantRepository extends JpaRepository<Plant, UUID> {
      * @param pageable pagination and sorting parameters
      * @return page of plants
      */
+    @Transactional(readOnly = true)
     Page<Plant> findByType(String type, Pageable pageable);
 
     /**
@@ -48,6 +52,7 @@ public interface PlantRepository extends JpaRepository<Plant, UUID> {
      * @param type the plant type
      * @return list of plants
      */
+    @Transactional(readOnly = true)
     List<Plant> findByType(String type);
 
     /**
@@ -58,6 +63,7 @@ public interface PlantRepository extends JpaRepository<Plant, UUID> {
      * @param pageable pagination and sorting parameters
      * @return page of matching plants
      */
+    @Transactional(readOnly = true)
     @Query("SELECT p FROM Plant p WHERE " + "(:query IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) OR "
             + "LOWER(p.description) LIKE LOWER(CONCAT('%', :query, '%')) OR "
             + "LOWER(p.type) LIKE LOWER(CONCAT('%', :query, '%')) OR "
@@ -80,6 +86,7 @@ public interface PlantRepository extends JpaRepository<Plant, UUID> {
      * @param pageable pagination and sorting parameters
      * @return page of matching plants ordered by relevance
      */
+    @Transactional(readOnly = true)
     @Query(
             value = "SELECT p.*, " + "CASE "
                     + "  WHEN LOWER(p.name) = LOWER(:name) THEN 100 "
