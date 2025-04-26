@@ -167,7 +167,7 @@ public class WorldWeatherOnlineApiClient {
             validateFinalUri(uri);
 
             log.debug("Making API call to: {}", uri);
-            ResponseEntity<String> response = restTemplate.getForEntity(uri.toString(), String.class);
+            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
 
             if (response.getStatusCode() == HttpStatus.OK) {
                 return response.getBody();

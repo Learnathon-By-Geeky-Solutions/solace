@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 
 import dev.solace.twiggle.config.WeatherApiConfig;
 import dev.solace.twiggle.exception.CustomException;
+import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -37,7 +38,7 @@ class WorldWeatherOnlineApiClientTest {
         // Arrange
         when(weatherApiConfig.getKey()).thenReturn(API_KEY);
         when(weatherApiConfig.getBaseUrl()).thenReturn(BASE_URL);
-        when(restTemplate.getForEntity(anyString(), eq(String.class)))
+        when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
                 .thenReturn(new ResponseEntity<>(VALID_RESPONSE, HttpStatus.OK));
 
         // Act
@@ -46,7 +47,7 @@ class WorldWeatherOnlineApiClientTest {
         // Assert
         assertNotNull(result);
         assertEquals(VALID_RESPONSE, result);
-        verify(restTemplate).getForEntity(anyString(), eq(String.class));
+        verify(restTemplate).getForEntity(any(URI.class), eq(String.class));
     }
 
     @Test
@@ -57,7 +58,7 @@ class WorldWeatherOnlineApiClientTest {
         CustomException exception =
                 assertThrows(CustomException.class, () -> worldWeatherOnlineApiClient.getCurrentWeather(""));
         assertEquals("Location parameter is required", exception.getMessage());
-        verify(restTemplate, never()).getForEntity(anyString(), eq(String.class));
+        verify(restTemplate, never()).getForEntity(any(URI.class), eq(String.class));
     }
 
     @Test
@@ -65,7 +66,7 @@ class WorldWeatherOnlineApiClientTest {
         // Arrange
         when(weatherApiConfig.getKey()).thenReturn(API_KEY);
         when(weatherApiConfig.getBaseUrl()).thenReturn(BASE_URL);
-        when(restTemplate.getForEntity(anyString(), eq(String.class)))
+        when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
                 .thenReturn(new ResponseEntity<>(VALID_RESPONSE, HttpStatus.OK));
 
         // Act
@@ -74,7 +75,7 @@ class WorldWeatherOnlineApiClientTest {
         // Assert
         assertNotNull(result);
         assertEquals(VALID_RESPONSE, result);
-        verify(restTemplate).getForEntity(anyString(), eq(String.class));
+        verify(restTemplate).getForEntity(any(URI.class), eq(String.class));
     }
 
     @Test
@@ -87,7 +88,7 @@ class WorldWeatherOnlineApiClientTest {
         assertEquals(
                 "Invalid coordinates: latitude must be between -90 and 90, longitude between -180 and 180",
                 exception.getMessage());
-        verify(restTemplate, never()).getForEntity(anyString(), eq(String.class));
+        verify(restTemplate, never()).getForEntity(any(URI.class), eq(String.class));
     }
 
     @Test
@@ -95,7 +96,7 @@ class WorldWeatherOnlineApiClientTest {
         // Arrange
         when(weatherApiConfig.getKey()).thenReturn(API_KEY);
         when(weatherApiConfig.getBaseUrl()).thenReturn(BASE_URL);
-        when(restTemplate.getForEntity(anyString(), eq(String.class)))
+        when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
                 .thenReturn(new ResponseEntity<>(VALID_RESPONSE, HttpStatus.OK));
 
         // Act
@@ -104,7 +105,7 @@ class WorldWeatherOnlineApiClientTest {
         // Assert
         assertNotNull(result);
         assertEquals(VALID_RESPONSE, result);
-        verify(restTemplate).getForEntity(anyString(), eq(String.class));
+        verify(restTemplate).getForEntity(any(URI.class), eq(String.class));
     }
 
     @Test
@@ -112,7 +113,7 @@ class WorldWeatherOnlineApiClientTest {
         // Arrange
         when(weatherApiConfig.getKey()).thenReturn(API_KEY);
         when(weatherApiConfig.getBaseUrl()).thenReturn(BASE_URL);
-        when(restTemplate.getForEntity(anyString(), eq(String.class)))
+        when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
                 .thenReturn(new ResponseEntity<>(VALID_RESPONSE, HttpStatus.OK));
 
         // Act
@@ -121,7 +122,7 @@ class WorldWeatherOnlineApiClientTest {
         // Assert
         assertNotNull(result);
         assertEquals(VALID_RESPONSE, result);
-        verify(restTemplate).getForEntity(anyString(), eq(String.class));
+        verify(restTemplate).getForEntity(any(URI.class), eq(String.class));
     }
 
     @Test
@@ -129,7 +130,7 @@ class WorldWeatherOnlineApiClientTest {
         // Arrange
         when(weatherApiConfig.getKey()).thenReturn(API_KEY);
         when(weatherApiConfig.getBaseUrl()).thenReturn(BASE_URL);
-        when(restTemplate.getForEntity(anyString(), eq(String.class)))
+        when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
                 .thenReturn(new ResponseEntity<>(VALID_RESPONSE, HttpStatus.OK));
 
         // Act
@@ -138,7 +139,7 @@ class WorldWeatherOnlineApiClientTest {
         // Assert
         assertNotNull(result);
         assertEquals(VALID_RESPONSE, result);
-        verify(restTemplate).getForEntity(anyString(), eq(String.class));
+        verify(restTemplate).getForEntity(any(URI.class), eq(String.class));
     }
 
     @Test
@@ -146,7 +147,7 @@ class WorldWeatherOnlineApiClientTest {
         // Arrange
         when(weatherApiConfig.getKey()).thenReturn(API_KEY);
         when(weatherApiConfig.getBaseUrl()).thenReturn(BASE_URL);
-        when(restTemplate.getForEntity(anyString(), eq(String.class)))
+        when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
                 .thenReturn(new ResponseEntity<>(VALID_RESPONSE, HttpStatus.OK));
 
         // Act
@@ -155,7 +156,7 @@ class WorldWeatherOnlineApiClientTest {
         // Assert
         assertNotNull(result);
         assertEquals(VALID_RESPONSE, result);
-        verify(restTemplate).getForEntity(anyString(), eq(String.class));
+        verify(restTemplate).getForEntity(any(URI.class), eq(String.class));
     }
 
     @Test
@@ -163,13 +164,13 @@ class WorldWeatherOnlineApiClientTest {
         // Arrange
         when(weatherApiConfig.getKey()).thenReturn(API_KEY);
         when(weatherApiConfig.getBaseUrl()).thenReturn(BASE_URL);
-        when(restTemplate.getForEntity(anyString(), eq(String.class))).thenThrow(new RuntimeException("API Error"));
+        when(restTemplate.getForEntity(any(URI.class), eq(String.class))).thenThrow(new RuntimeException("API Error"));
 
         // Act & Assert
         CustomException exception = assertThrows(
                 CustomException.class, () -> worldWeatherOnlineApiClient.getCurrentWeather(VALID_LOCATION));
         assertEquals("Failed to retrieve weather data", exception.getMessage());
-        verify(restTemplate).getForEntity(anyString(), eq(String.class));
+        verify(restTemplate).getForEntity(any(URI.class), eq(String.class));
     }
 
     @Test
@@ -182,6 +183,6 @@ class WorldWeatherOnlineApiClientTest {
         CustomException exception = assertThrows(
                 CustomException.class, () -> worldWeatherOnlineApiClient.getCurrentWeather(VALID_LOCATION));
         assertEquals("Untrusted domain for external API", exception.getMessage());
-        verify(restTemplate, never()).getForEntity(anyString(), eq(String.class));
+        verify(restTemplate, never()).getForEntity(any(URI.class), eq(String.class));
     }
 }
