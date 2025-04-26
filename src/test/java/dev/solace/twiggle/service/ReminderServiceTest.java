@@ -9,20 +9,16 @@ import com.resend.core.exception.ResendException;
 import com.resend.services.emails.Emails;
 import com.resend.services.emails.model.CreateEmailOptions;
 import com.resend.services.emails.model.CreateEmailResponse;
-import dev.solace.twiggle.config.TestConfig;
 import dev.solace.twiggle.dto.ReminderEmailRequest;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-@SpringBootTest
-@Import(TestConfig.class)
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 class ReminderServiceTest {
 
     @Mock
@@ -39,8 +35,8 @@ class ReminderServiceTest {
         // Create the service with test configuration
         reminderService = new ReminderService("test-api-key", "test@example.com", "https://test.supabase.co");
 
-        // Mock the Emails service
-        when(resend.emails()).thenReturn(emails);
+        // Mock the Emails service - use lenient() to avoid unnecessary stubbing errors
+        lenient().when(resend.emails()).thenReturn(emails);
 
         // Set the mocked Resend client
         ReflectionTestUtils.setField(reminderService, "resend", resend);
@@ -90,15 +86,22 @@ class ReminderServiceTest {
     @Test
     void sendReminderEmail_WithNullResendClient_ShouldReturnFalse() {
         // Arrange
-        ReminderService serviceWithNullClient =
-                new ReminderService("YOUR_RESEND_API_KEY_HERE", "test@example.com", "https://test.supabase.co");
+        // Save original resend client
+        Resend originalResend = (Resend) ReflectionTestUtils.getField(reminderService, "resend");
+        // Set resend to null to simulate uninitialized client
+        ReflectionTestUtils.setField(reminderService, "resend", null);
 
-        // Act
-        boolean result = serviceWithNullClient.sendReminderEmail(validRequest);
+        try {
+            // Act
+            boolean result = reminderService.sendReminderEmail(validRequest);
 
-        // Assert
-        assertFalse(result);
-        // No verification needed as we're testing the null client case
+            // Assert
+            assertFalse(result);
+            // No verification needed as we're testing the null client case
+        } finally {
+            // Restore original resend client
+            ReflectionTestUtils.setField(reminderService, "resend", originalResend);
+        }
     }
 
     @Test
@@ -134,16 +137,23 @@ class ReminderServiceTest {
     @Test
     void sendReminderEmailWithId_WithNullResendClient_ShouldReturnFailureMap() {
         // Arrange
-        ReminderService serviceWithNullClient =
-                new ReminderService("YOUR_RESEND_API_KEY_HERE", "test@example.com", "https://test.supabase.co");
+        // Save original resend client
+        Resend originalResend = (Resend) ReflectionTestUtils.getField(reminderService, "resend");
+        // Set resend to null to simulate uninitialized client
+        ReflectionTestUtils.setField(reminderService, "resend", null);
 
-        // Act
-        Map<String, Object> result = serviceWithNullClient.sendReminderEmailWithId(validRequest);
+        try {
+            // Act
+            Map<String, Object> result = reminderService.sendReminderEmailWithId(validRequest);
 
-        // Assert
-        assertFalse((Boolean) result.get("success"));
-        assertNull(result.get("id"));
-        // No verification needed as we're testing the null client case
+            // Assert
+            assertFalse((Boolean) result.get("success"));
+            assertNull(result.get("id"));
+            // No verification needed as we're testing the null client case
+        } finally {
+            // Restore original resend client
+            ReflectionTestUtils.setField(reminderService, "resend", originalResend);
+        }
     }
 
     @Test

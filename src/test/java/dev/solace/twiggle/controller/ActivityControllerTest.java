@@ -51,12 +51,14 @@ class ActivityControllerTest {
 
     private ActivityDTO dto;
 
+    private static final String ACTIVITY_TYPE = "WATERING";
+
     @BeforeEach
     void setUp() {
         dto = ActivityDTO.builder()
                 .userId(UUID.randomUUID())
                 .gardenPlanId(UUID.randomUUID())
-                .activityType("WATERING")
+                .activityType(ACTIVITY_TYPE)
                 .description("Watered plants")
                 .createdAt(OffsetDateTime.now())
                 .build();
@@ -146,7 +148,7 @@ class ActivityControllerTest {
     @Test
     void testGetActivitiesByUserIdAndType() throws Exception {
         UUID userId = UUID.randomUUID();
-        String activityType = "WATERING";
+        String activityType = ACTIVITY_TYPE;
         Page<ActivityDTO> page = new PageImpl<>(List.of(dto));
         Mockito.when(activityService.findByUserIdAndActivityType(eq(userId), eq(activityType), any(Pageable.class)))
                 .thenReturn(page);

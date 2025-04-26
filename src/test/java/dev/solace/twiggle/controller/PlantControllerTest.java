@@ -90,7 +90,7 @@ class PlantControllerTest {
 
         mockMvc.perform(get("/api/plants/" + id))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Plant not found"));
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
     }
 
     @Test
