@@ -20,7 +20,9 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,6 +52,11 @@ class PlantRecommendationServiceTest {
                 .location("San Francisco")
                 .gardenType("balcony")
                 .message("Easy plants for beginners")
+                .userPreferences(PlantRecommendationRequest.UserPreferences.builder()
+                        .experience("beginner")
+                        .timeCommitment("moderate")
+                        .harvestGoals(new ArrayList<>())
+                        .build())
                 .build();
 
         mockRecommendations = List.of(
@@ -335,5 +342,94 @@ class PlantRecommendationServiceTest {
         assertEquals("beginner", request.getUserPreferences().getExperience());
         assertEquals("moderate", request.getUserPreferences().getTimeCommitment());
         assertTrue(request.getUserPreferences().getHarvestGoals().isEmpty());
+    }
+
+    @Test
+    void fetchRecommendationsFromOpenAI_ShouldMakeCorrectApiCall() throws Exception {
+        // Setup WebClient mocks using direct return chaining
+        WebClient.RequestBodyUriSpec requestBodyUriSpec = mock(WebClient.RequestBodyUriSpec.class);
+        WebClient.RequestBodySpec requestBodySpec = mock(WebClient.RequestBodySpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
+
+        when(openaiWebClient.post()).thenReturn(requestBodyUriSpec);
+        // Use doReturn/when pattern to avoid type issues
+        doReturn(requestBodySpec).when(requestBodyUriSpec).uri("/chat/completions");
+        doReturn(requestBodySpec).when(requestBodySpec).contentType(any(MediaType.class));
+        doReturn(requestBodySpec).when(requestBodySpec).bodyValue(any());
+        doReturn(responseSpec).when(requestBodySpec).retrieve();
+        when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.just("{\"result\":\"success\"}"));
+
+        Method method = PlantRecommendationService.class.getDeclaredMethod(
+                "fetchRecommendationsFromOpenAI", PlantRecommendationRequest.class, String.class);
+        method.setAccessible(true);
+
+        String result = (String) method.invoke(plantRecommendationService, validRequest, "summer");
+
+        assertNotNull(result);
+        assertEquals("{\"result\":\"success\"}", result);
+        verify(requestBodySpec).bodyValue(any());
+    }
+
+    @Test
+    void buildSuccessResponse_ShouldCreateCorrectResponse() throws Exception {
+        Method method = PlantRecommendationService.class.getDeclaredMethod(
+                "buildSuccessResponse", PlantRecommendationRequest.class, String.class, List.class);
+        method.setAccessible(true);
+
+        PlantRecommendationResponse result = (PlantRecommendationResponse)
+                method.invoke(plantRecommendationService, validRequest, "summer", mockRecommendations);
+
+        assertTrue(result.isSuccess());
+        assertEquals(mockRecommendations, result.getRecommendations());
+        assertEquals("San Francisco", result.getMeta().getLocation());
+        assertEquals("summer", result.getMeta().getSeason());
+        assertEquals("balcony", result.getMeta().getGardenType());
+    }
+
+    @Test
+    void buildSuccessResponse_WithNullLocation_ShouldHandleGracefully() throws Exception {
+        Method method = PlantRecommendationService.class.getDeclaredMethod(
+                "buildSuccessResponse", PlantRecommendationRequest.class, String.class, List.class);
+        method.setAccessible(true);
+
+        PlantRecommendationRequest requestWithNullLocation = PlantRecommendationRequest.builder()
+                .gardenType("balcony")
+                .message("test")
+                .build();
+
+        PlantRecommendationResponse result = (PlantRecommendationResponse)
+                method.invoke(plantRecommendationService, requestWithNullLocation, "summer", mockRecommendations);
+
+        assertEquals("Unknown", result.getMeta().getLocation());
+    }
+
+    @Test
+    void handleWebClientError_ShouldReturnErrorResponse() throws Exception {
+        Method method = PlantRecommendationService.class.getDeclaredMethod(
+                "handleWebClientError", WebClientResponseException.class);
+        method.setAccessible(true);
+
+        WebClientResponseException exception = mock(WebClientResponseException.class);
+        when(exception.getMessage()).thenReturn("API Error");
+
+        PlantRecommendationResponse result =
+                (PlantRecommendationResponse) method.invoke(plantRecommendationService, exception);
+
+        assertFalse(result.isSuccess());
+        assertTrue(result.getError().contains("API Error"));
+    }
+
+    @Test
+    void handleGenericError_ShouldReturnErrorResponse() throws Exception {
+        Method method = PlantRecommendationService.class.getDeclaredMethod("handleGenericError", Exception.class);
+        method.setAccessible(true);
+
+        Exception exception = new RuntimeException("Test error");
+
+        PlantRecommendationResponse result =
+                (PlantRecommendationResponse) method.invoke(plantRecommendationService, exception);
+
+        assertFalse(result.isSuccess());
+        assertTrue(result.getError().contains("Test error"));
     }
 }
