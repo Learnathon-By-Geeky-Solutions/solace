@@ -347,4 +347,43 @@ class PlantsLibraryControllerTest {
                 .andExpect(jsonPath("$.message").value("Successfully retrieved medicinal plants"))
                 .andExpect(jsonPath("$.data.content[0].commonName").value("Aloe Vera"));
     }
+
+    @Test
+    void searchPlantsAdvanced_returnsMatchingPlants() throws Exception {
+        UUID id = UUID.randomUUID();
+        PlantsLibraryDTO dto = PlantsLibraryDTO.builder()
+                .id(id)
+                .commonName("Aloe Vera")
+                .plantType("Succulent")
+                .medicinal(true)
+                .build();
+
+        Page<PlantsLibraryDTO> page = new PageImpl<>(List.of(dto));
+        given(service.searchPlantsAdvanced(any(), any(Pageable.class))).willReturn(page);
+
+        mockMvc.perform(get("/api/plants-library/search/advanced")
+                        .param("commonName", "Aloe")
+                        .param("plantType", "Succulent")
+                        .param("medicinal", "true")
+                        .param("page", "0")
+                        .param("pageSize", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Successfully searched plants with advanced criteria"))
+                .andExpect(jsonPath("$.data.content[0].commonName").value("Aloe Vera"))
+                .andExpect(jsonPath("$.data.content[0].plantType").value("Succulent"))
+                .andExpect(jsonPath("$.data.content[0].medicinal").value(true));
+    }
+
+    @Test
+    void searchPlantsAdvanced_whenServiceThrowsException_returns500() throws Exception {
+        given(service.searchPlantsAdvanced(any(), any(Pageable.class)))
+                .willThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(get("/api/plants-library/search/advanced")
+                        .param("commonName", "Aloe")
+                        .param("plantType", "Succulent"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Failed to perform advanced search on plants"))
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
+    }
 }

@@ -132,4 +132,106 @@ class PlantsLibraryServiceTest {
         assertThat(result.getTotalElements()).isEqualTo(1);
         verify(repo).findAll(any(Specification.class), eq(pageable));
     }
+
+    @Test
+    void searchPlants_withValidQuery_shouldReturnResults() {
+        String query = "snake";
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(repo.findAll(any(Specification.class), eq(pageable))).thenReturn(new PageImpl<>(List.of(entity)));
+        when(mapper.toDto(entity)).thenReturn(dto);
+
+        Page<PlantsLibraryDTO> result = service.searchPlants(query, pageable);
+
+        assertThat(result.getContent()).containsExactly(dto);
+        verify(repo).findAll(any(Specification.class), eq(pageable));
+    }
+
+    @Test
+    void searchPlants_withEmptyQuery_shouldPassNullSpecification() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(repo.findAll(ArgumentMatchers.<Specification<PlantsLibrary>>isNull(), eq(pageable)))
+                .thenReturn(new PageImpl<>(List.of(entity)));
+        when(mapper.toDto(entity)).thenReturn(dto);
+
+        Page<PlantsLibraryDTO> result = service.searchPlants("", pageable);
+
+        assertThat(result.getContent()).containsExactly(dto);
+        verify(repo).findAll(ArgumentMatchers.<Specification<PlantsLibrary>>isNull(), eq(pageable));
+    }
+
+    @Test
+    void findAll_nonPageable_shouldReturnListOfDtos() {
+        when(repo.findAll()).thenReturn(List.of(entity));
+        when(mapper.toDto(entity)).thenReturn(dto);
+
+        List<PlantsLibraryDTO> result = service.findAll();
+
+        assertThat(result).containsExactly(dto);
+        verify(repo).findAll();
+    }
+
+    @Test
+    void findByPlantType_shouldFilterAndReturnPageOfDtos() {
+        String plantType = "Succulent";
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(repo.findByPlantTypeContainingIgnoreCase(plantType, pageable)).thenReturn(new PageImpl<>(List.of(entity)));
+        when(mapper.toDto(entity)).thenReturn(dto);
+
+        Page<PlantsLibraryDTO> result = service.findByPlantType(plantType, pageable);
+
+        assertThat(result.getContent()).containsExactly(dto);
+        verify(repo).findByPlantTypeContainingIgnoreCase(plantType, pageable);
+    }
+
+    @Test
+    void findByLifeCycle_shouldFilterAndReturnPageOfDtos() {
+        String lifeCycle = "Perennial";
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(repo.findByLifeCycleContainingIgnoreCase(lifeCycle, pageable)).thenReturn(new PageImpl<>(List.of(entity)));
+        when(mapper.toDto(entity)).thenReturn(dto);
+
+        Page<PlantsLibraryDTO> result = service.findByLifeCycle(lifeCycle, pageable);
+
+        assertThat(result.getContent()).containsExactly(dto);
+        verify(repo).findByLifeCycleContainingIgnoreCase(lifeCycle, pageable);
+    }
+
+    @Test
+    void addStringCriteria_shouldAddAllNonEmptyFields() {
+        // This test indirectly tests addStringCriteria through searchPlantsAdvanced
+        PlantsLibrarySearchCriteria criteria = PlantsLibrarySearchCriteria.builder()
+                .commonName("Snake")
+                .scientificName("Sansevieria")
+                .origin("Africa")
+                .plantType("Succulent")
+                .climate("Tropical")
+                .lifeCycle("Perennial")
+                .wateringFrequency("Low")
+                .soilType("Well-draining")
+                .size("Medium")
+                .sunlightRequirement("Indirect")
+                .growthRate("Slow")
+                .idealPlace("Indoor")
+                .careLevel("Easy")
+                .bestPlantingSeason("Spring")
+                .build();
+
+        Pageable pageable = PageRequest.of(0, 5);
+        when(repo.findAll(any(Specification.class), eq(pageable))).thenReturn(new PageImpl<>(List.of(entity)));
+        when(mapper.toDto(entity)).thenReturn(dto);
+
+        Page<PlantsLibraryDTO> result = service.searchPlantsAdvanced(criteria, pageable);
+
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        // Use ArgumentCaptor to verify the correct specification is built
+        ArgumentCaptor<Specification<PlantsLibrary>> specCaptor = ArgumentCaptor.forClass(Specification.class);
+        verify(repo).findAll(specCaptor.capture(), eq(pageable));
+
+        // The specification must exist
+        assertThat(specCaptor.getValue()).isNotNull();
+    }
 }

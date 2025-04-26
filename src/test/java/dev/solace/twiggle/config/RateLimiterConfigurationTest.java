@@ -141,4 +141,43 @@ class RateLimiterConfigurationTest {
         assertNotEquals(standardLimiter.getName(), actuatorLimiter.getName());
         assertNotEquals(errorLimiter.getName(), actuatorLimiter.getName());
     }
+
+    @Test
+    void rateLimiterRegistry_ShouldContainAllLimiters() {
+        RateLimiterRegistry registry = configuration.rateLimiterRegistry();
+
+        // Create all limiters
+        RateLimiter standardLimiter = configuration.standardApiLimiter(registry);
+        RateLimiter errorLimiter = configuration.testErrorLimiter(registry);
+        RateLimiter actuatorLimiter = configuration.actuatorLimiter(registry);
+
+        // Verify registry contains all limiters by name
+        assertTrue(registry.getAllRateLimiters().contains(standardLimiter));
+        assertTrue(registry.getAllRateLimiters().contains(errorLimiter));
+        assertTrue(registry.getAllRateLimiters().contains(actuatorLimiter));
+
+        // Verify registry can retrieve limiters by name
+        assertEquals(standardLimiter, registry.rateLimiter("standard-api"));
+        assertEquals(errorLimiter, registry.rateLimiter("test-error"));
+        assertEquals(actuatorLimiter, registry.rateLimiter("actuator"));
+    }
+
+    @Test
+    void defaultRateLimiterConfig_ShouldHaveZeroWaitForPermission() {
+        RateLimiterConfig config = configuration.defaultRateLimiterConfig();
+        // Test additional config properties
+        assertTrue(config.isWritableStackTraceEnabled());
+        assertEquals(Duration.ZERO, config.getTimeoutDuration());
+    }
+
+    @Test
+    void customLimiters_ShouldHaveCorrectSubscriptionPeriod() {
+        RateLimiter errorLimiter = configuration.testErrorLimiter(rateLimiterRegistry);
+        RateLimiter actuatorLimiter = configuration.actuatorLimiter(rateLimiterRegistry);
+
+        // Verify refresh period settings are correctly applied
+        assertEquals(Duration.ofSeconds(10), errorLimiter.getRateLimiterConfig().getLimitRefreshPeriod());
+        assertEquals(
+                Duration.ofMinutes(1), actuatorLimiter.getRateLimiterConfig().getLimitRefreshPeriod());
+    }
 }
