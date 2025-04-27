@@ -386,4 +386,209 @@ class PlantsLibraryControllerTest {
                 .andExpect(jsonPath("$.message").value("Failed to perform advanced search on plants"))
                 .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
     }
+
+    @Test
+    void searchPlants_whenServiceThrowsException_returns500() throws Exception {
+        given(service.searchPlants(anyString(), any(Pageable.class))).willThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(get("/api/plants-library/search").param("query", "aloe"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Failed to search plants"))
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
+    }
+
+    @Test
+    void getPlantsByType_whenServiceThrowsException_returns500() throws Exception {
+        String plantType = "succulent";
+        given(service.findByPlantType(eq(plantType), any(Pageable.class)))
+                .willThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(get("/api/plants-library/type/{plantType}", plantType))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Failed to retrieve plants by type"))
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
+    }
+
+    @Test
+    void getPlantsByLifeCycle_whenServiceThrowsException_returns500() throws Exception {
+        String lifeCycle = "perennial";
+        given(service.findByLifeCycle(eq(lifeCycle), any(Pageable.class)))
+                .willThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(get("/api/plants-library/life-cycle/{lifeCycle}", lifeCycle))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Failed to retrieve plants by life cycle"))
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
+    }
+
+    @Test
+    void getMedicinalPlants_whenServiceThrowsException_returns500() throws Exception {
+        given(service.findByMedicinal(eq(true), any(Pageable.class))).willThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(get("/api/plants-library/medicinal"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Failed to retrieve medicinal plants"))
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
+    }
+
+    @Test
+    void getAllPlants_withInvalidSortDirection_returns400() throws Exception {
+        mockMvc.perform(get("/api/plants-library").param("direction", "INVALID_DIRECTION"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Failed to retrieve plants"));
+    }
+
+    @Test
+    void searchPlants_withInvalidSortDirection_returns400() throws Exception {
+        mockMvc.perform(get("/api/plants-library/search")
+                        .param("query", "aloe")
+                        .param("direction", "INVALID_DIRECTION"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Failed to search plants"));
+    }
+
+    @Test
+    void getPlantsByType_withInvalidSortDirection_returns400() throws Exception {
+        mockMvc.perform(get("/api/plants-library/type/succulent").param("direction", "INVALID_DIRECTION"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Failed to retrieve plants by type"));
+    }
+
+    @Test
+    void getPlantsByLifeCycle_withInvalidSortDirection_returns400() throws Exception {
+        mockMvc.perform(get("/api/plants-library/life-cycle/perennial").param("direction", "INVALID_DIRECTION"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Failed to retrieve plants by life cycle"));
+    }
+
+    @Test
+    void getMedicinalPlants_withInvalidSortDirection_returns400() throws Exception {
+        mockMvc.perform(get("/api/plants-library/medicinal").param("direction", "INVALID_DIRECTION"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Failed to retrieve medicinal plants"));
+    }
+
+    @Test
+    void testCreatePlant_withInvalidPayload_returnsBadRequest() throws Exception {
+        // Create a plant with missing required field (commonName)
+        PlantsLibraryDTO invalidPlant = PlantsLibraryDTO.builder()
+                .scientificName("Test Scientific Name")
+                .build();
+
+        mockMvc.perform(post("/api/plants-library")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidPlant)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testUpdatePlant_withInvalidPayload_returnsBadRequest() throws Exception {
+        UUID id = UUID.randomUUID();
+        // Create a plant with missing required field (commonName)
+        PlantsLibraryDTO invalidPlant = PlantsLibraryDTO.builder()
+                .scientificName("Test Scientific Name")
+                .build();
+
+        mockMvc.perform(put("/api/plants-library/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidPlant)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testGetPlantById_withInvalidUUID_returnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/plants-library/not-a-uuid")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testUpdatePlant_withInvalidUUID_returnsBadRequest() throws Exception {
+        PlantsLibraryDTO request =
+                PlantsLibraryDTO.builder().commonName("Test Plant").build();
+
+        mockMvc.perform(put("/api/plants-library/not-a-uuid")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testDeletePlant_withInvalidUUID_returnsBadRequest() throws Exception {
+        mockMvc.perform(delete("/api/plants-library/not-a-uuid")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void searchPlantsAdvanced_withComprehensiveParameters_returnResults() throws Exception {
+        // Test with a more comprehensive set of search parameters
+        UUID id = UUID.randomUUID();
+        PlantsLibraryDTO dto = PlantsLibraryDTO.builder()
+                .id(id)
+                .commonName("Test Plant")
+                .scientificName("Testus plantus")
+                .origin("Test Origin")
+                .plantType("Test Type")
+                .climate("Warm")
+                .lifeCycle("Annual")
+                .wateringFrequency("Medium")
+                .soilType("Loamy")
+                .size("Medium")
+                .sunlightRequirement("Full sun")
+                .growthRate("Fast")
+                .idealPlace("Indoor")
+                .careLevel("Easy")
+                .bestPlantingSeason("Spring")
+                .timeToHarvest(60.0)
+                .flower(true)
+                .fruit(true)
+                .medicinal(true)
+                .build();
+
+        Page<PlantsLibraryDTO> page = new PageImpl<>(List.of(dto));
+        given(service.searchPlantsAdvanced(any(), any(Pageable.class))).willReturn(page);
+
+        mockMvc.perform(get("/api/plants-library/search/advanced")
+                        .param("commonName", "Test")
+                        .param("scientificName", "Testus")
+                        .param("origin", "Test")
+                        .param("plantType", "Test Type")
+                        .param("climate", "Warm")
+                        .param("lifeCycle", "Annual")
+                        .param("wateringFrequency", "Medium")
+                        .param("soilType", "Loamy")
+                        .param("size", "Medium")
+                        .param("sunlightRequirement", "Full sun")
+                        .param("growthRate", "Fast")
+                        .param("idealPlace", "Indoor")
+                        .param("careLevel", "Easy")
+                        .param("bestPlantingSeason", "Spring")
+                        .param("timeToHarvest", "60.0")
+                        .param("flower", "true")
+                        .param("fruit", "true")
+                        .param("medicinal", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].commonName").value("Test Plant"))
+                .andExpect(jsonPath("$.data.content[0].scientificName").value("Testus plantus"));
+
+        // Verify that all parameters were captured in the criteria object
+        verify(service)
+                .searchPlantsAdvanced(
+                        argThat(criteria -> "Test".equals(criteria.getCommonName())
+                                && "Testus".equals(criteria.getScientificName())
+                                && "Test".equals(criteria.getOrigin())
+                                && "Test Type".equals(criteria.getPlantType())
+                                && "Warm".equals(criteria.getClimate())
+                                && "Annual".equals(criteria.getLifeCycle())
+                                && "Medium".equals(criteria.getWateringFrequency())
+                                && "Loamy".equals(criteria.getSoilType())
+                                && "Medium".equals(criteria.getSize())
+                                && "Full sun".equals(criteria.getSunlightRequirement())
+                                && "Fast".equals(criteria.getGrowthRate())
+                                && "Indoor".equals(criteria.getIdealPlace())
+                                && "Easy".equals(criteria.getCareLevel())
+                                && "Spring".equals(criteria.getBestPlantingSeason())
+                                && Double.valueOf(60.0).equals(criteria.getTimeToHarvest())
+                                && Boolean.TRUE.equals(criteria.getFlower())
+                                && Boolean.TRUE.equals(criteria.getFruit())
+                                && Boolean.TRUE.equals(criteria.getMedicinal())),
+                        any(Pageable.class));
+    }
 }
