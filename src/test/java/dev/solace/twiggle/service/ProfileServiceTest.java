@@ -19,6 +19,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class ProfileServiceTest {
@@ -37,25 +41,24 @@ class ProfileServiceTest {
     private ProfileDTO profileDTO1;
     private ProfileDTO profileDTO2;
     private UUID profile1Uuid;
-    private UUID profile2Uuid;
 
     @BeforeEach
     void setUp() {
         profile1Uuid = UUID.randomUUID();
-        profile2Uuid = UUID.randomUUID();
+        UUID profile2Uuid = UUID.randomUUID();
         OffsetDateTime now = OffsetDateTime.now();
 
         profile1 = new Profile();
         profile1.setId(profile1Uuid);
         profile1.setFullName("Garden User One");
-        profile1.setAvatarUrl("http://example.com/avatar1.png");
+        profile1.setAvatarUrl("https://example.com/avatar1.png");
         profile1.setCreatedAt(now.minusDays(1));
         profile1.setUpdatedAt(now);
 
         profile2 = new Profile();
         profile2.setId(profile2Uuid);
         profile2.setFullName("Garden User Two");
-        profile2.setAvatarUrl("http://example.com/avatar2.png");
+        profile2.setAvatarUrl("https://example.com/avatar2.png");
         profile2.setCreatedAt(now.minusHours(5));
         profile2.setUpdatedAt(now.minusHours(1));
 
@@ -93,6 +96,27 @@ class ProfileServiceTest {
     }
 
     @Test
+    void findAll_WithPageable_ShouldReturnPagedProfiles() {
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Profile> profiles = Arrays.asList(profile1, profile2);
+        Page<Profile> profilePage = new PageImpl<>(profiles, pageable, profiles.size());
+
+        when(profileRepository.findAll(pageable)).thenReturn(profilePage);
+        when(profileMapper.toDto(profile1)).thenReturn(profileDTO1);
+        when(profileMapper.toDto(profile2)).thenReturn(profileDTO2);
+
+        Page<ProfileDTO> result = profileService.findAll(pageable);
+
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        assertEquals(profileDTO1.getFullName(), result.getContent().get(0).getFullName());
+        assertEquals(profileDTO2.getFullName(), result.getContent().get(1).getFullName());
+        verify(profileRepository, times(1)).findAll(pageable);
+        verify(profileMapper, times(1)).toDto(profile1);
+        verify(profileMapper, times(1)).toDto(profile2);
+    }
+
+    @Test
     void findById_WithValidId_ShouldReturnOptionalProfile() {
         when(profileRepository.findById(profile1Uuid)).thenReturn(Optional.of(profile1));
         when(profileMapper.toDto(profile1)).thenReturn(profileDTO1);
@@ -116,6 +140,121 @@ class ProfileServiceTest {
         assertTrue(result.isEmpty());
         verify(profileRepository, times(1)).findById(invalidUuid);
         verify(profileMapper, never()).toDto(any());
+    }
+
+    @Test
+    void findByFullName_WithPageable_ShouldReturnPagedProfiles() {
+        String searchName = "Garden";
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Profile> profiles = Arrays.asList(profile1, profile2);
+        Page<Profile> profilePage = new PageImpl<>(profiles, pageable, profiles.size());
+
+        when(profileRepository.findByFullNameContainingIgnoreCase(searchName, pageable))
+                .thenReturn(profilePage);
+        when(profileMapper.toDto(profile1)).thenReturn(profileDTO1);
+        when(profileMapper.toDto(profile2)).thenReturn(profileDTO2);
+
+        Page<ProfileDTO> result = profileService.findByFullName(searchName, pageable);
+
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        assertEquals(profileDTO1.getFullName(), result.getContent().get(0).getFullName());
+        assertEquals(profileDTO2.getFullName(), result.getContent().get(1).getFullName());
+        verify(profileRepository, times(1)).findByFullNameContainingIgnoreCase(searchName, pageable);
+        verify(profileMapper, times(1)).toDto(profile1);
+        verify(profileMapper, times(1)).toDto(profile2);
+    }
+
+    @Test
+    void findByFullName_WithoutPageable_ShouldReturnListOfProfiles() {
+        String searchName = "Garden";
+        List<Profile> profiles = Arrays.asList(profile1, profile2);
+
+        when(profileRepository.findByFullNameContainingIgnoreCase(searchName)).thenReturn(profiles);
+        when(profileMapper.toDto(profile1)).thenReturn(profileDTO1);
+        when(profileMapper.toDto(profile2)).thenReturn(profileDTO2);
+
+        List<ProfileDTO> result = profileService.findByFullName(searchName);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(profileDTO1.getFullName(), result.get(0).getFullName());
+        assertEquals(profileDTO2.getFullName(), result.get(1).getFullName());
+        verify(profileRepository, times(1)).findByFullNameContainingIgnoreCase(searchName);
+        verify(profileMapper, times(1)).toDto(profile1);
+        verify(profileMapper, times(1)).toDto(profile2);
+    }
+
+    @Test
+    void searchProfiles_ShouldReturnPagedProfiles() {
+        String query = "Garden";
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Profile> profiles = Arrays.asList(profile1, profile2);
+        Page<Profile> profilePage = new PageImpl<>(profiles, pageable, profiles.size());
+
+        when(profileRepository.searchProfiles(query, pageable)).thenReturn(profilePage);
+        when(profileMapper.toDto(profile1)).thenReturn(profileDTO1);
+        when(profileMapper.toDto(profile2)).thenReturn(profileDTO2);
+
+        Page<ProfileDTO> result = profileService.searchProfiles(query, pageable);
+
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        assertEquals(profileDTO1.getFullName(), result.getContent().get(0).getFullName());
+        assertEquals(profileDTO2.getFullName(), result.getContent().get(1).getFullName());
+        verify(profileRepository, times(1)).searchProfiles(query, pageable);
+        verify(profileMapper, times(1)).toDto(profile1);
+        verify(profileMapper, times(1)).toDto(profile2);
+    }
+
+    @Test
+    void searchProfilesWithRelevance_ShouldReturnPagedProfiles() {
+        String fullName = "Garden";
+        String query = "User";
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Profile> profiles = Arrays.asList(profile1, profile2);
+        Page<Profile> profilePage = new PageImpl<>(profiles, pageable, profiles.size());
+
+        when(profileRepository.searchProfilesWithRelevance(fullName, query, pageable))
+                .thenReturn(profilePage);
+        when(profileMapper.toDto(profile1)).thenReturn(profileDTO1);
+        when(profileMapper.toDto(profile2)).thenReturn(profileDTO2);
+
+        Page<ProfileDTO> result = profileService.searchProfilesWithRelevance(fullName, query, pageable);
+
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        assertEquals(profileDTO1.getFullName(), result.getContent().get(0).getFullName());
+        assertEquals(profileDTO2.getFullName(), result.getContent().get(1).getFullName());
+        verify(profileRepository, times(1)).searchProfilesWithRelevance(fullName, query, pageable);
+        verify(profileMapper, times(1)).toDto(profile1);
+        verify(profileMapper, times(1)).toDto(profile2);
+    }
+
+    @Test
+    void searchProfilesWithRelevance_WhenExceptionOccurs_ShouldFallbackToSimpleSearch() {
+        String fullName = "Garden";
+        String query = "User";
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Profile> profiles = Arrays.asList(profile1, profile2);
+        Page<Profile> profilePage = new PageImpl<>(profiles, pageable, profiles.size());
+
+        when(profileRepository.searchProfilesWithRelevance(fullName, query, pageable))
+                .thenThrow(new RuntimeException("Test exception"));
+        when(profileRepository.searchProfiles(query, pageable)).thenReturn(profilePage);
+        when(profileMapper.toDto(profile1)).thenReturn(profileDTO1);
+        when(profileMapper.toDto(profile2)).thenReturn(profileDTO2);
+
+        Page<ProfileDTO> result = profileService.searchProfilesWithRelevance(fullName, query, pageable);
+
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        assertEquals(profileDTO1.getFullName(), result.getContent().get(0).getFullName());
+        assertEquals(profileDTO2.getFullName(), result.getContent().get(1).getFullName());
+        verify(profileRepository, times(1)).searchProfilesWithRelevance(fullName, query, pageable);
+        verify(profileRepository, times(1)).searchProfiles(query, pageable);
+        verify(profileMapper, times(1)).toDto(profile1);
+        verify(profileMapper, times(1)).toDto(profile2);
     }
 
     @Test
