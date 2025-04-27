@@ -225,4 +225,142 @@ class ProfileControllerTest {
         mockMvc.perform(delete("/api/v1/profiles/{id}", invalidUuid).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void searchProfiles_WithValidQuery_ShouldReturnMatchingProfiles() throws Exception {
+        // Arrange
+        String searchQuery = "Garden";
+        List<ProfileDTO> profileList = Arrays.asList(profile1, profile2);
+        Page<ProfileDTO> profilePage = new org.springframework.data.domain.PageImpl<>(profileList);
+        when(profileService.searchProfiles(any(String.class), any(Pageable.class)))
+                .thenReturn(profilePage);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/profiles/search")
+                        .param("query", searchQuery)
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "createdAt")
+                        .param("direction", "DESC")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Successfully searched profiles"))
+                .andExpect(jsonPath("$.data.content", hasSize(2)))
+                .andExpect(jsonPath("$.data.content[0].fullName").value(profile1.getFullName()))
+                .andExpect(jsonPath("$.data.content[1].fullName").value(profile2.getFullName()));
+    }
+
+    @Test
+    void searchProfiles_WithEmptyQuery_ShouldReturnAllProfiles() throws Exception {
+        // Arrange
+        List<ProfileDTO> profileList = Arrays.asList(profile1, profile2);
+        Page<ProfileDTO> profilePage = new org.springframework.data.domain.PageImpl<>(profileList);
+        when(profileService.searchProfiles(any(String.class), any(Pageable.class)))
+                .thenReturn(profilePage);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/profiles/search")
+                        .param("query", "")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Successfully searched profiles"))
+                .andExpect(jsonPath("$.data.content", hasSize(2)));
+    }
+
+    @Test
+    void searchProfilesAdvanced_WithValidCriteria_ShouldReturnRelevantProfiles() throws Exception {
+        // Arrange
+        String fullName = "Garden";
+        String query = "User";
+        List<ProfileDTO> profileList = Arrays.asList(profile1, profile2);
+        Page<ProfileDTO> profilePage = new org.springframework.data.domain.PageImpl<>(profileList);
+        when(profileService.searchProfilesWithRelevance(any(String.class), any(String.class), any(Pageable.class)))
+                .thenReturn(profilePage);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/profiles/search/advanced")
+                        .param("fullName", fullName)
+                        .param("query", query)
+                        .param("page", "0")
+                        .param("size", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Successfully searched profiles with advanced criteria"))
+                .andExpect(jsonPath("$.data.content", hasSize(2)));
+    }
+
+    @Test
+    void getAllProfilesWithoutPagination_ShouldReturnAllProfiles() throws Exception {
+        // Arrange
+        List<ProfileDTO> profileList = Arrays.asList(profile1, profile2);
+        when(profileService.findAll()).thenReturn(profileList);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/profiles/all").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Successfully retrieved all profiles"))
+                .andExpect(jsonPath("$.data", hasSize(2)))
+                .andExpect(jsonPath("$.data[0].fullName").value(profile1.getFullName()))
+                .andExpect(jsonPath("$.data[1].fullName").value(profile2.getFullName()));
+    }
+
+    @Test
+    void getProfilesByName_WithValidName_ShouldReturnMatchingProfiles() throws Exception {
+        // Arrange
+        String fullName = "Garden";
+        List<ProfileDTO> profileList = Arrays.asList(profile1, profile2);
+        Page<ProfileDTO> profilePage = new org.springframework.data.domain.PageImpl<>(profileList);
+        when(profileService.findByFullName(any(String.class), any(Pageable.class)))
+                .thenReturn(profilePage);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/profiles/name/{fullName}", fullName)
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "createdAt")
+                        .param("direction", "DESC")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Successfully retrieved profiles by name"))
+                .andExpect(jsonPath("$.data.content", hasSize(2)))
+                .andExpect(jsonPath("$.data.content[0].fullName").value(profile1.getFullName()))
+                .andExpect(jsonPath("$.data.content[1].fullName").value(profile2.getFullName()));
+    }
+
+    @Test
+    void getProfilesByNameWithoutPagination_WithValidName_ShouldReturnAllMatchingProfiles() throws Exception {
+        // Arrange
+        String fullName = "Garden";
+        List<ProfileDTO> profileList = Arrays.asList(profile1, profile2);
+        when(profileService.findByFullName(any(String.class))).thenReturn(profileList);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/profiles/name/{fullName}/all", fullName).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Successfully retrieved profiles by name"))
+                .andExpect(jsonPath("$.data", hasSize(2)))
+                .andExpect(jsonPath("$.data[0].fullName").value(profile1.getFullName()))
+                .andExpect(jsonPath("$.data[1].fullName").value(profile2.getFullName()));
+    }
+
+    @Test
+    void handleCustomException_ShouldReturnAppropriateErrorResponse() throws Exception {
+        // Arrange
+        UUID invalidUuid = UUID.randomUUID();
+        when(profileService.findById(invalidUuid)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/profiles/{id}", invalidUuid).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Profile not found")));
+    }
 }
