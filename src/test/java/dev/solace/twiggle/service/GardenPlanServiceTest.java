@@ -116,4 +116,118 @@ class GardenPlanServiceTest {
         service.delete(id);
         verify(repository).deleteById(id);
     }
+
+    @Test
+    void findAll_shouldReturnEmptyPageWhenNoData() {
+        when(repository.findAll(any(Pageable.class))).thenReturn(Page.empty());
+
+        Page<GardenPlanDTO> result = service.findAll(PageRequest.of(0, 10));
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void findById_shouldReturnEmptyWhenNotFound() {
+        UUID id = UUID.randomUUID();
+        when(repository.findById(id)).thenReturn(Optional.empty());
+
+        Optional<GardenPlanDTO> result = service.findById(id);
+
+        assertThat(result).isEmpty();
+        verify(mapper, never()).toDto(any());
+    }
+
+    @Test
+    void create_shouldGenerateNewId() {
+        GardenPlanDTO inputDto = GardenPlanDTO.builder()
+                .userId(UUID.randomUUID())
+                .name("New Garden")
+                .type("Indoor")
+                .description("Test description")
+                .location("Test location")
+                .thumbnailUrl("https://test.com")
+                .isPublic(false)
+                .build();
+
+        GardenPlan newEntity = new GardenPlan(
+                null, // ID should be generated
+                inputDto.getUserId(),
+                inputDto.getName(),
+                inputDto.getType(),
+                inputDto.getDescription(),
+                inputDto.getLocation(),
+                inputDto.getThumbnailUrl(),
+                inputDto.getIsPublic(),
+                null,
+                null);
+
+        when(mapper.toEntity(inputDto)).thenReturn(newEntity);
+        when(repository.save(any())).thenReturn(newEntity);
+        when(mapper.toDto(any())).thenReturn(inputDto);
+
+        GardenPlanDTO result = service.create(inputDto);
+
+        assertThat(result).isNotNull();
+        verify(repository).save(any());
+    }
+
+    @Test
+    void update_shouldPreserveExistingId() {
+        UUID existingId = UUID.randomUUID();
+        GardenPlan existingEntity = new GardenPlan(
+                existingId,
+                UUID.randomUUID(),
+                "Old Name",
+                "Old Type",
+                "Old Description",
+                "Old Location",
+                "https://old.com",
+                false,
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
+
+        GardenPlanDTO updateDto = GardenPlanDTO.builder()
+                .userId(existingEntity.getUserId())
+                .name("Updated Name")
+                .type("Updated Type")
+                .description("Updated Description")
+                .location("Updated Location")
+                .thumbnailUrl("https://updated.com")
+                .isPublic(true)
+                .build();
+
+        when(repository.findById(existingId)).thenReturn(Optional.of(existingEntity));
+        when(repository.save(any())).thenReturn(existingEntity);
+        when(mapper.toDto(any())).thenReturn(updateDto);
+
+        Optional<GardenPlanDTO> result = service.update(existingId, updateDto);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getName()).isEqualTo("Updated Name");
+        verify(repository).save(argThat(e -> e.getId().equals(existingId)));
+    }
+
+    @Test
+    void delete_shouldNotThrowExceptionWhenIdNotFound() {
+        UUID id = UUID.randomUUID();
+        doNothing().when(repository).deleteById(id);
+
+        service.delete(id);
+
+        verify(repository).deleteById(id);
+    }
+
+    @Test
+    void findAll_shouldApplySorting() {
+        Sort sort = Sort.by(Sort.Direction.DESC, "name");
+        Pageable pageable = PageRequest.of(0, 10, sort);
+
+        when(repository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(entity)));
+        when(mapper.toDto(entity)).thenReturn(dto);
+
+        Page<GardenPlanDTO> result = service.findAll(pageable);
+
+        assertThat(result).hasSize(1);
+        verify(repository).findAll(pageable);
+    }
 }
