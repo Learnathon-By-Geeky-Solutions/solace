@@ -11,6 +11,7 @@ import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
@@ -100,8 +101,10 @@ class WorldWeatherOnlineApiClientTest {
         verify(restTemplate, never()).getForEntity(any(URI.class), eq(String.class));
     }
 
-    @Test
-    void getWeatherForecast_Success() {
+    @ParameterizedTest
+    @CsvSource({"London, 3, 3, false", "London, 15, 15, false", "51.5074, -0.1278, 3, true"})
+    void getWeatherForecast_VariousScenarios(
+            String locationOrLat, double longitudeOrDays, int days, boolean isCoordinates) {
         // Arrange
         when(weatherApiConfig.getKey()).thenReturn(API_KEY);
         when(weatherApiConfig.getBaseUrl()).thenReturn(BASE_URL);
@@ -109,41 +112,13 @@ class WorldWeatherOnlineApiClientTest {
                 .thenReturn(new ResponseEntity<>(VALID_RESPONSE, HttpStatus.OK));
 
         // Act
-        String result = worldWeatherOnlineApiClient.getWeatherForecast(VALID_LOCATION, 3);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(VALID_RESPONSE, result);
-        verify(restTemplate).getForEntity(any(URI.class), eq(String.class));
-    }
-
-    @Test
-    void getWeatherForecast_InvalidDays() {
-        // Arrange
-        when(weatherApiConfig.getKey()).thenReturn(API_KEY);
-        when(weatherApiConfig.getBaseUrl()).thenReturn(BASE_URL);
-        when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
-                .thenReturn(new ResponseEntity<>(VALID_RESPONSE, HttpStatus.OK));
-
-        // Act
-        String result = worldWeatherOnlineApiClient.getWeatherForecast(VALID_LOCATION, 15);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(VALID_RESPONSE, result);
-        verify(restTemplate).getForEntity(any(URI.class), eq(String.class));
-    }
-
-    @Test
-    void getWeatherForecastByCoordinates_Success() {
-        // Arrange
-        when(weatherApiConfig.getKey()).thenReturn(API_KEY);
-        when(weatherApiConfig.getBaseUrl()).thenReturn(BASE_URL);
-        when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
-                .thenReturn(new ResponseEntity<>(VALID_RESPONSE, HttpStatus.OK));
-
-        // Act
-        String result = worldWeatherOnlineApiClient.getWeatherForecastByCoordinates(51.5074, -0.1278, 3);
+        String result;
+        if (isCoordinates) {
+            double lat = Double.parseDouble(locationOrLat);
+            result = worldWeatherOnlineApiClient.getWeatherForecastByCoordinates(lat, longitudeOrDays, days);
+        } else {
+            result = worldWeatherOnlineApiClient.getWeatherForecast(locationOrLat, days);
+        }
 
         // Assert
         assertNotNull(result);

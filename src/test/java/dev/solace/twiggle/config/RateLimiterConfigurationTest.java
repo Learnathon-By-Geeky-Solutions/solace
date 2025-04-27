@@ -182,7 +182,7 @@ class RateLimiterConfigurationTest {
     }
 
     @Test
-    void rateLimiter_ShouldEnforceLimitsUnderLoad() throws InterruptedException {
+    void rateLimiter_ShouldEnforceLimitsUnderLoad() {
         // When
         RateLimiter limiter = configuration.testErrorLimiter(rateLimiterRegistry);
         int limitForPeriod = limiter.getRateLimiterConfig().getLimitForPeriod();
@@ -193,7 +193,6 @@ class RateLimiterConfigurationTest {
             if (limiter.acquirePermission()) {
                 successfulAcquisitions++;
             }
-            Thread.sleep(100); // Small delay to simulate real usage
         }
 
         // Then
@@ -238,14 +237,11 @@ class RateLimiterConfigurationTest {
         // When
         RateLimiter limiter = configuration.standardApiLimiter(rateLimiterRegistry);
         int successfulAcquisitions = 0;
-        int failedAcquisitions = 0;
 
         // Simulate some usage
         for (int i = 0; i < 5; i++) {
             if (limiter.acquirePermission()) {
                 successfulAcquisitions++;
-            } else {
-                failedAcquisitions++;
             }
         }
 
