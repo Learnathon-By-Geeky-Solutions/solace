@@ -355,4 +355,198 @@ class GardenPlanControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content").isArray());
     }
+    /* ----------  Additional test cases for full coverage  ---------- */
+
+    @Test
+    void testGetAllGardenPlansWithoutPagination_withServiceException() throws Exception {
+        Mockito.when(gardenPlanService.findAll()).thenThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(get("/api/garden-plans/all"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+    }
+
+    @Test
+    void testGetGardenPlansByUserIdWithoutPagination_withServiceException() throws Exception {
+        UUID userId = UUID.randomUUID();
+        Mockito.when(gardenPlanService.findByUserId(userId)).thenThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(get("/api/garden-plans/user/{userId}/all", userId))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+    }
+
+    @Test
+    void testGetPublicGardenPlansWithoutPagination_withServiceException() throws Exception {
+        Mockito.when(gardenPlanService.findPublicPlans()).thenThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(get("/api/garden-plans/public/all"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+    }
+
+    @Test
+    void testGetGardenPlanById_withServiceException() throws Exception {
+        UUID id = UUID.randomUUID();
+        Mockito.when(gardenPlanService.findById(id)).thenThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(get("/api/garden-plans/{id}", id))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+    }
+
+    @Test
+    void testUpdateGardenPlan_withInvalidData() throws Exception {
+        UUID id = UUID.randomUUID();
+        GardenPlanDTO invalidDto = GardenPlanDTO.builder().name("").build(); // empty name
+
+        mockMvc.perform(put("/api/garden-plans/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", containsString("Validation failed. Please check the provided data.")));
+    }
+
+    @Test
+    void testSearchGardenPlans_withServiceException() throws Exception {
+        Mockito.when(gardenPlanService.searchGardenPlans(any(), any(), any(), any()))
+                .thenThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(get("/api/garden-plans/search").param("query", "garden"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+    }
+
+    @Test
+    void testAdvancedSearchGardenPlans_withServiceException() throws Exception {
+        Mockito.when(gardenPlanService.searchGardenPlansWithRelevance(any(), any(), any(), any(), any(), any(), any()))
+                .thenThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(get("/api/garden-plans/search/advanced")
+                        .param("name", "Urban")
+                        .param("type", "Balcony"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+    }
+
+    @Test
+    void testGetGardenPlanById_withInvalidUUID() throws Exception {
+        mockMvc.perform(get("/api/garden-plans/{id}", "invalid-uuid")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testUpdateGardenPlan_withInvalidUUID() throws Exception {
+        mockMvc.perform(put("/api/garden-plans/{id}", "invalid-uuid")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testDeleteGardenPlan_withInvalidUUID() throws Exception {
+        mockMvc.perform(delete("/api/garden-plans/{id}", "invalid-uuid")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testGetAllGardenPlans_withNegativePage() throws Exception {
+        mockMvc.perform(get("/api/garden-plans").param("page", "-1")).andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testGetAllGardenPlans_withZeroSize() throws Exception {
+        mockMvc.perform(get("/api/garden-plans").param("size", "0")).andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testGetGardenPlansByUserId_withNegativePage() throws Exception {
+        UUID userId = UUID.randomUUID();
+        mockMvc.perform(get("/api/garden-plans/user/{userId}", userId).param("page", "-1"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testGetGardenPlansByUserId_withZeroSize() throws Exception {
+        UUID userId = UUID.randomUUID();
+        mockMvc.perform(get("/api/garden-plans/user/{userId}", userId).param("size", "0"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testGetPublicGardenPlans_withNegativePage() throws Exception {
+        mockMvc.perform(get("/api/garden-plans/public").param("page", "-1"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testGetPublicGardenPlans_withZeroSize() throws Exception {
+        mockMvc.perform(get("/api/garden-plans/public").param("size", "0")).andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testSearchGardenPlans_withNegativePage() throws Exception {
+        mockMvc.perform(get("/api/garden-plans/search").param("page", "-1"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testSearchGardenPlans_withZeroSize() throws Exception {
+        mockMvc.perform(get("/api/garden-plans/search").param("size", "0")).andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testAdvancedSearchGardenPlans_withNegativePage() throws Exception {
+        mockMvc.perform(get("/api/garden-plans/search/advanced").param("page", "-1"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testAdvancedSearchGardenPlans_withZeroSize() throws Exception {
+        mockMvc.perform(get("/api/garden-plans/search/advanced").param("size", "0"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testSearchGardenPlans_withAllCriteria() throws Exception {
+        UUID userId = UUID.randomUUID();
+        Mockito.when(gardenPlanService.searchGardenPlans(
+                        Mockito.anyString(), Mockito.eq(userId), Mockito.eq(true), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(dto)));
+
+        mockMvc.perform(get("/api/garden-plans/search")
+                        .param("query", "garden")
+                        .param("userId", userId.toString())
+                        .param("isPublic", "true")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "name")
+                        .param("direction", "ASC"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].name").value("Urban Garden"));
+    }
+
+    @Test
+    void testAdvancedSearchGardenPlans_withAllCriteria() throws Exception {
+        UUID userId = UUID.randomUUID();
+        Mockito.when(gardenPlanService.searchGardenPlansWithRelevance(
+                        Mockito.anyString(), // name
+                        Mockito.anyString(), // type
+                        Mockito.anyString(), // location
+                        Mockito.anyString(), // query
+                        Mockito.eq(userId), // userId
+                        Mockito.eq(true), // isPublic
+                        any(Pageable.class))) // pageable
+                .thenReturn(new PageImpl<>(List.of(dto)));
+
+        mockMvc.perform(get("/api/garden-plans/search/advanced")
+                        .param("name", "Urban")
+                        .param("type", "Balcony")
+                        .param("location", "Dhaka")
+                        .param("query", "garden")
+                        .param("userId", userId.toString())
+                        .param("isPublic", "true")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].name").value("Urban Garden"));
+    }
 }
