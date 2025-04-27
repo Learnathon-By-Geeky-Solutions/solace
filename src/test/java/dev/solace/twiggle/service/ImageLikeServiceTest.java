@@ -51,12 +51,97 @@ class ImageLikeServiceTest {
     }
 
     @Test
+    void testFindAll() {
+        when(repository.findAll()).thenReturn(List.of(entity));
+        when(mapper.toDto(entity)).thenReturn(dto);
+
+        List<ImageLikeDTO> result = service.findAll();
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst()).isEqualTo(dto);
+    }
+
+    @Test
     void testFindById() {
         when(repository.findById(entity.getId())).thenReturn(Optional.of(entity));
         when(mapper.toDto(entity)).thenReturn(dto);
 
         Optional<ImageLikeDTO> result = service.findById(entity.getId());
         assertThat(result).isPresent();
+    }
+
+    @Test
+    void testFindById_NotFound() {
+        UUID nonExistentId = UUID.randomUUID();
+        when(repository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+        Optional<ImageLikeDTO> result = service.findById(nonExistentId);
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void testFindByImageId() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(repository.findByImageId(imageId, pageable)).thenReturn(new PageImpl<>(List.of(entity)));
+        when(mapper.toDto(entity)).thenReturn(dto);
+
+        Page<ImageLikeDTO> result = service.findByImageId(imageId, pageable);
+        assertThat(result).hasSize(1);
+        assertThat(result.getContent().getFirst().getImageId()).isEqualTo(imageId);
+    }
+
+    @Test
+    void testFindByUserId() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(repository.findByUserId(userId, pageable)).thenReturn(new PageImpl<>(List.of(entity)));
+        when(mapper.toDto(entity)).thenReturn(dto);
+
+        Page<ImageLikeDTO> result = service.findByUserId(userId, pageable);
+        assertThat(result).hasSize(1);
+        assertThat(result.getContent().getFirst().getUserId()).isEqualTo(userId);
+    }
+
+    @Test
+    void testFindByImageIdAndUserId() {
+        when(repository.findByImageIdAndUserId(imageId, userId)).thenReturn(Optional.of(entity));
+        when(mapper.toDto(entity)).thenReturn(dto);
+
+        Optional<ImageLikeDTO> result = service.findByImageIdAndUserId(imageId, userId);
+        assertThat(result).isPresent();
+        assertThat(result.get().getImageId()).isEqualTo(imageId);
+        assertThat(result.get().getUserId()).isEqualTo(userId);
+    }
+
+    @Test
+    void testFindByImageIdAndUserId_NotFound() {
+        when(repository.findByImageIdAndUserId(imageId, userId)).thenReturn(Optional.empty());
+
+        Optional<ImageLikeDTO> result = service.findByImageIdAndUserId(imageId, userId);
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void testHasUserLikedImage_True() {
+        when(repository.existsByImageIdAndUserId(imageId, userId)).thenReturn(true);
+
+        boolean result = service.hasUserLikedImage(imageId, userId);
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void testHasUserLikedImage_False() {
+        when(repository.existsByImageIdAndUserId(imageId, userId)).thenReturn(false);
+
+        boolean result = service.hasUserLikedImage(imageId, userId);
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void testCountByImageId() {
+        long expectedCount = 5L;
+        when(repository.countByImageId(imageId)).thenReturn(expectedCount);
+
+        long result = service.countByImageId(imageId);
+        assertThat(result).isEqualTo(expectedCount);
     }
 
     @Test
@@ -68,6 +153,15 @@ class ImageLikeServiceTest {
 
         ImageLikeDTO result = service.create(dto);
         assertThat(result.getImageId()).isEqualTo(imageId);
+    }
+
+    @Test
+    void testCreateNewLike_AlreadyExists() {
+        when(repository.existsByImageIdAndUserId(imageId, userId)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.create(dto))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("already liked");
     }
 
     @Test
@@ -88,11 +182,21 @@ class ImageLikeServiceTest {
     }
 
     @Test
+    void testDelete() {
+        UUID id = UUID.randomUUID();
+
+        service.delete(id);
+
+        verify(repository).deleteById(id);
+    }
+
+    @Test
     void testUnlikeImage_whenExists() {
         when(repository.existsByImageIdAndUserId(imageId, userId)).thenReturn(true);
 
         boolean result = service.unlikeImage(imageId, userId);
         assertThat(result).isTrue();
+        verify(repository).deleteByImageIdAndUserId(imageId, userId);
     }
 
     @Test
@@ -101,5 +205,6 @@ class ImageLikeServiceTest {
 
         boolean result = service.unlikeImage(imageId, userId);
         assertThat(result).isFalse();
+        verify(repository, never()).deleteByImageIdAndUserId(any(), any());
     }
 }

@@ -54,12 +54,15 @@ class ImageCommentControllerTest {
                 .comment("Great image!")
                 .createdAt(OffsetDateTime.now())
                 .build();
+
+        // Reset the mock before each test
+        Mockito.reset(imageCommentService);
     }
 
     @Test
     void testGetAllImageComments() throws Exception {
         Page<ImageCommentDTO> page = new PageImpl<>(List.of(dto));
-        Mockito.when(imageCommentService.findAll(any())).thenReturn(page);
+        Mockito.when(imageCommentService.findAll(any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/image-comments"))
                 .andExpect(status().isOk())
@@ -87,7 +90,8 @@ class ImageCommentControllerTest {
     @Test
     void testGetCommentsByImageId() throws Exception {
         Page<ImageCommentDTO> page = new PageImpl<>(List.of(dto));
-        Mockito.when(imageCommentService.findByImageId(any(), any())).thenReturn(page);
+        Mockito.when(imageCommentService.findByImageId(any(UUID.class), any(Pageable.class)))
+                .thenReturn(page);
 
         mockMvc.perform(get("/api/image-comments/image/" + dto.getImageId()))
                 .andExpect(status().isOk())
@@ -97,7 +101,8 @@ class ImageCommentControllerTest {
     @Test
     void testGetCommentsByUserId() throws Exception {
         Page<ImageCommentDTO> page = new PageImpl<>(List.of(dto));
-        Mockito.when(imageCommentService.findByUserId(any(), any())).thenReturn(page);
+        Mockito.when(imageCommentService.findByUserId(any(UUID.class), any(Pageable.class)))
+                .thenReturn(page);
 
         mockMvc.perform(get("/api/image-comments/user/" + dto.getUserId()))
                 .andExpect(status().isOk())
@@ -115,7 +120,7 @@ class ImageCommentControllerTest {
 
     @Test
     void testCreateImageComment() throws Exception {
-        Mockito.when(imageCommentService.create(any())).thenReturn(dto);
+        Mockito.when(imageCommentService.create(any(ImageCommentDTO.class))).thenReturn(dto);
 
         mockMvc.perform(post("/api/image-comments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -127,7 +132,8 @@ class ImageCommentControllerTest {
     @Test
     void testUpdateImageComment_found() throws Exception {
         UUID id = UUID.randomUUID();
-        Mockito.when(imageCommentService.update(eq(id), any())).thenReturn(Optional.of(dto));
+        Mockito.when(imageCommentService.update(eq(id), any(ImageCommentDTO.class)))
+                .thenReturn(Optional.of(dto));
 
         mockMvc.perform(put("/api/image-comments/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -139,7 +145,8 @@ class ImageCommentControllerTest {
     @Test
     void testUpdateImageComment_notFound() throws Exception {
         UUID id = UUID.randomUUID();
-        Mockito.when(imageCommentService.update(eq(id), any())).thenReturn(Optional.empty());
+        Mockito.when(imageCommentService.update(eq(id), any(ImageCommentDTO.class)))
+                .thenReturn(Optional.empty());
 
         mockMvc.perform(put("/api/image-comments/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -150,9 +157,182 @@ class ImageCommentControllerTest {
     @Test
     void testDeleteImageComment() throws Exception {
         UUID id = UUID.randomUUID();
+        Mockito.doNothing().when(imageCommentService).delete(id);
 
         mockMvc.perform(delete("/api/image-comments/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Image comment deleted successfully"));
+    }
+
+    @Test
+    void testGetAllImageComments_withInvalidSortDirection() throws Exception {
+        mockMvc.perform(get("/api/image-comments").param("direction", "INVALID"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+    }
+
+    @Test
+    void testGetAllImageComments_withServiceException() throws Exception {
+        // Use explicit RuntimeException with a message
+        RuntimeException exception = new RuntimeException("Database error");
+        Mockito.when(imageCommentService.findAll(any(Pageable.class))).thenThrow(exception);
+
+        mockMvc.perform(get("/api/image-comments"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+    }
+
+    @Test
+    void testGetCommentsByImageId_withInvalidSortDirection() throws Exception {
+        mockMvc.perform(get("/api/image-comments/image/" + dto.getImageId()).param("direction", "INVALID"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+    }
+
+    @Test
+    void testGetCommentsByImageId_withServiceException() throws Exception {
+        // Use explicit RuntimeException with a message
+        RuntimeException exception = new RuntimeException("Database error");
+        Mockito.when(imageCommentService.findByImageId(any(UUID.class), any(Pageable.class)))
+                .thenThrow(exception);
+
+        mockMvc.perform(get("/api/image-comments/image/" + dto.getImageId()))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+    }
+
+    @Test
+    void testGetCommentsByUserId_withInvalidSortDirection() throws Exception {
+        mockMvc.perform(get("/api/image-comments/user/" + dto.getUserId()).param("direction", "INVALID"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+    }
+
+    @Test
+    void testGetCommentsByUserId_withServiceException() throws Exception {
+        // Use explicit RuntimeException with a message
+        RuntimeException exception = new RuntimeException("Database error");
+        Mockito.when(imageCommentService.findByUserId(any(UUID.class), any(Pageable.class)))
+                .thenThrow(exception);
+
+        mockMvc.perform(get("/api/image-comments/user/" + dto.getUserId()))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+    }
+
+    @Test
+    void testCountCommentsByImageId_withServiceException() throws Exception {
+        // Use explicit RuntimeException with a message
+        RuntimeException exception = new RuntimeException("Database error");
+        Mockito.when(imageCommentService.countByImageId(any(UUID.class))).thenThrow(exception);
+
+        mockMvc.perform(get("/api/image-comments/image/" + dto.getImageId() + "/count"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+    }
+
+    @Test
+    void testCreateImageComment_withInvalidData() throws Exception {
+        ImageCommentDTO invalidDto = ImageCommentDTO.builder().build(); // Missing required fields
+
+        mockMvc.perform(post("/api/image-comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidDto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testCreateImageComment_withServiceException() throws Exception {
+        // Use explicit RuntimeException with a message
+        RuntimeException exception = new RuntimeException("Database error");
+        Mockito.when(imageCommentService.create(any(ImageCommentDTO.class))).thenThrow(exception);
+
+        mockMvc.perform(post("/api/image-comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+    }
+
+    @Test
+    void testUpdateImageComment_withInvalidData() throws Exception {
+        UUID id = UUID.randomUUID();
+        ImageCommentDTO invalidDto = ImageCommentDTO.builder().build(); // Missing required fields
+
+        mockMvc.perform(put("/api/image-comments/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidDto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testUpdateImageComment_withServiceException() throws Exception {
+        UUID id = UUID.randomUUID();
+        // Use explicit RuntimeException with a message
+        RuntimeException exception = new RuntimeException("Database error");
+        Mockito.when(imageCommentService.update(eq(id), any(ImageCommentDTO.class)))
+                .thenThrow(exception);
+
+        mockMvc.perform(put("/api/image-comments/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+    }
+
+    @Test
+    void testDeleteImageComment_withServiceException() throws Exception {
+        UUID id = UUID.randomUUID();
+        // Use explicit RuntimeException with a message
+        RuntimeException exception = new RuntimeException("Database error");
+        Mockito.doThrow(exception).when(imageCommentService).delete(id);
+
+        mockMvc.perform(delete("/api/image-comments/{id}", id))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+    }
+
+    @Test
+    void testGetAllImageComments_withCustomPagination() throws Exception {
+        Page<ImageCommentDTO> page = new PageImpl<>(List.of(dto));
+        Mockito.when(imageCommentService.findAll(any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/image-comments")
+                        .param("page", "1")
+                        .param("size", "20")
+                        .param("sort", "comment")
+                        .param("direction", "ASC"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].comment").value("Great image!"));
+    }
+
+    @Test
+    void testGetCommentsByImageId_withCustomPagination() throws Exception {
+        Page<ImageCommentDTO> page = new PageImpl<>(List.of(dto));
+        Mockito.when(imageCommentService.findByImageId(any(UUID.class), any(Pageable.class)))
+                .thenReturn(page);
+
+        mockMvc.perform(get("/api/image-comments/image/" + dto.getImageId())
+                        .param("page", "1")
+                        .param("size", "20")
+                        .param("sort", "comment")
+                        .param("direction", "ASC"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].comment").value("Great image!"));
+    }
+
+    @Test
+    void testGetCommentsByUserId_withCustomPagination() throws Exception {
+        Page<ImageCommentDTO> page = new PageImpl<>(List.of(dto));
+        Mockito.when(imageCommentService.findByUserId(any(UUID.class), any(Pageable.class)))
+                .thenReturn(page);
+
+        mockMvc.perform(get("/api/image-comments/user/" + dto.getUserId())
+                        .param("page", "1")
+                        .param("size", "20")
+                        .param("sort", "comment")
+                        .param("direction", "ASC"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].comment").value("Great image!"));
     }
 }
