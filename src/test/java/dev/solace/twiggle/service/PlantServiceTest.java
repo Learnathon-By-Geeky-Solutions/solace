@@ -13,6 +13,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,13 +42,12 @@ class PlantServiceTest {
     private PlantDTO plantDTO1;
     private PlantDTO plantDTO2;
     private UUID plant1Uuid;
-    private UUID plant2Uuid;
     private UUID gardenPlanUuid;
 
     @BeforeEach
     void setUp() {
         plant1Uuid = UUID.randomUUID();
-        plant2Uuid = UUID.randomUUID();
+        UUID plant2Uuid = UUID.randomUUID();
         gardenPlanUuid = UUID.randomUUID();
         OffsetDateTime now = OffsetDateTime.now();
 
@@ -211,31 +211,17 @@ class PlantServiceTest {
 
         Plant existingPlant = plant1;
 
-        Plant expectedSavedPlant = new Plant();
-        expectedSavedPlant.setId(existingPlant.getId());
-        expectedSavedPlant.setGardenPlanId(existingPlant.getGardenPlanId());
-        expectedSavedPlant.setName(updateRequestDto.getName());
-        expectedSavedPlant.setType(updateRequestDto.getType());
-        expectedSavedPlant.setDescription(updateRequestDto.getDescription());
-        expectedSavedPlant.setWateringFrequency(existingPlant.getWateringFrequency());
-        expectedSavedPlant.setSunlightRequirements(existingPlant.getSunlightRequirements());
-        expectedSavedPlant.setPositionX(existingPlant.getPositionX());
-        expectedSavedPlant.setPositionY(existingPlant.getPositionY());
-        expectedSavedPlant.setImageUrl(existingPlant.getImageUrl());
-        expectedSavedPlant.setCreatedAt(existingPlant.getCreatedAt());
+        Plant expectedSavedPlant = getPlant(
+                existingPlant,
+                updateRequestDto.getName(),
+                updateRequestDto.getType(),
+                updateRequestDto.getDescription());
 
-        Plant returnedSavedPlant = new Plant();
-        returnedSavedPlant.setId(expectedSavedPlant.getId());
-        returnedSavedPlant.setGardenPlanId(expectedSavedPlant.getGardenPlanId());
-        returnedSavedPlant.setName(expectedSavedPlant.getName());
-        returnedSavedPlant.setType(expectedSavedPlant.getType());
-        returnedSavedPlant.setDescription(expectedSavedPlant.getDescription());
-        returnedSavedPlant.setWateringFrequency(expectedSavedPlant.getWateringFrequency());
-        returnedSavedPlant.setSunlightRequirements(expectedSavedPlant.getSunlightRequirements());
-        returnedSavedPlant.setPositionX(expectedSavedPlant.getPositionX());
-        returnedSavedPlant.setPositionY(expectedSavedPlant.getPositionY());
-        returnedSavedPlant.setImageUrl(expectedSavedPlant.getImageUrl());
-        returnedSavedPlant.setCreatedAt(expectedSavedPlant.getCreatedAt());
+        Plant returnedSavedPlant = getPlant(
+                expectedSavedPlant,
+                expectedSavedPlant.getName(),
+                expectedSavedPlant.getType(),
+                expectedSavedPlant.getDescription());
         returnedSavedPlant.setUpdatedAt(OffsetDateTime.now().plusSeconds(1));
 
         PlantDTO responseDto = PlantDTO.builder()
@@ -263,6 +249,23 @@ class PlantServiceTest {
         verify(plantRepository).findById(plant1Uuid);
         verify(plantRepository).save(existingPlant);
         verify(plantMapper).toDto(returnedSavedPlant);
+    }
+
+    private static @NotNull Plant getPlant(
+            Plant existingPlant, String updateRequestDto, String updateRequestDto1, String updateRequestDto2) {
+        Plant expectedSavedPlant = new Plant();
+        expectedSavedPlant.setId(existingPlant.getId());
+        expectedSavedPlant.setGardenPlanId(existingPlant.getGardenPlanId());
+        expectedSavedPlant.setName(updateRequestDto);
+        expectedSavedPlant.setType(updateRequestDto1);
+        expectedSavedPlant.setDescription(updateRequestDto2);
+        expectedSavedPlant.setWateringFrequency(existingPlant.getWateringFrequency());
+        expectedSavedPlant.setSunlightRequirements(existingPlant.getSunlightRequirements());
+        expectedSavedPlant.setPositionX(existingPlant.getPositionX());
+        expectedSavedPlant.setPositionY(existingPlant.getPositionY());
+        expectedSavedPlant.setImageUrl(existingPlant.getImageUrl());
+        expectedSavedPlant.setCreatedAt(existingPlant.getCreatedAt());
+        return expectedSavedPlant;
     }
 
     @Test
@@ -302,7 +305,7 @@ class PlantServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
-        assertEquals(plantDTO1, result.getContent().get(0));
+        assertEquals(plantDTO1, result.getContent().getFirst());
         verify(plantRepository).searchPlants(query, specificGardenPlanId, pageable);
         verify(plantMapper).toDto(plant1);
     }
@@ -320,8 +323,154 @@ class PlantServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
-        assertEquals(plantDTO1, result.getContent().get(0));
+        assertEquals(plantDTO1, result.getContent().getFirst());
         verify(plantRepository).searchPlants(eq(query), isNull(), eq(pageable));
+        verify(plantMapper).toDto(plant1);
+    }
+
+    @Test
+    void findAll_WithoutPagination_ShouldReturnListOfPlantDTOs() {
+        List<Plant> plants = List.of(plant1, plant2);
+
+        when(plantRepository.findAll()).thenReturn(plants);
+        when(plantMapper.toDto(plant1)).thenReturn(plantDTO1);
+        when(plantMapper.toDto(plant2)).thenReturn(plantDTO2);
+
+        List<PlantDTO> result = plantService.findAll();
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(plantDTO1, result.get(0));
+        assertEquals(plantDTO2, result.get(1));
+        verify(plantRepository).findAll();
+        verify(plantMapper, times(2)).toDto(any(Plant.class));
+    }
+
+    @Test
+    void findByGardenPlanId_WithPagination_ShouldReturnPageOfPlantDTOs() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Plant> plantPage = new PageImpl<>(List.of(plant1, plant2), pageable, 2);
+
+        when(plantRepository.findByGardenPlanId(gardenPlanUuid, pageable)).thenReturn(plantPage);
+        when(plantMapper.toDto(plant1)).thenReturn(plantDTO1);
+        when(plantMapper.toDto(plant2)).thenReturn(plantDTO2);
+
+        Page<PlantDTO> result = plantService.findByGardenPlanId(gardenPlanUuid, pageable);
+
+        assertNotNull(result);
+        assertEquals(2, result.getTotalElements());
+        assertEquals(plantDTO1, result.getContent().get(0));
+        assertEquals(plantDTO2, result.getContent().get(1));
+        verify(plantRepository).findByGardenPlanId(gardenPlanUuid, pageable);
+        verify(plantMapper, times(2)).toDto(any(Plant.class));
+    }
+
+    @Test
+    void findByGardenPlanId_WithoutPagination_ShouldReturnListOfPlantDTOs() {
+        List<Plant> plants = List.of(plant1, plant2);
+
+        when(plantRepository.findByGardenPlanId(gardenPlanUuid)).thenReturn(plants);
+        when(plantMapper.toDto(plant1)).thenReturn(plantDTO1);
+        when(plantMapper.toDto(plant2)).thenReturn(plantDTO2);
+
+        List<PlantDTO> result = plantService.findByGardenPlanId(gardenPlanUuid);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(plantDTO1, result.get(0));
+        assertEquals(plantDTO2, result.get(1));
+        verify(plantRepository).findByGardenPlanId(gardenPlanUuid);
+        verify(plantMapper, times(2)).toDto(any(Plant.class));
+    }
+
+    @Test
+    void findByType_WithPagination_ShouldReturnPageOfPlantDTOs() {
+        String type = "Vegetable";
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Plant> plantPage = new PageImpl<>(List.of(plant1), pageable, 1);
+
+        when(plantRepository.findByType(type, pageable)).thenReturn(plantPage);
+        when(plantMapper.toDto(plant1)).thenReturn(plantDTO1);
+
+        Page<PlantDTO> result = plantService.findByType(type, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(plantDTO1, result.getContent().getFirst());
+        verify(plantRepository).findByType(type, pageable);
+        verify(plantMapper).toDto(plant1);
+    }
+
+    @Test
+    void findByType_WithoutPagination_ShouldReturnListOfPlantDTOs() {
+        String type = "Vegetable";
+        List<Plant> plants = List.of(plant1);
+
+        when(plantRepository.findByType(type)).thenReturn(plants);
+        when(plantMapper.toDto(plant1)).thenReturn(plantDTO1);
+
+        List<PlantDTO> result = plantService.findByType(type);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(plantDTO1, result.getFirst());
+        verify(plantRepository).findByType(type);
+        verify(plantMapper).toDto(plant1);
+    }
+
+    @Test
+    void searchPlantsWithRelevance_WhenSuccessful_ShouldReturnPageOfPlantDTOs() {
+        String name = "Tomato";
+        String type = "Vegetable";
+        String wateringFrequency = "Daily";
+        String sunlightRequirements = "Full sun";
+        String query = "Tomato";
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Plant> plantPage = new PageImpl<>(List.of(plant1), pageable, 1);
+
+        when(plantRepository.searchPlantsWithRelevance(
+                        name, type, wateringFrequency, sunlightRequirements, query, gardenPlanUuid, pageable))
+                .thenReturn(plantPage);
+        when(plantMapper.toDto(plant1)).thenReturn(plantDTO1);
+
+        Page<PlantDTO> result = plantService.searchPlantsWithRelevance(
+                name, type, wateringFrequency, sunlightRequirements, query, gardenPlanUuid, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(plantDTO1, result.getContent().getFirst());
+        verify(plantRepository)
+                .searchPlantsWithRelevance(
+                        name, type, wateringFrequency, sunlightRequirements, query, gardenPlanUuid, pageable);
+        verify(plantMapper).toDto(plant1);
+    }
+
+    @Test
+    void searchPlantsWithRelevance_WhenExceptionOccurs_ShouldFallBackToSimpleSearch() {
+        String name = "Tomato";
+        String type = "Vegetable";
+        String wateringFrequency = "Daily";
+        String sunlightRequirements = "Full sun";
+        String query = "Tomato";
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Plant> plantPage = new PageImpl<>(List.of(plant1), pageable, 1);
+
+        when(plantRepository.searchPlantsWithRelevance(
+                        name, type, wateringFrequency, sunlightRequirements, query, gardenPlanUuid, pageable))
+                .thenThrow(new RuntimeException("Search error"));
+        when(plantRepository.searchPlants(query, gardenPlanUuid, pageable)).thenReturn(plantPage);
+        when(plantMapper.toDto(plant1)).thenReturn(plantDTO1);
+
+        Page<PlantDTO> result = plantService.searchPlantsWithRelevance(
+                name, type, wateringFrequency, sunlightRequirements, query, gardenPlanUuid, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(plantDTO1, result.getContent().getFirst());
+        verify(plantRepository)
+                .searchPlantsWithRelevance(
+                        name, type, wateringFrequency, sunlightRequirements, query, gardenPlanUuid, pageable);
+        verify(plantRepository).searchPlants(query, gardenPlanUuid, pageable);
         verify(plantMapper).toDto(plant1);
     }
 }
