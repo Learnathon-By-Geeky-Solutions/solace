@@ -214,4 +214,185 @@ class ActivityControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Activity deleted successfully"));
     }
+
+    @Test
+    void testGetAllActivitiesWithCustomSorting() throws Exception {
+        Page<ActivityDTO> page = new PageImpl<>(List.of(dto));
+        Mockito.when(activityService.findAll(any(Pageable.class))).thenReturn(page);
+
+        MockHttpServletRequestBuilder request = get("/api/activities")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "activityType")
+                .param("direction", "ASC");
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content").isArray());
+    }
+
+    @Test
+    void testGetAllActivitiesWithInvalidSortDirection() throws Exception {
+        MockHttpServletRequestBuilder request = get("/api/activities")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "activityType")
+                .param("direction", "INVALID");
+
+        mockMvc.perform(request).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testGetActivitiesByUserIdWithCustomSorting() throws Exception {
+        UUID userId = UUID.randomUUID();
+        Page<ActivityDTO> page = new PageImpl<>(List.of(dto));
+        Mockito.when(activityService.findByUserId(eq(userId), any(Pageable.class)))
+                .thenReturn(page);
+
+        MockHttpServletRequestBuilder request = get("/api/activities/user/{userId}", userId)
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "activityType")
+                .param("direction", "ASC");
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content").isArray());
+    }
+
+    @Test
+    void testGetActivitiesByGardenPlanIdWithCustomSorting() throws Exception {
+        UUID gardenPlanId = UUID.randomUUID();
+        Page<ActivityDTO> page = new PageImpl<>(List.of(dto));
+        Mockito.when(activityService.findByGardenPlanId(eq(gardenPlanId), any(Pageable.class)))
+                .thenReturn(page);
+
+        MockHttpServletRequestBuilder request = get("/api/activities/garden-plan/{gardenPlanId}", gardenPlanId)
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "activityType")
+                .param("direction", "ASC");
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content").isArray());
+    }
+
+    @Test
+    void testGetActivitiesByUserIdAndTypeWithCustomSorting() throws Exception {
+        UUID userId = UUID.randomUUID();
+        String activityType = ACTIVITY_TYPE;
+        Page<ActivityDTO> page = new PageImpl<>(List.of(dto));
+        Mockito.when(activityService.findByUserIdAndActivityType(eq(userId), eq(activityType), any(Pageable.class)))
+                .thenReturn(page);
+
+        MockHttpServletRequestBuilder request = get(
+                        "/api/activities/user/{userId}/type/{activityType}", userId, activityType)
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "activityType")
+                .param("direction", "ASC");
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content").isArray());
+    }
+
+    @Test
+    void testCreateActivityWithInvalidData() throws Exception {
+        ActivityDTO invalidDto = ActivityDTO.builder().build(); // Missing required fields
+
+        MockHttpServletRequestBuilder request = post("/api/activities")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidDto));
+
+        mockMvc.perform(request).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testCreateActivityWithServiceError() throws Exception {
+        Mockito.when(activityService.create(any())).thenThrow(new RuntimeException("Service error"));
+
+        MockHttpServletRequestBuilder request = post("/api/activities")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request).andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testUpdateActivityWithInvalidData() throws Exception {
+        UUID id = UUID.randomUUID();
+        ActivityDTO invalidDto = ActivityDTO.builder().build(); // Missing required fields
+
+        MockHttpServletRequestBuilder request = put("/api/activities/{id}", id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidDto));
+
+        mockMvc.perform(request).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testUpdateActivityWithServiceError() throws Exception {
+        UUID id = UUID.randomUUID();
+        Mockito.when(activityService.update(eq(id), any())).thenThrow(new RuntimeException("Service error"));
+
+        MockHttpServletRequestBuilder request = put("/api/activities/{id}", id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto));
+
+        mockMvc.perform(request).andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testDeleteActivityWithServiceError() throws Exception {
+        UUID id = UUID.randomUUID();
+        Mockito.doThrow(new RuntimeException("Service error"))
+                .when(activityService)
+                .delete(id);
+
+        MockHttpServletRequestBuilder request = delete("/api/activities/{id}", id);
+
+        mockMvc.perform(request).andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testGetActivitiesByUserIdWithServiceError() throws Exception {
+        UUID userId = UUID.randomUUID();
+        Mockito.when(activityService.findByUserId(eq(userId), any(Pageable.class)))
+                .thenThrow(new RuntimeException("Service error"));
+
+        MockHttpServletRequestBuilder request =
+                get("/api/activities/user/{userId}", userId).param("page", "0").param("size", "10");
+
+        mockMvc.perform(request).andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testGetActivitiesByGardenPlanIdWithServiceError() throws Exception {
+        UUID gardenPlanId = UUID.randomUUID();
+        Mockito.when(activityService.findByGardenPlanId(eq(gardenPlanId), any(Pageable.class)))
+                .thenThrow(new RuntimeException("Service error"));
+
+        MockHttpServletRequestBuilder request = get("/api/activities/garden-plan/{gardenPlanId}", gardenPlanId)
+                .param("page", "0")
+                .param("size", "10");
+
+        mockMvc.perform(request).andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testGetActivitiesByUserIdAndTypeWithServiceError() throws Exception {
+        UUID userId = UUID.randomUUID();
+        String activityType = ACTIVITY_TYPE;
+        Mockito.when(activityService.findByUserIdAndActivityType(eq(userId), eq(activityType), any(Pageable.class)))
+                .thenThrow(new RuntimeException("Service error"));
+
+        MockHttpServletRequestBuilder request = get(
+                        "/api/activities/user/{userId}/type/{activityType}", userId, activityType)
+                .param("page", "0")
+                .param("size", "10");
+
+        mockMvc.perform(request).andExpect(status().isInternalServerError());
+    }
 }

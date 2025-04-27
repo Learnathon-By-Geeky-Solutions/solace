@@ -32,12 +32,23 @@ public class ActivityController {
 
     private final ActivityService activityService;
 
+    private Sort.Direction parseSortDirection(String direction) {
+        try {
+            return Sort.Direction.fromString(direction);
+        } catch (IllegalArgumentException e) {
+            throw new CustomException(
+                    "Invalid sort direction. Must be either 'ASC' or 'DESC'",
+                    HttpStatus.BAD_REQUEST,
+                    ErrorCode.INVALID_REQUEST);
+        }
+    }
+
     /**
      * Get all activities with pagination and sorting.
      *
-     * @param page page number (0-based)
-     * @param size page size
-     * @param sort sort property
+     * @param page      page number (0-based)
+     * @param size      page size
+     * @param sort      sort property
      * @param direction sort direction (ASC or DESC)
      * @return page of activity DTOs
      */
@@ -48,10 +59,12 @@ public class ActivityController {
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
         try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+            Sort.Direction sortDirection = parseSortDirection(direction);
             Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
             Page<ActivityDTO> activities = activityService.findAll(pageable);
             return ResponseUtil.success("Successfully retrieved activities", activities);
+        } catch (CustomException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Error retrieving activities: {}", e.getMessage(), e);
             throw new CustomException(
@@ -102,10 +115,10 @@ public class ActivityController {
     /**
      * Get activities by user ID with pagination and sorting.
      *
-     * @param userId the user ID
-     * @param page page number (0-based)
-     * @param size page size
-     * @param sort sort property
+     * @param userId    the user ID
+     * @param page      page number (0-based)
+     * @param size      page size
+     * @param sort      sort property
      * @param direction sort direction (ASC or DESC)
      * @return page of activity DTOs
      */
@@ -117,10 +130,12 @@ public class ActivityController {
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
         try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+            Sort.Direction sortDirection = parseSortDirection(direction);
             Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
             Page<ActivityDTO> activities = activityService.findByUserId(userId, pageable);
             return ResponseUtil.success("Successfully retrieved activities for user", activities);
+        } catch (CustomException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Error retrieving activities for user {}: {}", userId, e.getMessage(), e);
             throw new CustomException(
@@ -134,10 +149,10 @@ public class ActivityController {
      * Get activities by garden plan ID with pagination and sorting.
      *
      * @param gardenPlanId the garden plan ID
-     * @param page page number (0-based)
-     * @param size page size
-     * @param sort sort property
-     * @param direction sort direction (ASC or DESC)
+     * @param page         page number (0-based)
+     * @param size         page size
+     * @param sort         sort property
+     * @param direction    sort direction (ASC or DESC)
      * @return page of activity DTOs
      */
     @GetMapping("/garden-plan/{gardenPlanId}")
@@ -148,10 +163,12 @@ public class ActivityController {
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
         try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+            Sort.Direction sortDirection = parseSortDirection(direction);
             Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
             Page<ActivityDTO> activities = activityService.findByGardenPlanId(gardenPlanId, pageable);
             return ResponseUtil.success("Successfully retrieved activities for garden plan", activities);
+        } catch (CustomException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Error retrieving activities for garden plan {}: {}", gardenPlanId, e.getMessage(), e);
             throw new CustomException(
@@ -164,12 +181,12 @@ public class ActivityController {
     /**
      * Get activities by user ID and activity type with pagination and sorting.
      *
-     * @param userId the user ID
+     * @param userId       the user ID
      * @param activityType the activity type
-     * @param page page number (0-based)
-     * @param size page size
-     * @param sort sort property
-     * @param direction sort direction (ASC or DESC)
+     * @param page         page number (0-based)
+     * @param size         page size
+     * @param sort         sort property
+     * @param direction    sort direction (ASC or DESC)
      * @return page of activity DTOs
      */
     @GetMapping("/user/{userId}/type/{activityType}")
@@ -181,10 +198,12 @@ public class ActivityController {
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
         try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+            Sort.Direction sortDirection = parseSortDirection(direction);
             Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
             Page<ActivityDTO> activities = activityService.findByUserIdAndActivityType(userId, activityType, pageable);
             return ResponseUtil.success("Successfully retrieved activities for user and type", activities);
+        } catch (CustomException e) {
+            throw e;
         } catch (Exception e) {
             log.error(
                     "Error retrieving activities for user {} and type {}: {}", userId, activityType, e.getMessage(), e);
@@ -216,7 +235,7 @@ public class ActivityController {
     /**
      * Update an existing activity.
      *
-     * @param id the activity ID
+     * @param id          the activity ID
      * @param activityDTO the updated activity DTO (validated)
      * @return the updated activity DTO
      */
