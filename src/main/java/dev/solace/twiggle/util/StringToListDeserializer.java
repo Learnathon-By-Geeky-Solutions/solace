@@ -4,14 +4,18 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Custom deserializer that can handle either a string or array for companion plants.
+ * Custom deserializer that can handle either a string or array for companion
+ * plants.
  * Converts both formats to a List of strings.
  */
 @Slf4j
@@ -28,6 +32,8 @@ public class StringToListDeserializer extends JsonDeserializer<List<String>> {
                 while (nextToken != JsonToken.END_ARRAY) {
                     if (nextToken == JsonToken.VALUE_STRING) {
                         result.add(parser.getText());
+                    } else if (nextToken == JsonToken.VALUE_NULL) {
+                        result.add(null);
                     } else {
                         result.add(parser.getValueAsString());
                     }
@@ -44,12 +50,26 @@ public class StringToListDeserializer extends JsonDeserializer<List<String>> {
                 yield Arrays.stream(items)
                         .map(String::trim)
                         .filter(s -> !s.isEmpty())
-                        .toList();
+                        .collect(Collectors.toList());
             }
             case VALUE_NULL -> getNullValue(ctxt);
+            case START_OBJECT -> {
+                JsonNode node = parser.readValueAsTree();
+                StringBuilder sb = new StringBuilder("{");
+                node.fields().forEachRemaining(entry -> {
+                    if (sb.length() > 1) {
+                        sb.append(", ");
+                    }
+                    sb.append(entry.getKey())
+                            .append("=")
+                            .append(entry.getValue().asText());
+                });
+                sb.append("}");
+                yield Collections.singletonList(sb.toString());
+            }
             default -> {
-                log.warn("Unexpected token type for companion_plants: {}", token);
-                yield List.of(parser.getValueAsString());
+                String value = parser.getValueAsString();
+                yield Collections.singletonList(value);
             }
         };
     }
