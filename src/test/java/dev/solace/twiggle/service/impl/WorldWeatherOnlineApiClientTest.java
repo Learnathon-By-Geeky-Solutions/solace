@@ -6,9 +6,13 @@ import static org.mockito.Mockito.*;
 
 import dev.solace.twiggle.config.WeatherApiConfig;
 import dev.solace.twiggle.exception.CustomException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -50,14 +54,19 @@ class WorldWeatherOnlineApiClientTest {
         verify(restTemplate).getForEntity(any(URI.class), eq(String.class));
     }
 
-    @Test
-    void getCurrentWeather_InvalidLocation() {
-        // No need to configure mocks that aren't used in this test
-
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(
+            strings = {"London<script>", "<London>", "London'", "London\"", "London;", "London--", "London://Paris"})
+    void getCurrentWeather_InvalidLocationInputs(String location) {
         // Act & Assert
         CustomException exception =
-                assertThrows(CustomException.class, () -> worldWeatherOnlineApiClient.getCurrentWeather(""));
-        assertEquals("Location parameter is required", exception.getMessage());
+                assertThrows(CustomException.class, () -> worldWeatherOnlineApiClient.getCurrentWeather(location));
+        if (location == null || location.isBlank()) {
+            assertEquals("Location parameter is required", exception.getMessage());
+        } else {
+            assertEquals("Invalid characters in location parameter", exception.getMessage());
+        }
         verify(restTemplate, never()).getForEntity(any(URI.class), eq(String.class));
     }
 
@@ -184,5 +193,65 @@ class WorldWeatherOnlineApiClientTest {
                 CustomException.class, () -> worldWeatherOnlineApiClient.getCurrentWeather(VALID_LOCATION));
         assertEquals("Untrusted domain for external API", exception.getMessage());
         verify(restTemplate, never()).getForEntity(any(URI.class), eq(String.class));
+    }
+
+    @Test
+    void validateTrustedDomain_InvalidUrlFormat() {
+        // Arrange
+        when(weatherApiConfig.getKey()).thenReturn(API_KEY);
+        when(weatherApiConfig.getBaseUrl()).thenReturn("://invalid-url-format");
+
+        // Act & Assert
+        CustomException exception = assertThrows(
+                CustomException.class, () -> worldWeatherOnlineApiClient.getCurrentWeather(VALID_LOCATION));
+        assertEquals("Invalid URL format for external API", exception.getMessage());
+        verify(restTemplate, never()).getForEntity(any(URI.class), eq(String.class));
+    }
+
+    @Test
+    void validateFinalUri_NonHttpsScheme() {
+        // Arrange
+        when(weatherApiConfig.getKey()).thenReturn(API_KEY);
+        when(weatherApiConfig.getBaseUrl()).thenReturn("http://api.worldweatheronline.com");
+
+        // Act & Assert
+        CustomException exception = assertThrows(
+                CustomException.class, () -> worldWeatherOnlineApiClient.getCurrentWeather(VALID_LOCATION));
+        assertEquals("Only HTTPS is allowed for external API calls", exception.getMessage());
+        verify(restTemplate, never()).getForEntity(any(URI.class), eq(String.class));
+    }
+
+    @Test
+    void validateFinalUri_InvalidEndpoint() {
+        try {
+            java.lang.reflect.Method method =
+                    WorldWeatherOnlineApiClient.class.getDeclaredMethod("validateFinalUri", URI.class);
+            method.setAccessible(true);
+
+            URI invalidUri = new URI("https://api.worldweatheronline.com/invalid-endpoint");
+
+            // Act & Assert
+            InvocationTargetException exception = assertThrows(
+                    InvocationTargetException.class, () -> method.invoke(worldWeatherOnlineApiClient, invalidUri));
+            CustomException customException = (CustomException) exception.getCause();
+            assertEquals("Invalid API endpoint", customException.getMessage());
+        } catch (Exception e) {
+            fail("Test failed with exception: " + e.getMessage());
+        }
+    }
+
+    @Test
+    void makeApiCall_NonOkResponse() {
+        // Arrange
+        when(weatherApiConfig.getKey()).thenReturn(API_KEY);
+        when(weatherApiConfig.getBaseUrl()).thenReturn(BASE_URL);
+        when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
+                .thenReturn(new ResponseEntity<>(VALID_RESPONSE, HttpStatus.BAD_REQUEST));
+
+        // Act & Assert
+        CustomException exception = assertThrows(
+                CustomException.class, () -> worldWeatherOnlineApiClient.getCurrentWeather(VALID_LOCATION));
+        assertEquals("Failed to retrieve weather data", exception.getMessage());
+        verify(restTemplate).getForEntity(any(URI.class), eq(String.class));
     }
 }
