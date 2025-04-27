@@ -157,42 +157,21 @@ class WorldWeatherOnlineApiClientTest {
         verify(restTemplate).getForEntity(any(URI.class), eq(String.class));
     }
 
-    @Test
-    void makeApiCall_UntrustedDomain() {
+    @ParameterizedTest
+    @CsvSource({
+        "https://malicious-site.com,Untrusted domain for external API",
+        "://invalid-url-format,Invalid URL format for external API",
+        "http://api.worldweatheronline.com,Only HTTPS is allowed for external API calls"
+    })
+    void apiCall_InvalidBaseUrls(String baseUrl, String expectedMessage) {
         // Arrange
         when(weatherApiConfig.getKey()).thenReturn(API_KEY);
-        when(weatherApiConfig.getBaseUrl()).thenReturn("https://malicious-site.com");
+        when(weatherApiConfig.getBaseUrl()).thenReturn(baseUrl);
 
         // Act & Assert
         CustomException exception = assertThrows(
                 CustomException.class, () -> worldWeatherOnlineApiClient.getCurrentWeather(VALID_LOCATION));
-        assertEquals("Untrusted domain for external API", exception.getMessage());
-        verify(restTemplate, never()).getForEntity(any(URI.class), eq(String.class));
-    }
-
-    @Test
-    void validateTrustedDomain_InvalidUrlFormat() {
-        // Arrange
-        when(weatherApiConfig.getKey()).thenReturn(API_KEY);
-        when(weatherApiConfig.getBaseUrl()).thenReturn("://invalid-url-format");
-
-        // Act & Assert
-        CustomException exception = assertThrows(
-                CustomException.class, () -> worldWeatherOnlineApiClient.getCurrentWeather(VALID_LOCATION));
-        assertEquals("Invalid URL format for external API", exception.getMessage());
-        verify(restTemplate, never()).getForEntity(any(URI.class), eq(String.class));
-    }
-
-    @Test
-    void validateFinalUri_NonHttpsScheme() {
-        // Arrange
-        when(weatherApiConfig.getKey()).thenReturn(API_KEY);
-        when(weatherApiConfig.getBaseUrl()).thenReturn("http://api.worldweatheronline.com");
-
-        // Act & Assert
-        CustomException exception = assertThrows(
-                CustomException.class, () -> worldWeatherOnlineApiClient.getCurrentWeather(VALID_LOCATION));
-        assertEquals("Only HTTPS is allowed for external API calls", exception.getMessage());
+        assertEquals(expectedMessage, exception.getMessage());
         verify(restTemplate, never()).getForEntity(any(URI.class), eq(String.class));
     }
 

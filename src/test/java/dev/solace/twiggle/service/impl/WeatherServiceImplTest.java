@@ -837,7 +837,8 @@ class WeatherServiceImplTest {
         when(weatherApiClient.getCurrentWeather("UnknownAir")).thenReturn(jsonWithUnknownAir);
         WeatherDTO result = weatherService.getCurrentWeather("UnknownAir");
 
-        // Check that plant hazards contain expected air quality tip based on default value (moderate)
+        // Check that plant hazards contain expected air quality tip based on default
+        // value (moderate)
         assertTrue(result.getPlantHazards().stream()
                 .anyMatch(hazard -> hazard.contains("Air quality is good") || hazard.contains("Moderate air quality")));
     }
@@ -904,12 +905,14 @@ class WeatherServiceImplTest {
     // Test location coordinates with format
     @Test
     void verifyFormattedCoordinates() {
-        // Just verify that the coordinates are formatted correctly in the returned object
+        // Just verify that the coordinates are formatted correctly in the returned
+        // object
         // This is testing the FORMAT_PATTERN constant
         when(weatherApiClient.getCurrentWeatherByCoordinates(LAT, LON)).thenReturn(mockCurrentWeatherResponse);
 
         WeatherDTO result = weatherService.getCurrentWeatherByCoordinates(LAT, LON);
-        // We can't directly check the formatted value since it depends on private implementation
+        // We can't directly check the formatted value since it depends on private
+        // implementation
         // But we can verify the result is correctly processed
         assertNotNull(result);
     }
