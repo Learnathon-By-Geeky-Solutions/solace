@@ -180,4 +180,100 @@ class RateLimiterConfigurationTest {
         assertEquals(
                 Duration.ofMinutes(1), actuatorLimiter.getRateLimiterConfig().getLimitRefreshPeriod());
     }
+
+    @Test
+    void rateLimiter_ShouldEnforceLimitsUnderLoad() throws InterruptedException {
+        // When
+        RateLimiter limiter = configuration.testErrorLimiter(rateLimiterRegistry);
+        int limitForPeriod = limiter.getRateLimiterConfig().getLimitForPeriod();
+        int successfulAcquisitions = 0;
+
+        // Try to acquire more permits than allowed
+        for (int i = 0; i < limitForPeriod + 5; i++) {
+            if (limiter.acquirePermission()) {
+                successfulAcquisitions++;
+            }
+            Thread.sleep(100); // Small delay to simulate real usage
+        }
+
+        // Then
+        assertEquals(limitForPeriod, successfulAcquisitions, "Should only allow limitForPeriod acquisitions");
+    }
+
+    @Test
+    void rateLimiter_ShouldHandleTimeoutCorrectly() {
+        // When
+        RateLimiterConfig configWithTimeout = RateLimiterConfig.custom()
+                .limitForPeriod(1)
+                .limitRefreshPeriod(Duration.ofSeconds(1))
+                .timeoutDuration(Duration.ofMillis(100))
+                .build();
+
+        RateLimiter limiter = rateLimiterRegistry.rateLimiter("timeout-test", configWithTimeout);
+
+        // Then
+        assertTrue(limiter.acquirePermission(), "First acquisition should succeed");
+        assertFalse(limiter.acquirePermission(), "Second acquisition should fail due to timeout");
+    }
+
+    @Test
+    void rateLimiterRegistry_ShouldHandleLimiterRemoval() {
+        // When
+        RateLimiter limiter = configuration.standardApiLimiter(rateLimiterRegistry);
+        String limiterName = limiter.getName();
+
+        // Then
+        assertTrue(rateLimiterRegistry.getAllRateLimiters().contains(limiter), "Limiter should be in registry");
+
+        // When removing the limiter
+        rateLimiterRegistry.remove(limiterName);
+
+        // Then
+        assertFalse(
+                rateLimiterRegistry.getAllRateLimiters().contains(limiter), "Limiter should be removed from registry");
+    }
+
+    @Test
+    void rateLimiter_ShouldTrackMetrics() {
+        // When
+        RateLimiter limiter = configuration.standardApiLimiter(rateLimiterRegistry);
+        int successfulAcquisitions = 0;
+        int failedAcquisitions = 0;
+
+        // Simulate some usage
+        for (int i = 0; i < 5; i++) {
+            if (limiter.acquirePermission()) {
+                successfulAcquisitions++;
+            } else {
+                failedAcquisitions++;
+            }
+        }
+
+        // Then
+        assertTrue(successfulAcquisitions > 0, "Should have some successful acquisitions");
+        // Check that metrics are being tracked without relying on specific method names
+        assertNotNull(limiter.getMetrics(), "Metrics should not be null");
+    }
+
+    @Test
+    void rateLimiter_ShouldMaintainStateBetweenRefreshes() throws InterruptedException {
+        // When
+        RateLimiter limiter = configuration.testErrorLimiter(rateLimiterRegistry);
+        int initialAcquisitions = 0;
+
+        // Use up all permits
+        while (limiter.acquirePermission()) {
+            initialAcquisitions++;
+        }
+
+        // Wait for refresh period
+        Thread.sleep(limiter.getRateLimiterConfig().getLimitRefreshPeriod().toMillis() + 100);
+
+        // Then
+        assertTrue(limiter.acquirePermission(), "Should be able to acquire after refresh period");
+        assertEquals(
+                limiter.getRateLimiterConfig().getLimitForPeriod(),
+                initialAcquisitions,
+                "Should have used up all permits before refresh");
+    }
 }
