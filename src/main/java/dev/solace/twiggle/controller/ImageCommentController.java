@@ -46,16 +46,9 @@ public class ImageCommentController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<ImageCommentDTO> comments = imageCommentService.findAll(pageable);
-            return ResponseUtil.success("Successfully retrieved image comments", comments);
-        } catch (Exception e) {
-            log.error("Error retrieving image comments: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve image comments", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        Pageable pageable = createPageable(page, size, sort, direction);
+        Page<ImageCommentDTO> comments = imageCommentService.findAll(pageable);
+        return ResponseUtil.success("Successfully retrieved image comments", comments);
     }
 
     /**
@@ -66,19 +59,11 @@ public class ImageCommentController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ImageCommentDTO>> getImageCommentById(@PathVariable UUID id) {
-        try {
-            return imageCommentService
-                    .findById(id)
-                    .map(comment -> ResponseUtil.success("Successfully retrieved image comment", comment))
-                    .orElseThrow(() -> new CustomException(
-                            "Image comment not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error retrieving image comment with id {}: {}", id, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve image comment", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return imageCommentService
+                .findById(id)
+                .map(comment -> ResponseUtil.success("Successfully retrieved image comment", comment))
+                .orElseThrow(() -> new CustomException(
+                        "Image comment not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
     }
 
     /**
@@ -98,18 +83,9 @@ public class ImageCommentController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<ImageCommentDTO> comments = imageCommentService.findByImageId(imageId, pageable);
-            return ResponseUtil.success("Successfully retrieved comments for image", comments);
-        } catch (Exception e) {
-            log.error("Error retrieving comments for image {}: {}", imageId, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve comments for image",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
-        }
+        Pageable pageable = createPageable(page, size, sort, direction);
+        Page<ImageCommentDTO> comments = imageCommentService.findByImageId(imageId, pageable);
+        return ResponseUtil.success("Successfully retrieved comments for image", comments);
     }
 
     /**
@@ -129,16 +105,9 @@ public class ImageCommentController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<ImageCommentDTO> comments = imageCommentService.findByUserId(userId, pageable);
-            return ResponseUtil.success("Successfully retrieved comments by user", comments);
-        } catch (Exception e) {
-            log.error("Error retrieving comments by user {}: {}", userId, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve comments by user", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        Pageable pageable = createPageable(page, size, sort, direction);
+        Page<ImageCommentDTO> comments = imageCommentService.findByUserId(userId, pageable);
+        return ResponseUtil.success("Successfully retrieved comments by user", comments);
     }
 
     /**
@@ -149,14 +118,8 @@ public class ImageCommentController {
      */
     @GetMapping("/image/{imageId}/count")
     public ResponseEntity<ApiResponse<Long>> countCommentsByImageId(@PathVariable UUID imageId) {
-        try {
-            long count = imageCommentService.countByImageId(imageId);
-            return ResponseUtil.success("Successfully counted comments for image", count);
-        } catch (Exception e) {
-            log.error("Error counting comments for image {}: {}", imageId, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to count comments for image", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        long count = imageCommentService.countByImageId(imageId);
+        return ResponseUtil.success("Successfully counted comments for image", count);
     }
 
     /**
@@ -168,14 +131,8 @@ public class ImageCommentController {
     @PostMapping
     public ResponseEntity<ApiResponse<ImageCommentDTO>> createImageComment(
             @Valid @RequestBody ImageCommentDTO imageCommentDTO) {
-        try {
-            ImageCommentDTO createdComment = imageCommentService.create(imageCommentDTO);
-            return ResponseUtil.success("Image comment created successfully", createdComment);
-        } catch (Exception e) {
-            log.error("Error creating image comment: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to create image comment", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        ImageCommentDTO createdComment = imageCommentService.create(imageCommentDTO);
+        return ResponseUtil.success("Image comment created successfully", createdComment);
     }
 
     /**
@@ -188,19 +145,11 @@ public class ImageCommentController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ImageCommentDTO>> updateImageComment(
             @PathVariable UUID id, @Valid @RequestBody ImageCommentDTO imageCommentDTO) {
-        try {
-            return imageCommentService
-                    .update(id, imageCommentDTO)
-                    .map(updatedComment -> ResponseUtil.success("Image comment updated successfully", updatedComment))
-                    .orElseThrow(() -> new CustomException(
-                            "Image comment not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error updating image comment with id {}: {}", id, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to update image comment", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return imageCommentService
+                .update(id, imageCommentDTO)
+                .map(updatedComment -> ResponseUtil.success("Image comment updated successfully", updatedComment))
+                .orElseThrow(() -> new CustomException(
+                        "Image comment not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
     }
 
     /**
@@ -211,13 +160,23 @@ public class ImageCommentController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteImageComment(@PathVariable UUID id) {
+        imageCommentService.delete(id);
+        return ResponseUtil.success("Image comment deleted successfully", null);
+    }
+
+    /**
+     * Creates a pageable object from pagination parameters.
+     * Throws CustomException if the direction is invalid.
+     */
+    private Pageable createPageable(int page, int size, String sort, String direction) {
         try {
-            imageCommentService.delete(id);
-            return ResponseUtil.success("Image comment deleted successfully", null);
-        } catch (Exception e) {
-            log.error("Error deleting image comment with id {}: {}", id, e.getMessage(), e);
+            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+            return PageRequest.of(page, size, sortDirection, sort);
+        } catch (IllegalArgumentException e) {
             throw new CustomException(
-                    "Failed to delete image comment", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
+                    "Invalid sort direction. Must be either 'ASC' or 'DESC'",
+                    HttpStatus.BAD_REQUEST,
+                    ErrorCode.INVALID_REQUEST);
         }
     }
 }
