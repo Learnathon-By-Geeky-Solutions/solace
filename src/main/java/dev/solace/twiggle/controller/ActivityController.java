@@ -32,17 +32,6 @@ public class ActivityController {
 
     private final ActivityService activityService;
 
-    private Sort.Direction parseSortDirection(String direction) {
-        try {
-            return Sort.Direction.fromString(direction);
-        } catch (IllegalArgumentException e) {
-            throw new CustomException(
-                    "Invalid sort direction. Must be either 'ASC' or 'DESC'",
-                    HttpStatus.BAD_REQUEST,
-                    ErrorCode.INVALID_REQUEST);
-        }
-    }
-
     /**
      * Get all activities with pagination and sorting.
      *
@@ -58,18 +47,9 @@ public class ActivityController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = parseSortDirection(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<ActivityDTO> activities = activityService.findAll(pageable);
-            return ResponseUtil.success("Successfully retrieved activities", activities);
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error retrieving activities: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve activities", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        Pageable pageable = createPageable(page, size, sort, direction);
+        Page<ActivityDTO> activities = activityService.findAll(pageable);
+        return ResponseUtil.success("Successfully retrieved activities", activities);
     }
 
     /**
@@ -79,14 +59,8 @@ public class ActivityController {
      */
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<ActivityDTO>>> getAllActivitiesWithoutPagination() {
-        try {
-            List<ActivityDTO> activities = activityService.findAll();
-            return ResponseUtil.success("Successfully retrieved all activities", activities);
-        } catch (Exception e) {
-            log.error("Error retrieving all activities: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve activities", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        List<ActivityDTO> activities = activityService.findAll();
+        return ResponseUtil.success("Successfully retrieved all activities", activities);
     }
 
     /**
@@ -97,19 +71,11 @@ public class ActivityController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ActivityDTO>> getActivityById(@PathVariable UUID id) {
-        try {
-            return activityService
-                    .findById(id)
-                    .map(activity -> ResponseUtil.success("Successfully retrieved activity", activity))
-                    .orElseThrow(() -> new CustomException(
-                            "Activity not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error retrieving activity with id {}: {}", id, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve activity", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return activityService
+                .findById(id)
+                .map(activity -> ResponseUtil.success("Successfully retrieved activity", activity))
+                .orElseThrow(() ->
+                        new CustomException("Activity not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
     }
 
     /**
@@ -129,20 +95,9 @@ public class ActivityController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = parseSortDirection(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<ActivityDTO> activities = activityService.findByUserId(userId, pageable);
-            return ResponseUtil.success("Successfully retrieved activities for user", activities);
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error retrieving activities for user {}: {}", userId, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve activities for user",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
-        }
+        Pageable pageable = createPageable(page, size, sort, direction);
+        Page<ActivityDTO> activities = activityService.findByUserId(userId, pageable);
+        return ResponseUtil.success("Successfully retrieved activities for user", activities);
     }
 
     /**
@@ -162,20 +117,9 @@ public class ActivityController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = parseSortDirection(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<ActivityDTO> activities = activityService.findByGardenPlanId(gardenPlanId, pageable);
-            return ResponseUtil.success("Successfully retrieved activities for garden plan", activities);
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error retrieving activities for garden plan {}: {}", gardenPlanId, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve activities for garden plan",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
-        }
+        Pageable pageable = createPageable(page, size, sort, direction);
+        Page<ActivityDTO> activities = activityService.findByGardenPlanId(gardenPlanId, pageable);
+        return ResponseUtil.success("Successfully retrieved activities for garden plan", activities);
     }
 
     /**
@@ -197,21 +141,9 @@ public class ActivityController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = parseSortDirection(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<ActivityDTO> activities = activityService.findByUserIdAndActivityType(userId, activityType, pageable);
-            return ResponseUtil.success("Successfully retrieved activities for user and type", activities);
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error(
-                    "Error retrieving activities for user {} and type {}: {}", userId, activityType, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve activities for user and type",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
-        }
+        Pageable pageable = createPageable(page, size, sort, direction);
+        Page<ActivityDTO> activities = activityService.findByUserIdAndActivityType(userId, activityType, pageable);
+        return ResponseUtil.success("Successfully retrieved activities for user and type", activities);
     }
 
     /**
@@ -222,14 +154,8 @@ public class ActivityController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<ActivityDTO>> createActivity(@Valid @RequestBody ActivityDTO activityDTO) {
-        try {
-            ActivityDTO createdActivity = activityService.create(activityDTO);
-            return ResponseUtil.success("Activity created successfully", createdActivity);
-        } catch (Exception e) {
-            log.error("Error creating activity: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to create activity", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        ActivityDTO createdActivity = activityService.create(activityDTO);
+        return ResponseUtil.success("Activity created successfully", createdActivity);
     }
 
     /**
@@ -242,19 +168,11 @@ public class ActivityController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ActivityDTO>> updateActivity(
             @PathVariable UUID id, @Valid @RequestBody ActivityDTO activityDTO) {
-        try {
-            return activityService
-                    .update(id, activityDTO)
-                    .map(updatedActivity -> ResponseUtil.success("Activity updated successfully", updatedActivity))
-                    .orElseThrow(() -> new CustomException(
-                            "Activity not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error updating activity with id {}: {}", id, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to update activity", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return activityService
+                .update(id, activityDTO)
+                .map(updatedActivity -> ResponseUtil.success("Activity updated successfully", updatedActivity))
+                .orElseThrow(() ->
+                        new CustomException("Activity not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
     }
 
     /**
@@ -265,13 +183,23 @@ public class ActivityController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteActivity(@PathVariable UUID id) {
+        activityService.delete(id);
+        return ResponseUtil.success("Activity deleted successfully", null);
+    }
+
+    /**
+     * Creates a pageable object from pagination parameters.
+     * Throws CustomException if the direction is invalid.
+     */
+    private Pageable createPageable(int page, int size, String sort, String direction) {
         try {
-            activityService.delete(id);
-            return ResponseUtil.success("Activity deleted successfully", null);
-        } catch (Exception e) {
-            log.error("Error deleting activity with id {}: {}", id, e.getMessage(), e);
+            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+            return PageRequest.of(page, size, sortDirection, sort);
+        } catch (IllegalArgumentException e) {
             throw new CustomException(
-                    "Failed to delete activity", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
+                    "Invalid sort direction. Must be either 'ASC' or 'DESC'",
+                    HttpStatus.BAD_REQUEST,
+                    ErrorCode.INVALID_REQUEST);
         }
     }
 }
