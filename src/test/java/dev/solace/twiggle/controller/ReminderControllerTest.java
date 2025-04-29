@@ -24,6 +24,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -99,7 +100,7 @@ class ReminderControllerTest {
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
     }
-    
+
     @Test
     void sendReminderEmail_WhenServiceFails_ShouldReturnInternalServerError() throws Exception {
         // Arrange
@@ -160,7 +161,7 @@ class ReminderControllerTest {
         // Act & Assert
         mockMvc.perform(get("/api/v1/reminders/test/{email}", testEmail)).andExpect(status().isInternalServerError());
     }
-    
+
     @Test
     void sendReminderEmail_WhenServiceThrowsCustomException_ShouldPropagateException() throws Exception {
         // Arrange
