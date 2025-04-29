@@ -10,6 +10,7 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -33,6 +34,34 @@ public class PlantController {
     private final PlantService plantService;
 
     /**
+     * Creates a Pageable object based on request parameters.
+     *
+     * @param page page number
+     * @param size page size
+     * @param sort sort property
+     * @param direction sort direction
+     * @return Pageable object
+     */
+    private Pageable createPageable(int page, int size, String sort, String direction) {
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+        return PageRequest.of(page, size, sortDirection, sort);
+    }
+
+    private <T> ResponseEntity<ApiResponse<T>> handleServiceCall(
+            Supplier<T> serviceSupplier, String successMessage, String errorMessage, ErrorCode errorCode) {
+        try {
+            T result = serviceSupplier.get();
+            return ResponseUtil.success(successMessage, result);
+        } catch (CustomException e) {
+            // Re-throw known custom exceptions
+            throw e;
+        } catch (Exception e) {
+            log.error("{}: {}", errorMessage, e.getMessage(), e);
+            throw new CustomException(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR, errorCode);
+        }
+    }
+
+    /**
      * Get all plants with pagination and sorting.
      *
      * @param page page number (0-based)
@@ -47,16 +76,14 @@ public class PlantController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<PlantDTO> plants = plantService.findAll(pageable);
-            return ResponseUtil.success("Successfully retrieved plants", plants);
-        } catch (Exception e) {
-            log.error("Error retrieving plants: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve plants", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return handleServiceCall(
+                () -> {
+                    Pageable pageable = createPageable(page, size, sort, direction);
+                    return plantService.findAll(pageable);
+                },
+                "Successfully retrieved plants",
+                "Failed to retrieve plants",
+                ErrorCode.INTERNAL_ERROR);
     }
 
     /**
@@ -78,16 +105,14 @@ public class PlantController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<PlantDTO> plants = plantService.searchPlants(query, gardenPlanId, pageable);
-            return ResponseUtil.success("Successfully searched plants", plants);
-        } catch (Exception e) {
-            log.error("Error searching plants: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to search plants", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return handleServiceCall(
+                () -> {
+                    Pageable pageable = createPageable(page, size, sort, direction);
+                    return plantService.searchPlants(query, gardenPlanId, pageable);
+                },
+                "Successfully searched plants",
+                "Failed to search plants",
+                ErrorCode.INTERNAL_ERROR);
     }
 
     /**
@@ -115,19 +140,16 @@ public class PlantController {
             @RequestParam(required = false) UUID gardenPlanId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        try {
-            // For advanced search, we always sort by relevance score
-            Pageable pageable = PageRequest.of(page, size);
-            Page<PlantDTO> plants = plantService.searchPlantsWithRelevance(
-                    name, type, wateringFrequency, sunlightRequirements, query, gardenPlanId, pageable);
-            return ResponseUtil.success("Successfully searched plants with advanced criteria", plants);
-        } catch (Exception e) {
-            log.error("Error performing advanced search on plants: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to perform advanced search on plants",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
-        }
+        return handleServiceCall(
+                () -> {
+                    // For advanced search, we always sort by relevance score implicitly in service
+                    Pageable pageable = PageRequest.of(page, size);
+                    return plantService.searchPlantsWithRelevance(
+                            name, type, wateringFrequency, sunlightRequirements, query, gardenPlanId, pageable);
+                },
+                "Successfully searched plants with advanced criteria",
+                "Failed to perform advanced search on plants",
+                ErrorCode.INTERNAL_ERROR);
     }
 
     /**
@@ -137,14 +159,11 @@ public class PlantController {
      */
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<PlantDTO>>> getAllPlantsWithoutPagination() {
-        try {
-            List<PlantDTO> plants = plantService.findAll();
-            return ResponseUtil.success("Successfully retrieved all plants", plants);
-        } catch (Exception e) {
-            log.error("Error retrieving all plants: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve plants", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return handleServiceCall(
+                plantService::findAll,
+                "Successfully retrieved all plants",
+                "Failed to retrieve plants",
+                ErrorCode.INTERNAL_ERROR);
     }
 
     /**
@@ -155,6 +174,7 @@ public class PlantController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<PlantDTO>> getPlantById(@PathVariable UUID id) {
+        // Specific handling for not found
         try {
             return plantService
                     .findById(id)
@@ -187,18 +207,14 @@ public class PlantController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<PlantDTO> plants = plantService.findByGardenPlanId(gardenPlanId, pageable);
-            return ResponseUtil.success("Successfully retrieved plants for garden plan", plants);
-        } catch (Exception e) {
-            log.error("Error retrieving plants for garden plan {}: {}", gardenPlanId, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve plants for garden plan",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
-        }
+        return handleServiceCall(
+                () -> {
+                    Pageable pageable = createPageable(page, size, sort, direction);
+                    return plantService.findByGardenPlanId(gardenPlanId, pageable);
+                },
+                "Successfully retrieved plants for garden plan",
+                "Failed to retrieve plants for garden plan",
+                ErrorCode.INTERNAL_ERROR);
     }
 
     /**
@@ -210,16 +226,11 @@ public class PlantController {
     @GetMapping("/garden-plan/{gardenPlanId}/all")
     public ResponseEntity<ApiResponse<List<PlantDTO>>> getPlantsByGardenPlanIdWithoutPagination(
             @PathVariable UUID gardenPlanId) {
-        try {
-            List<PlantDTO> plants = plantService.findByGardenPlanId(gardenPlanId);
-            return ResponseUtil.success("Successfully retrieved plants for garden plan", plants);
-        } catch (Exception e) {
-            log.error("Error retrieving plants for garden plan {}: {}", gardenPlanId, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve plants for garden plan",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
-        }
+        return handleServiceCall(
+                () -> plantService.findByGardenPlanId(gardenPlanId),
+                "Successfully retrieved plants for garden plan",
+                "Failed to retrieve plants for garden plan",
+                ErrorCode.INTERNAL_ERROR);
     }
 
     /**
@@ -239,16 +250,14 @@ public class PlantController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<PlantDTO> plants = plantService.findByType(type, pageable);
-            return ResponseUtil.success("Successfully retrieved plants by type", plants);
-        } catch (Exception e) {
-            log.error("Error retrieving plants by type {}: {}", type, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve plants by type", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return handleServiceCall(
+                () -> {
+                    Pageable pageable = createPageable(page, size, sort, direction);
+                    return plantService.findByType(type, pageable);
+                },
+                "Successfully retrieved plants by type",
+                "Failed to retrieve plants by type",
+                ErrorCode.INTERNAL_ERROR);
     }
 
     /**
@@ -259,14 +268,11 @@ public class PlantController {
      */
     @GetMapping("/type/{type}/all")
     public ResponseEntity<ApiResponse<List<PlantDTO>>> getPlantsByTypeWithoutPagination(@PathVariable String type) {
-        try {
-            List<PlantDTO> plants = plantService.findByType(type);
-            return ResponseUtil.success("Successfully retrieved plants by type", plants);
-        } catch (Exception e) {
-            log.error("Error retrieving plants by type {}: {}", type, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve plants by type", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return handleServiceCall(
+                () -> plantService.findByType(type),
+                "Successfully retrieved plants by type",
+                "Failed to retrieve plants by type",
+                ErrorCode.INTERNAL_ERROR);
     }
 
     /**
@@ -277,14 +283,11 @@ public class PlantController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<PlantDTO>> createPlant(@Valid @RequestBody PlantDTO plantDTO) {
-        try {
-            PlantDTO createdPlant = plantService.create(plantDTO);
-            return ResponseUtil.success("Plant created successfully", createdPlant);
-        } catch (Exception e) {
-            log.error("Error creating plant: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to create plant", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return handleServiceCall(
+                () -> plantService.create(plantDTO),
+                "Plant created successfully",
+                "Failed to create plant",
+                ErrorCode.INTERNAL_ERROR);
     }
 
     /**
@@ -297,6 +300,7 @@ public class PlantController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<PlantDTO>> updatePlant(
             @PathVariable UUID id, @Valid @RequestBody PlantDTO plantDTO) {
+        // Specific handling for not found
         try {
             return plantService
                     .update(id, plantDTO)
@@ -320,13 +324,13 @@ public class PlantController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deletePlant(@PathVariable UUID id) {
-        try {
-            plantService.delete(id);
-            return ResponseUtil.success("Plant deleted successfully", null);
-        } catch (Exception e) {
-            log.error("Error deleting plant with id {}: {}", id, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to delete plant", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return handleServiceCall(
+                () -> {
+                    plantService.delete(id);
+                    return null; // Void return type for delete
+                },
+                "Plant deleted successfully",
+                "Failed to delete plant",
+                ErrorCode.INTERNAL_ERROR);
     }
 }
