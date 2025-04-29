@@ -92,7 +92,8 @@ class ImageLikeControllerTest {
 
         mockMvc.perform(get("/api/image-likes"))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").exists());
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
@@ -110,7 +111,8 @@ class ImageLikeControllerTest {
 
         mockMvc.perform(get("/api/image-likes/" + likeId))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").exists());
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
@@ -119,7 +121,8 @@ class ImageLikeControllerTest {
 
         mockMvc.perform(get("/api/image-likes/" + likeId))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").exists());
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
@@ -152,7 +155,8 @@ class ImageLikeControllerTest {
 
         mockMvc.perform(get("/api/image-likes/image/" + imageId))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").exists());
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
@@ -170,7 +174,8 @@ class ImageLikeControllerTest {
 
         mockMvc.perform(get("/api/image-likes/image/" + imageId + "/count"))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").exists());
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
@@ -197,7 +202,8 @@ class ImageLikeControllerTest {
 
         mockMvc.perform(get("/api/image-likes/image/" + imageId + "/user/" + userId))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").exists());
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
@@ -226,7 +232,8 @@ class ImageLikeControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(dto)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error").exists());
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
@@ -240,7 +247,8 @@ class ImageLikeControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(dto)))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").exists());
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
@@ -269,7 +277,8 @@ class ImageLikeControllerTest {
 
         mockMvc.perform(post("/api/image-likes/image/" + imageId + "/user/" + userId + "/toggle"))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").exists());
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
@@ -287,7 +296,8 @@ class ImageLikeControllerTest {
 
         mockMvc.perform(delete("/api/image-likes/image/" + imageId + "/user/" + userId))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").exists());
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
@@ -303,6 +313,7 @@ class ImageLikeControllerTest {
 
         mockMvc.perform(delete("/api/image-likes/" + likeId))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").exists());
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message").exists());
     }
 }

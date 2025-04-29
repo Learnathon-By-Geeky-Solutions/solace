@@ -46,16 +46,10 @@ public class ImageLikeController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<ImageLikeDTO> likes = imageLikeService.findAll(pageable);
-            return ResponseUtil.success("Successfully retrieved image likes", likes);
-        } catch (Exception e) {
-            log.error("Error retrieving image likes: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve image likes", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+        Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
+        Page<ImageLikeDTO> likes = imageLikeService.findAll(pageable);
+        return ResponseUtil.success("Successfully retrieved image likes", likes);
     }
 
     /**
@@ -66,19 +60,11 @@ public class ImageLikeController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ImageLikeDTO>> getImageLikeById(@PathVariable UUID id) {
-        try {
-            return imageLikeService
-                    .findById(id)
-                    .map(like -> ResponseUtil.success("Successfully retrieved image like", like))
-                    .orElseThrow(() -> new CustomException(
-                            "Image like not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error retrieving image like with id {}: {}", id, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve image like", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return imageLikeService
+                .findById(id)
+                .map(like -> ResponseUtil.success("Successfully retrieved image like", like))
+                .orElseThrow(() -> new CustomException(
+                        "Image like not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
     }
 
     /**
@@ -98,16 +84,10 @@ public class ImageLikeController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<ImageLikeDTO> likes = imageLikeService.findByImageId(imageId, pageable);
-            return ResponseUtil.success("Successfully retrieved likes for image", likes);
-        } catch (Exception e) {
-            log.error("Error retrieving likes for image {}: {}", imageId, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve likes for image", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+        Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
+        Page<ImageLikeDTO> likes = imageLikeService.findByImageId(imageId, pageable);
+        return ResponseUtil.success("Successfully retrieved likes for image", likes);
     }
 
     /**
@@ -118,14 +98,8 @@ public class ImageLikeController {
      */
     @GetMapping("/image/{imageId}/count")
     public ResponseEntity<ApiResponse<Long>> countLikesByImageId(@PathVariable UUID imageId) {
-        try {
-            long count = imageLikeService.countByImageId(imageId);
-            return ResponseUtil.success("Successfully counted likes for image", count);
-        } catch (Exception e) {
-            log.error("Error counting likes for image {}: {}", imageId, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to count likes for image", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        long count = imageLikeService.countByImageId(imageId);
+        return ResponseUtil.success("Successfully counted likes for image", count);
     }
 
     /**
@@ -138,14 +112,8 @@ public class ImageLikeController {
     @GetMapping("/image/{imageId}/user/{userId}")
     public ResponseEntity<ApiResponse<Boolean>> hasUserLikedImage(
             @PathVariable UUID imageId, @PathVariable UUID userId) {
-        try {
-            boolean hasLiked = imageLikeService.hasUserLikedImage(imageId, userId);
-            return ResponseUtil.success("Successfully checked if user liked image", hasLiked);
-        } catch (Exception e) {
-            log.error("Error checking if user {} liked image {}: {}", userId, imageId, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to check if user liked image", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        boolean hasLiked = imageLikeService.hasUserLikedImage(imageId, userId);
+        return ResponseUtil.success("Successfully checked if user liked image", hasLiked);
     }
 
     /**
@@ -162,10 +130,6 @@ public class ImageLikeController {
         } catch (IllegalStateException e) {
             log.warn("User has already liked this image: {}", e.getMessage());
             throw new CustomException("User has already liked this image", HttpStatus.CONFLICT, ErrorCode.DUPLICATE);
-        } catch (Exception e) {
-            log.error("Error creating image like: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to create image like", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
         }
     }
 
@@ -178,15 +142,9 @@ public class ImageLikeController {
      */
     @PostMapping("/image/{imageId}/user/{userId}/toggle")
     public ResponseEntity<ApiResponse<Boolean>> toggleImageLike(@PathVariable UUID imageId, @PathVariable UUID userId) {
-        try {
-            boolean liked = imageLikeService.toggleLike(imageId, userId);
-            String message = liked ? "Image liked successfully" : "Image unliked successfully";
-            return ResponseUtil.success(message, liked);
-        } catch (Exception e) {
-            log.error("Error toggling like for image {} by user {}: {}", imageId, userId, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to toggle image like", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        boolean liked = imageLikeService.toggleLike(imageId, userId);
+        String message = liked ? "Image liked successfully" : "Image unliked successfully";
+        return ResponseUtil.success(message, liked);
     }
 
     /**
@@ -198,14 +156,8 @@ public class ImageLikeController {
      */
     @DeleteMapping("/image/{imageId}/user/{userId}")
     public ResponseEntity<ApiResponse<Boolean>> unlikeImage(@PathVariable UUID imageId, @PathVariable UUID userId) {
-        try {
-            boolean unliked = imageLikeService.unlikeImage(imageId, userId);
-            return ResponseUtil.success("Image unliked successfully", unliked);
-        } catch (Exception e) {
-            log.error("Error unliking image {} by user {}: {}", imageId, userId, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to unlike image", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        boolean unliked = imageLikeService.unlikeImage(imageId, userId);
+        return ResponseUtil.success("Image unliked successfully", unliked);
     }
 
     /**
@@ -216,13 +168,63 @@ public class ImageLikeController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteImageLike(@PathVariable UUID id) {
-        try {
-            imageLikeService.delete(id);
-            return ResponseUtil.success("Image like deleted successfully", null);
-        } catch (Exception e) {
-            log.error("Error deleting image like with id {}: {}", id, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to delete image like", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
+        imageLikeService.delete(id);
+        return ResponseUtil.success("Image like deleted successfully", null);
+    }
+
+    /**
+     * Exception handler for all controller methods.
+     */
+    @ExceptionHandler({Exception.class})
+    public ResponseEntity<ApiResponse<Object>> handleExceptions(Exception ex) {
+        // Already handled CustomExceptions pass through
+        if (ex instanceof CustomException customEx) {
+            return new ResponseEntity<>(
+                    ApiResponse.builder()
+                            .timestamp(java.time.LocalDateTime.now(java.time.ZoneOffset.UTC))
+                            .status(customEx.getStatus().value())
+                            .message(customEx.getMessage())
+                            .data(null)
+                            .build(),
+                    customEx.getStatus());
         }
+
+        // Handle validation errors
+        if (ex instanceof org.springframework.web.bind.MethodArgumentNotValidException validationEx) {
+            String errorMessage = validationEx.getBindingResult().getFieldErrors().stream()
+                    .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                    .findFirst()
+                    .orElse("Validation error");
+
+            return new ResponseEntity<>(
+                    ApiResponse.builder()
+                            .timestamp(java.time.LocalDateTime.now(java.time.ZoneOffset.UTC))
+                            .status(HttpStatus.BAD_REQUEST.value())
+                            .message(errorMessage)
+                            .data(null)
+                            .build(),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        // Log any unexpected errors
+        log.error("Unhandled exception in ImageLikeController: {}", ex.getMessage(), ex);
+
+        // Determine appropriate response
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        String message = "Failed to process image like operation";
+
+        if (ex instanceof IllegalStateException) {
+            status = HttpStatus.CONFLICT;
+            message = ex.getMessage();
+        }
+
+        return new ResponseEntity<>(
+                ApiResponse.builder()
+                        .timestamp(java.time.LocalDateTime.now(java.time.ZoneOffset.UTC))
+                        .status(status.value())
+                        .message(message)
+                        .data(null)
+                        .build(),
+                status);
     }
 }

@@ -258,15 +258,17 @@ public class ProfileController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteProfile(@PathVariable UUID id) {
-        // Check if profile exists first
-        if (!profileService.findById(id).isPresent()) {
-            throw new CustomException(
-                    "Profile not found for deletion", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
-        }
         try {
+            // Check if profile exists first
+            if (!profileService.findById(id).isPresent()) {
+                throw new CustomException(
+                        "Profile not found for deletion", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
+            }
             profileService.delete(id);
             return ResponseUtil.success("Profile deleted successfully", null);
-        } catch (Exception e) { // Catch potential errors during deletion itself
+        } catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
             log.error("Error deleting profile with id {}: {}", id, e.getMessage(), e);
             throw new CustomException(
                     "Failed to delete profile", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
