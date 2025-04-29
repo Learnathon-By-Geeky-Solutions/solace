@@ -11,6 +11,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.solace.twiggle.config.RateLimiterConfiguration;
 import dev.solace.twiggle.config.TestSecurityConfig;
 import dev.solace.twiggle.dto.ReminderEmailRequest;
+import dev.solace.twiggle.exception.CustomException;
+import dev.solace.twiggle.exception.ErrorCode;
 import dev.solace.twiggle.service.ReminderService;
 import java.util.HashMap;
 import java.util.Map;
@@ -97,6 +99,32 @@ class ReminderControllerTest {
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
     }
+    
+    @Test
+    void sendReminderEmail_WhenServiceFails_ShouldReturnInternalServerError() throws Exception {
+        // Arrange
+        ReminderEmailRequest request = ReminderEmailRequest.builder()
+                .userEmail("user@example.com")
+                .plantName("Tomato")
+                .reminderType("Watering")
+                .reminderDate("2024-07-20")
+                .reminderTime("09:00")
+                .gardenSpaceName("Backyard Patch")
+                .gardenSpaceId(UUID.randomUUID().toString())
+                .build();
+
+        Map<String, Object> failureResult = new HashMap<>();
+        failureResult.put("success", false);
+
+        when(reminderService.sendReminderEmailWithId(any(ReminderEmailRequest.class)))
+                .thenReturn(failureResult);
+
+        // Act & Assert
+        mockMvc.perform(post("/api/v1/reminders/send")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isInternalServerError());
+    }
 
     @Test
     void testEmail_WithValidEmail_ShouldReturnSuccess() throws Exception {
@@ -128,6 +156,74 @@ class ReminderControllerTest {
 
         when(reminderService.sendReminderEmailWithId(any(ReminderEmailRequest.class)))
                 .thenReturn(failureResult);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/reminders/test/{email}", testEmail)).andExpect(status().isInternalServerError());
+    }
+    
+    @Test
+    void sendReminderEmail_WhenServiceThrowsCustomException_ShouldPropagateException() throws Exception {
+        // Arrange
+        ReminderEmailRequest request = ReminderEmailRequest.builder()
+                .userEmail("user@example.com")
+                .plantName("Tomato")
+                .reminderType("Watering")
+                .reminderDate("2024-07-20")
+                .reminderTime("09:00")
+                .gardenSpaceName("Backyard Patch")
+                .gardenSpaceId(UUID.randomUUID().toString())
+                .build();
+
+        when(reminderService.sendReminderEmailWithId(any(ReminderEmailRequest.class)))
+                .thenThrow(new CustomException("Custom error", HttpStatus.BAD_REQUEST, ErrorCode.INVALID_REQUEST));
+
+        // Act & Assert
+        mockMvc.perform(post("/api/v1/reminders/send")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void sendReminderEmail_WhenServiceThrowsUnexpectedException_ShouldReturnInternalServerError() throws Exception {
+        // Arrange
+        ReminderEmailRequest request = ReminderEmailRequest.builder()
+                .userEmail("user@example.com")
+                .plantName("Tomato")
+                .reminderType("Watering")
+                .reminderDate("2024-07-20")
+                .reminderTime("09:00")
+                .gardenSpaceName("Backyard Patch")
+                .gardenSpaceId(UUID.randomUUID().toString())
+                .build();
+
+        when(reminderService.sendReminderEmailWithId(any(ReminderEmailRequest.class)))
+                .thenThrow(new RuntimeException("Unexpected error"));
+
+        // Act & Assert
+        mockMvc.perform(post("/api/v1/reminders/send")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testEmail_WhenServiceThrowsCustomException_ShouldPropagateException() throws Exception {
+        // Arrange
+        String testEmail = "test@example.com";
+        when(reminderService.sendReminderEmailWithId(any(ReminderEmailRequest.class)))
+                .thenThrow(new CustomException("Custom error", HttpStatus.BAD_REQUEST, ErrorCode.INVALID_REQUEST));
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/reminders/test/{email}", testEmail)).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testEmail_WhenServiceThrowsUnexpectedException_ShouldReturnInternalServerError() throws Exception {
+        // Arrange
+        String testEmail = "test@example.com";
+        when(reminderService.sendReminderEmailWithId(any(ReminderEmailRequest.class)))
+                .thenThrow(new RuntimeException("Unexpected error"));
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/reminders/test/{email}", testEmail)).andExpect(status().isInternalServerError());
