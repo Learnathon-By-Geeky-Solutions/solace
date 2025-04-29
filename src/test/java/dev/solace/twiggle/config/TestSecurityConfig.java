@@ -22,7 +22,7 @@ public class TestSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                .headers(headers -> headers.frameOptions().disable());
+                .headers(headers -> headers.frameOptions(frame -> frame.disable()));
         return http.build();
     }
 
