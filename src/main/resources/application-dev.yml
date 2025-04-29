@@ -1,6 +1,13 @@
 spring:
   application:
     name: twiggle
+  security:
+    user:
+      name: ${TWIGGLE_USER_NAME:your_username_here}
+      password: ${TWIGGLE_USER_PASSWORD:your_password_here}
+  app:
+    jwtSecret: ${JWT_SECRET:your_jwt_secret_here}
+    jwtExpirationMs: ${JWT_EXPIRATION_MS:86400000}
 
   datasource:
     url: jdbc:postgresql://${SUPABASE_URL}:5432/postgres
@@ -98,6 +105,10 @@ unsplash:
     key: ${UNSPLASH_ACCESS_KEY:}
   api:
     url: https://api.unsplash.com
+
+supabase:
+  service_role_key: ${SUPABASE_SERVICE_ROLE_KEY:}
+  project_id: ${SUPABASE_PROJECT_ID:}
 
 # CORS Configuration
 cors:

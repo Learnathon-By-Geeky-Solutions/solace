@@ -17,6 +17,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(GardenPlanController.class)
 @Import(GardenPlanControllerTest.GardenPlanTestConfig.class)
+@AutoConfigureMockMvc(addFilters = false)
 class GardenPlanControllerTest {
 
     @TestConfiguration
@@ -68,7 +70,7 @@ class GardenPlanControllerTest {
                 .build();
     }
 
-    /* ----------  Happy-path endpoints  ---------- */
+    /* ---------- Happy-path endpoints ---------- */
 
     @Test
     void testGetAllGardenPlans() throws Exception {
@@ -171,7 +173,7 @@ class GardenPlanControllerTest {
                 .andExpect(jsonPath("$.data.content[0].location").value("Dhaka"));
     }
 
-    /* ----------  Pagination / sorting helpers  ---------- */
+    /* ---------- Pagination / sorting helpers ---------- */
 
     @Test
     void testGetGardenPlansByUserId() throws Exception {
@@ -220,7 +222,7 @@ class GardenPlanControllerTest {
                 .andExpect(jsonPath("$.data[0].type").value("Balcony"));
     }
 
-    /* ----------  Validation & error-path tests  ---------- */
+    /* ---------- Validation & error-path tests ---------- */
 
     @Test
     void testGetAllGardenPlansWithInvalidSortDirection() throws Exception {
@@ -355,7 +357,7 @@ class GardenPlanControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content").isArray());
     }
-    /* ----------  Additional test cases for full coverage  ---------- */
+    /* ---------- Additional test cases for full coverage ---------- */
 
     @Test
     void testGetAllGardenPlansWithoutPagination_withServiceException() throws Exception {

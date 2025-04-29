@@ -17,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -32,6 +33,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 @WebMvcTest(ActivityController.class)
 @Import(ActivityControllerTest.ActivityTestConfig.class)
+@AutoConfigureMockMvc(addFilters = false)
 class ActivityControllerTest {
 
     @TestConfiguration
@@ -403,7 +405,8 @@ class ActivityControllerTest {
 
     @Test
     void testGetAllActivitiesWithInvalidPage() throws Exception {
-        // Since the pagination parameters aren't validated by the controller but by Spring,
+        // Since the pagination parameters aren't validated by the controller but by
+        // Spring,
         // we should expect 500 error when the service throws an exception
         Mockito.when(activityService.findAll(any(Pageable.class)))
                 .thenThrow(new RuntimeException("Invalid page parameters"));
@@ -416,7 +419,8 @@ class ActivityControllerTest {
 
     @Test
     void testGetAllActivitiesWithInvalidSize() throws Exception {
-        // Since the pagination parameters aren't validated by the controller but by Spring,
+        // Since the pagination parameters aren't validated by the controller but by
+        // Spring,
         // we should expect 500 error when the service throws an exception
         Mockito.when(activityService.findAll(any(Pageable.class)))
                 .thenThrow(new RuntimeException("Invalid page parameters"));
@@ -574,10 +578,12 @@ class ActivityControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Invalid sort direction. Must be either 'ASC' or 'DESC'"));
     }
+
     // Remove the failing test and add a more appropriate test
     @Test
     void testCustomExceptionHandling() throws Exception {
-        // Instead of testing pagination validation specifically, let's test the CustomException handling
+        // Instead of testing pagination validation specifically, let's test the
+        // CustomException handling
         // with a more reliable approach
         Mockito.when(activityService.findAll(any(Pageable.class)))
                 .thenThrow(
@@ -588,10 +594,12 @@ class ActivityControllerTest {
                 .andExpect(jsonPath("$.message").value("Custom error message"));
     }
 
-    // Additional test for parseSortDirection method which does throw a CustomException
+    // Additional test for parseSortDirection method which does throw a
+    // CustomException
     @Test
     void testSortDirectionValidation() throws Exception {
-        // This test should work because parseSortDirection specifically throws a CustomException
+        // This test should work because parseSortDirection specifically throws a
+        // CustomException
         MockHttpServletRequestBuilder request = get("/api/activities").param("direction", "INVALID_DIRECTION");
 
         mockMvc.perform(request)
