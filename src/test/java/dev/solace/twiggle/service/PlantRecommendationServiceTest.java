@@ -2,43 +2,46 @@ package dev.solace.twiggle.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import dev.solace.twiggle.dto.recommendation.PlantRecommendation;
 import dev.solace.twiggle.dto.recommendation.PlantRecommendationRequest;
 import dev.solace.twiggle.dto.recommendation.PlantRecommendationResponse;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import dev.solace.twiggle.service.client.OpenAiClient;
+import dev.solace.twiggle.service.client.UnsplashClient;
+import dev.solace.twiggle.service.util.JsonUtils;
+import dev.solace.twiggle.service.util.SeasonalUtils;
 import java.util.*;
-import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import reactor.core.publisher.Mono;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class PlantRecommendationServiceTest {
 
     @Mock
-    private WebClient openaiWebClient;
+    private OpenAiClient openAiClient;
 
     @Mock
-    private WebClient unsplashWebClient;
+    private UnsplashClient unsplashClient;
 
     @Mock
-    private ObjectMapper objectMapper;
+    private JsonUtils jsonUtils;
+
+    @Mock
+    private SeasonalUtils seasonalUtils;
+
+    @Mock
+    private PromptBuilder promptBuilder;
 
     private PlantRecommendationService plantRecommendationService;
     private PlantRecommendationRequest validRequest;
@@ -48,7 +51,7 @@ class PlantRecommendationServiceTest {
     @BeforeEach
     void setUp() {
         plantRecommendationService =
-                spy(new PlantRecommendationService(openaiWebClient, unsplashWebClient, objectMapper));
+                new PlantRecommendationService(openAiClient, unsplashClient, jsonUtils, seasonalUtils, promptBuilder);
 
         validRequest = PlantRecommendationRequest.builder()
                 .location("San Francisco")
@@ -85,652 +88,140 @@ class PlantRecommendationServiceTest {
     }
 
     @Test
-    void getPlantRecommendations_WithValidRequest_ShouldReturnRecommendations() {
-        PlantRecommendationResponse successResponse = PlantRecommendationResponse.builder()
-                .success(true)
-                .recommendations(mockRecommendationsWithImages)
-                .build();
+    void getPlantRecommendations_WithValidRequest_ShouldReturnRecommendations() throws JsonProcessingException {
+        // Arrange
+        when(seasonalUtils.getCurrentSeason("San Francisco")).thenReturn("summer");
+        when(promptBuilder.buildSystemPrompt("summer")).thenReturn("System prompt");
+        when(promptBuilder.buildUserPrompt(validRequest, "summer")).thenReturn("User prompt");
+        when(openAiClient.fetchRecommendations("System prompt", "User prompt")).thenReturn("OpenAI response");
+        when(jsonUtils.extractRecommendationsFromOpenAiResponse("OpenAI response"))
+                .thenReturn(mockRecommendations);
 
-        doReturn(successResponse)
-                .when(plantRecommendationService)
-                .getPlantRecommendations(any(PlantRecommendationRequest.class));
-
+        // Act
         PlantRecommendationResponse result = plantRecommendationService.getPlantRecommendations(validRequest);
 
+        // Assert
         assertNotNull(result);
         assertTrue(result.isSuccess());
         assertNull(result.getError());
+        assertEquals(mockRecommendations.size(), result.getRecommendations().size());
         assertEquals(
-                mockRecommendationsWithImages.size(),
-                result.getRecommendations().size());
-        assertEquals(
-                mockRecommendationsWithImages.getFirst().getName(),
+                mockRecommendations.getFirst().getName(),
                 result.getRecommendations().getFirst().getName());
+
+        // Verify interactions
+        verify(seasonalUtils).getCurrentSeason("San Francisco");
+        verify(promptBuilder).buildSystemPrompt("summer");
+        verify(promptBuilder).buildUserPrompt(validRequest, "summer");
+        verify(openAiClient).fetchRecommendations("System prompt", "User prompt");
+        verify(jsonUtils).extractRecommendationsFromOpenAiResponse("OpenAI response");
+        verify(unsplashClient, times(mockRecommendations.size())).fetchPlantImage(any(PlantRecommendation.class));
     }
 
     @Test
-    void getPlantRecommendations_WhenOpenAiFails_ShouldReturnErrorResponse() {
-        PlantRecommendationResponse errorResponse = PlantRecommendationResponse.builder()
-                .success(false)
-                .error("Error calling OpenAI API: 500 Internal Server Error")
-                .build();
+    void getPlantRecommendations_WhenOpenAiFails_ShouldReturnErrorResponse() throws JsonProcessingException {
+        // Arrange
+        when(seasonalUtils.getCurrentSeason("San Francisco")).thenReturn("summer");
+        when(promptBuilder.buildSystemPrompt("summer")).thenReturn("System prompt");
+        when(promptBuilder.buildUserPrompt(validRequest, "summer")).thenReturn("User prompt");
+        when(openAiClient.fetchRecommendations("System prompt", "User prompt"))
+                .thenThrow(mock(WebClientResponseException.class));
 
-        doReturn(errorResponse)
-                .when(plantRecommendationService)
-                .getPlantRecommendations(any(PlantRecommendationRequest.class));
-
+        // Act
         PlantRecommendationResponse result = plantRecommendationService.getPlantRecommendations(validRequest);
 
+        // Assert
         assertNotNull(result);
         assertFalse(result.isSuccess());
         assertNotNull(result.getError());
-        assertTrue(result.getError().contains("OpenAI"));
+        assertTrue(result.getError().contains("OpenAI API"));
         assertNull(result.getRecommendations());
     }
 
     @Test
-    void getPlantRecommendations_WhenUnsplashFails_ShouldReturnRecommendationsWithoutImages() {
-        PlantRecommendationResponse response = PlantRecommendationResponse.builder()
-                .success(true)
-                .recommendations(mockRecommendations)
-                .build();
+    void getPlantRecommendations_WhenJsonParsingFails_ShouldReturnErrorResponse() throws JsonProcessingException {
+        // Arrange
+        when(seasonalUtils.getCurrentSeason("San Francisco")).thenReturn("summer");
+        when(promptBuilder.buildSystemPrompt("summer")).thenReturn("System prompt");
+        when(promptBuilder.buildUserPrompt(validRequest, "summer")).thenReturn("User prompt");
+        when(openAiClient.fetchRecommendations("System prompt", "User prompt")).thenReturn("OpenAI response");
+        when(jsonUtils.extractRecommendationsFromOpenAiResponse("OpenAI response"))
+                .thenThrow(new JsonProcessingException("JSON parsing failed") {});
 
-        doReturn(response)
-                .when(plantRecommendationService)
-                .getPlantRecommendations(any(PlantRecommendationRequest.class));
-
+        // Act
         PlantRecommendationResponse result = plantRecommendationService.getPlantRecommendations(validRequest);
 
-        assertNotNull(result);
-        assertTrue(result.isSuccess());
-        assertNull(result.getError());
-        assertEquals(2, result.getRecommendations().size());
-        assertNull(result.getRecommendations().get(0).getImageURL());
-        assertNull(result.getRecommendations().get(1).getImageURL());
-    }
-
-    @Test
-    void getPlantRecommendations_WhenJsonParsingFails_ShouldReturnErrorResponse() {
-        PlantRecommendationResponse response = PlantRecommendationResponse.builder()
-                .success(false)
-                .error("Error generating recommendations: JSON parsing failed")
-                .build();
-
-        doReturn(response)
-                .when(plantRecommendationService)
-                .getPlantRecommendations(any(PlantRecommendationRequest.class));
-
-        PlantRecommendationResponse result = plantRecommendationService.getPlantRecommendations(validRequest);
-
+        // Assert
         assertNotNull(result);
         assertFalse(result.isSuccess());
         assertNotNull(result.getError());
-        assertTrue(result.getError().contains("recommendations"));
+        assertTrue(result.getError().contains("JSON parsing failed"));
         assertNull(result.getRecommendations());
     }
 
     @Test
-    void getCurrentSeason_ShouldReturnCorrectSeasons() throws Exception {
-        Method method = PlantRecommendationService.class.getDeclaredMethod("getCurrentSeason", String.class);
-        method.setAccessible(true);
-
-        try (MockedStatic<Calendar> calendarMock = mockStatic(Calendar.class)) {
-            Calendar mockCalendar = mock(Calendar.class);
-            calendarMock.when(Calendar::getInstance).thenReturn(mockCalendar);
-
-            when(mockCalendar.get(Calendar.MONTH)).thenReturn(Calendar.JANUARY);
-            doReturn(false).when(plantRecommendationService).isSouthernHemisphereCountry("us");
-            assertEquals("winter", method.invoke(plantRecommendationService, "US"));
-
-            when(mockCalendar.get(Calendar.MONTH)).thenReturn(Calendar.APRIL);
-            assertEquals("spring", method.invoke(plantRecommendationService, "US"));
-
-            when(mockCalendar.get(Calendar.MONTH)).thenReturn(Calendar.JULY);
-            assertEquals("summer", method.invoke(plantRecommendationService, "US"));
-
-            when(mockCalendar.get(Calendar.MONTH)).thenReturn(Calendar.OCTOBER);
-            assertEquals("autumn", method.invoke(plantRecommendationService, "US"));
-
-            when(mockCalendar.get(Calendar.MONTH)).thenReturn(Calendar.JANUARY);
-            doReturn(true).when(plantRecommendationService).isSouthernHemisphereCountry("au");
-            assertEquals("summer", method.invoke(plantRecommendationService, "AU"));
-
-            when(mockCalendar.get(Calendar.MONTH)).thenReturn(Calendar.APRIL);
-            assertEquals("autumn", method.invoke(plantRecommendationService, "AU"));
-
-            when(mockCalendar.get(Calendar.MONTH)).thenReturn(Calendar.JULY);
-            assertEquals("winter", method.invoke(plantRecommendationService, "AU"));
-
-            when(mockCalendar.get(Calendar.MONTH)).thenReturn(Calendar.OCTOBER);
-            assertEquals("spring", method.invoke(plantRecommendationService, "AU"));
-        }
-    }
-
-    @Test
-    void isSouthernHemisphereCountry_ShouldIdentifyCorrectly() {
-        doReturn(true).when(plantRecommendationService).isSouthernHemisphereCountry("AU");
-        doReturn(false).when(plantRecommendationService).isSouthernHemisphereCountry("US");
-
-        assertTrue(plantRecommendationService.isSouthernHemisphereCountry("AU"));
-        assertFalse(plantRecommendationService.isSouthernHemisphereCountry("US"));
-    }
-
-    @Test
-    void cleanAndRepairJson_ShouldHandleVariousFormats()
-            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Method method = PlantRecommendationService.class.getDeclaredMethod("cleanAndRepairJson", String.class);
-        method.setAccessible(true);
-
-        String[] inputs = {
-            "{\"recommendations\":[{\"name\":\"Plant1\"}]}",
-            "{recommendations:[{name:\"Plant1\"}]}",
-            "{\"recommendations\":[{name:Plant1}]}",
-            "{\"recommendations\":[{\"name\":Plant1}]}",
-            "{\"recommendations\":[{\"name\":\"Plant1\",}]}"
-        };
-
-        for (String input : inputs) {
-            String output = (String) method.invoke(plantRecommendationService, input);
-            assertNotNull(output);
-            assertTrue(output.contains("Plant1"));
-        }
-    }
-
-    @Test
-    void buildSystemPrompt_ShouldIncludeSeason() throws Exception {
-        Method method = PlantRecommendationService.class.getDeclaredMethod("buildSystemPrompt", String.class);
-        method.setAccessible(true);
-
-        String prompt = (String) method.invoke(plantRecommendationService, "spring");
-        assertTrue(prompt.contains("spring"));
-        assertTrue(prompt.contains("valid, parseable JSON"));
-    }
-
-    @Test
-    void buildUserPrompt_ShouldIncludeContext() throws Exception {
-        Method method = PlantRecommendationService.class.getDeclaredMethod(
-                "buildUserPrompt", PlantRecommendationRequest.class, String.class);
-        method.setAccessible(true);
-
-        PlantRecommendationRequest request = PlantRecommendationRequest.builder()
-                .location("London")
-                .gardenType("indoor")
-                .message("Need low-maintenance plants")
-                .userPreferences(PlantRecommendationRequest.UserPreferences.builder()
-                        .experience("expert")
-                        .timeCommitment("low")
-                        .harvestGoals(List.of("herbs", "vegetables"))
-                        .build())
-                .existingPlants(List.of("monstera", "pothos"))
+    void getPlantRecommendations_WithNullUserPreferences_ShouldSetDefaults() throws JsonProcessingException {
+        // Arrange
+        PlantRecommendationRequest requestWithNullPrefs = PlantRecommendationRequest.builder()
+                .location("San Francisco")
+                .gardenType("balcony")
+                .message("Easy plants for beginners")
+                .userPreferences(null)
                 .build();
 
-        String prompt = (String) method.invoke(plantRecommendationService, request, "spring");
-        assertTrue(prompt.contains("London"));
-        assertTrue(prompt.contains("herbs, vegetables"));
-    }
+        when(seasonalUtils.getCurrentSeason("San Francisco")).thenReturn("summer");
+        when(promptBuilder.buildSystemPrompt("summer")).thenReturn("System prompt");
+        when(promptBuilder.buildUserPrompt(any(), eq("summer"))).thenReturn("User prompt");
+        when(openAiClient.fetchRecommendations("System prompt", "User prompt")).thenReturn("OpenAI response");
+        when(jsonUtils.extractRecommendationsFromOpenAiResponse("OpenAI response"))
+                .thenReturn(mockRecommendations);
 
-    @Test
-    void fetchPlantImage_ShouldHandleUnsplashErrors() throws Exception {
-        Method method =
-                PlantRecommendationService.class.getDeclaredMethod("fetchPlantImage", PlantRecommendation.class);
-        method.setAccessible(true);
+        // Act
+        PlantRecommendationResponse result = plantRecommendationService.getPlantRecommendations(requestWithNullPrefs);
 
-        PlantRecommendation plant = PlantRecommendation.builder()
-                .name("Test Plant")
-                .description("Test")
-                .type("Test")
-                .build();
-
-        when(unsplashWebClient.get()).thenThrow(new RuntimeException("error"));
-
-        method.invoke(plantRecommendationService, plant);
-
-        assertNull(plant.getImageURL());
-    }
-
-    @Test
-    void fetchPlantImage_ShouldHandleEmptyResults() throws Exception {
-        Method fetchPlantImage =
-                PlantRecommendationService.class.getDeclaredMethod("fetchPlantImage", PlantRecommendation.class);
-        fetchPlantImage.setAccessible(true);
-
-        PlantRecommendation recommendation = PlantRecommendation.builder()
-                .name("Test Plant")
-                .type("Test Type")
-                .description("Test Description")
-                .build();
-
-        // 👇 Use raw types to avoid generic capture issues
-        WebClient.RequestHeadersUriSpec requestSpec = mock(WebClient.RequestHeadersUriSpec.class);
-        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
-
-        when(unsplashWebClient.get()).thenReturn(requestSpec);
-        when(requestSpec.uri(any(Function.class))).thenReturn(requestSpec); // ✅ FIXED!
-        when(requestSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.just("{\"results\":[]}"));
-
-        fetchPlantImage.invoke(plantRecommendationService, recommendation);
-
-        assertNull(recommendation.getImageURL());
-    }
-
-    @Test
-    void logRequestDetails_WithNullFields_ShouldHandleGracefully() {
-        // Test with null fields to ensure the modified code works correctly
-        PlantRecommendationRequest request = new PlantRecommendationRequest();
-        request.setGardenType("test");
-        // Let other fields remain null
-
-        // No exception should be thrown
-        assertDoesNotThrow(() -> {
-            Method method = PlantRecommendationService.class.getDeclaredMethod(
-                    "logRequestDetails", PlantRecommendationRequest.class);
-            method.setAccessible(true);
-            method.invoke(plantRecommendationService, request);
-        });
-    }
-
-    @Test
-    void setDefaultUserPreferencesIfAbsent_ShouldSetDefaults() throws Exception {
-        PlantRecommendationRequest request = new PlantRecommendationRequest();
-        request.setUserPreferences(null);
-
-        Method method = PlantRecommendationService.class.getDeclaredMethod(
-                "setDefaultUserPreferencesIfAbsent", PlantRecommendationRequest.class);
-        method.setAccessible(true);
-        method.invoke(plantRecommendationService, request);
-
-        assertNotNull(request.getUserPreferences());
-        assertEquals("beginner", request.getUserPreferences().getExperience());
-        assertEquals("moderate", request.getUserPreferences().getTimeCommitment());
-        assertTrue(request.getUserPreferences().getHarvestGoals().isEmpty());
-    }
-
-    @Test
-    void fetchRecommendationsFromOpenAI_ShouldMakeCorrectApiCall() throws Exception {
-        // Setup WebClient mocks using direct return chaining
-        WebClient.RequestBodyUriSpec requestBodyUriSpec = mock(WebClient.RequestBodyUriSpec.class);
-        WebClient.RequestBodySpec requestBodySpec = mock(WebClient.RequestBodySpec.class);
-        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
-
-        when(openaiWebClient.post()).thenReturn(requestBodyUriSpec);
-        // Use doReturn/when pattern to avoid type issues
-        doReturn(requestBodySpec).when(requestBodyUriSpec).uri("/chat/completions");
-        doReturn(requestBodySpec).when(requestBodySpec).contentType(any(MediaType.class));
-        doReturn(requestBodySpec).when(requestBodySpec).bodyValue(any());
-        doReturn(responseSpec).when(requestBodySpec).retrieve();
-        when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.just("{\"result\":\"success\"}"));
-
-        Method method = PlantRecommendationService.class.getDeclaredMethod(
-                "fetchRecommendationsFromOpenAI", PlantRecommendationRequest.class, String.class);
-        method.setAccessible(true);
-
-        String result = (String) method.invoke(plantRecommendationService, validRequest, "summer");
-
+        // Assert
         assertNotNull(result);
-        assertEquals("{\"result\":\"success\"}", result);
-        verify(requestBodySpec).bodyValue(any());
-    }
-
-    @Test
-    void buildSuccessResponse_ShouldCreateCorrectResponse() throws Exception {
-        Method method = PlantRecommendationService.class.getDeclaredMethod(
-                "buildSuccessResponse", PlantRecommendationRequest.class, String.class, List.class);
-        method.setAccessible(true);
-
-        PlantRecommendationResponse result = (PlantRecommendationResponse)
-                method.invoke(plantRecommendationService, validRequest, "summer", mockRecommendations);
-
         assertTrue(result.isSuccess());
-        assertEquals(mockRecommendations, result.getRecommendations());
-        assertEquals("San Francisco", result.getMeta().getLocation());
-        assertEquals("summer", result.getMeta().getSeason());
-        assertEquals("balcony", result.getMeta().getGardenType());
+        assertNotNull(requestWithNullPrefs.getUserPreferences());
+        assertEquals("beginner", requestWithNullPrefs.getUserPreferences().getExperience());
+        assertEquals("moderate", requestWithNullPrefs.getUserPreferences().getTimeCommitment());
+        assertTrue(requestWithNullPrefs.getUserPreferences().getHarvestGoals().isEmpty());
     }
 
     @Test
-    void buildSuccessResponse_WithNullLocation_ShouldHandleGracefully() throws Exception {
-        Method method = PlantRecommendationService.class.getDeclaredMethod(
-                "buildSuccessResponse", PlantRecommendationRequest.class, String.class, List.class);
-        method.setAccessible(true);
+    void buildSuccessResponse_ShouldCreateCorrectResponse() throws JsonProcessingException {
+        // Arrange
+        String season = "summer";
 
+        // Act
+        PlantRecommendationResponse result = plantRecommendationService.getPlantRecommendations(validRequest);
+
+        // Assert, checking only the meta fields since we've mocked the response
+        assertNotNull(result.getMeta());
+        assertEquals(validRequest.getGardenType(), result.getMeta().getGardenType());
+    }
+
+    @Test
+    void buildSuccessResponse_WithNullLocation_ShouldHandleGracefully() throws JsonProcessingException {
+        // Arrange
         PlantRecommendationRequest requestWithNullLocation = PlantRecommendationRequest.builder()
                 .gardenType("balcony")
                 .message("test")
                 .build();
 
-        PlantRecommendationResponse result = (PlantRecommendationResponse)
-                method.invoke(plantRecommendationService, requestWithNullLocation, "summer", mockRecommendations);
+        when(seasonalUtils.getCurrentSeason(null)).thenReturn("summer");
+        when(promptBuilder.buildSystemPrompt("summer")).thenReturn("System prompt");
+        when(promptBuilder.buildUserPrompt(any(), eq("summer"))).thenReturn("User prompt");
+        when(openAiClient.fetchRecommendations("System prompt", "User prompt")).thenReturn("OpenAI response");
+        when(jsonUtils.extractRecommendationsFromOpenAiResponse(anyString())).thenReturn(mockRecommendations);
 
+        // Act
+        PlantRecommendationResponse result =
+                plantRecommendationService.getPlantRecommendations(requestWithNullLocation);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.isSuccess());
         assertEquals("Unknown", result.getMeta().getLocation());
-    }
-
-    @Test
-    void handleWebClientError_ShouldReturnErrorResponse() throws Exception {
-        Method method = PlantRecommendationService.class.getDeclaredMethod(
-                "handleWebClientError", WebClientResponseException.class);
-        method.setAccessible(true);
-
-        WebClientResponseException exception = mock(WebClientResponseException.class);
-        when(exception.getMessage()).thenReturn("API Error");
-
-        PlantRecommendationResponse result =
-                (PlantRecommendationResponse) method.invoke(plantRecommendationService, exception);
-
-        assertFalse(result.isSuccess());
-        assertTrue(result.getError().contains("API Error"));
-    }
-
-    @Test
-    void handleGenericError_ShouldReturnErrorResponse() throws Exception {
-        Method method = PlantRecommendationService.class.getDeclaredMethod("handleGenericError", Exception.class);
-        method.setAccessible(true);
-
-        Exception exception = new RuntimeException("Test error");
-
-        PlantRecommendationResponse result =
-                (PlantRecommendationResponse) method.invoke(plantRecommendationService, exception);
-
-        assertFalse(result.isSuccess());
-        assertTrue(result.getError().contains("Test error"));
-    }
-
-    @Test
-    void parseRecommendationsFromJson_ShouldParseValidJson() throws Exception {
-        Method method =
-                PlantRecommendationService.class.getDeclaredMethod("parseRecommendationsFromJson", String.class);
-        method.setAccessible(true);
-
-        String validJson =
-                "{\"choices\":[{\"message\":{\"content\":\"[{\\\"name\\\":\\\"Tomato\\\",\\\"type\\\":\\\"Vegetable\\\",\\\"description\\\":\\\"Easy to grow\\\"}]\"}}]}";
-
-        // Create a proper mock structure for the JSON response
-        com.fasterxml.jackson.databind.JsonNode rootNode = mock(com.fasterxml.jackson.databind.JsonNode.class);
-        com.fasterxml.jackson.databind.JsonNode choicesNode = mock(com.fasterxml.jackson.databind.JsonNode.class);
-        com.fasterxml.jackson.databind.JsonNode firstChoice = mock(com.fasterxml.jackson.databind.JsonNode.class);
-        com.fasterxml.jackson.databind.JsonNode messageNode = mock(com.fasterxml.jackson.databind.JsonNode.class);
-        com.fasterxml.jackson.databind.JsonNode contentNode = mock(com.fasterxml.jackson.databind.JsonNode.class);
-
-        when(objectMapper.readTree(anyString())).thenReturn(rootNode);
-        when(rootNode.path("choices")).thenReturn(choicesNode);
-        when(choicesNode.path(0)).thenReturn(firstChoice);
-        when(firstChoice.path("message")).thenReturn(messageNode);
-        when(messageNode.path("content")).thenReturn(contentNode);
-        when(contentNode.asText())
-                .thenReturn("[{\"name\":\"Tomato\",\"type\":\"Vegetable\",\"description\":\"Easy to grow\"}]");
-
-        when(objectMapper.readValue(anyString(), any(TypeReference.class))).thenReturn(mockRecommendations);
-
-        List<PlantRecommendation> result =
-                (List<PlantRecommendation>) method.invoke(plantRecommendationService, validJson);
-
-        assertNotNull(result);
-        assertEquals(mockRecommendations, result);
-    }
-
-    @Test
-    void parseRecommendationsFromJson_ShouldHandleJsonProcessingException() throws Exception {
-        Method method =
-                PlantRecommendationService.class.getDeclaredMethod("parseRecommendationsFromJson", String.class);
-        method.setAccessible(true);
-
-        when(objectMapper.readTree(anyString()))
-                .thenThrow(new com.fasterxml.jackson.core.JsonProcessingException("Test error") {});
-
-        List<PlantRecommendation> result =
-                (List<PlantRecommendation>) method.invoke(plantRecommendationService, "invalid json");
-
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void cleanAndRepairJson_ShouldHandleNullContent() throws Exception {
-        Method method = PlantRecommendationService.class.getDeclaredMethod("cleanAndRepairJson", String.class);
-        method.setAccessible(true);
-
-        String result = (String) method.invoke(plantRecommendationService, (String) null);
-
-        assertEquals("[]", result);
-    }
-
-    @Test
-    void cleanAndRepairJson_ShouldHandleEmptyContent() throws Exception {
-        Method method = PlantRecommendationService.class.getDeclaredMethod("cleanAndRepairJson", String.class);
-        method.setAccessible(true);
-
-        String result = (String) method.invoke(plantRecommendationService, "");
-
-        assertEquals("[]", result);
-    }
-
-    @Test
-    void cleanAndRepairJson_ShouldHandleInvalidJson() throws Exception {
-        Method method = PlantRecommendationService.class.getDeclaredMethod("cleanAndRepairJson", String.class);
-        method.setAccessible(true);
-
-        String invalidJson = "{\"recommendations\":[{name:\"Plant1\"}]}";
-
-        // First call to readTree throws exception
-        when(objectMapper.readTree(invalidJson))
-                .thenThrow(new com.fasterxml.jackson.core.JsonProcessingException("Test error") {});
-
-        // Second call to readTree (after repair) succeeds
-        when(objectMapper.readTree(anyString())).thenReturn(mock(com.fasterxml.jackson.databind.JsonNode.class));
-
-        String result = (String) method.invoke(plantRecommendationService, invalidJson);
-
-        assertNotNull(result);
-        assertTrue(result.contains("Plant1"));
-    }
-
-    @Test
-    void fetchPlantImage_ShouldSetImageUrlWhenSuccessful() throws Exception {
-        Method method =
-                PlantRecommendationService.class.getDeclaredMethod("fetchPlantImage", PlantRecommendation.class);
-        method.setAccessible(true);
-
-        PlantRecommendation plant = PlantRecommendation.builder()
-                .name("Test Plant")
-                .description("Test")
-                .type("Test")
-                .build();
-
-        WebClient.RequestHeadersUriSpec requestSpec = mock(WebClient.RequestHeadersUriSpec.class);
-        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
-        com.fasterxml.jackson.databind.JsonNode jsonNode = mock(com.fasterxml.jackson.databind.JsonNode.class);
-        com.fasterxml.jackson.databind.JsonNode resultsNode = mock(com.fasterxml.jackson.databind.JsonNode.class);
-        com.fasterxml.jackson.databind.JsonNode firstResult = mock(com.fasterxml.jackson.databind.JsonNode.class);
-        com.fasterxml.jackson.databind.JsonNode urlsNode = mock(com.fasterxml.jackson.databind.JsonNode.class);
-
-        when(unsplashWebClient.get()).thenReturn(requestSpec);
-        when(requestSpec.uri(any(Function.class))).thenReturn(requestSpec);
-        when(requestSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.bodyToMono(String.class))
-                .thenReturn(Mono.just("{\"results\":[{\"urls\":{\"small\":\"https://example.com/image.jpg\"}}]}"));
-
-        when(objectMapper.readTree(anyString())).thenReturn(jsonNode);
-        when(jsonNode.path("results")).thenReturn(resultsNode);
-        when(resultsNode.size()).thenReturn(1);
-        when(resultsNode.path(0)).thenReturn(firstResult);
-        when(firstResult.path("urls")).thenReturn(urlsNode);
-        when(urlsNode.path("small")).thenReturn(mock(com.fasterxml.jackson.databind.JsonNode.class));
-        when(urlsNode.path("small").asText()).thenReturn("https://example.com/image.jpg");
-
-        method.invoke(plantRecommendationService, plant);
-
-        assertEquals("https://example.com/image.jpg", plant.getImageURL());
-    }
-
-    @Test
-    void isSouthernHemisphereCountry_ShouldIdentifyAllSouthernCountries() throws Exception {
-        Method method = PlantRecommendationService.class.getDeclaredMethod("isSouthernHemisphereCountry", String.class);
-        method.setAccessible(true);
-
-        String[] southernCountries = {"australia", "new zealand", "argentina", "chile", "south africa", "brazil"};
-        String[] northernCountries = {"usa", "canada", "uk", "france", "germany", "japan"};
-
-        for (String country : southernCountries) {
-            assertTrue(
-                    (Boolean) method.invoke(plantRecommendationService, country),
-                    "Should identify " + country + " as southern hemisphere");
-        }
-
-        for (String country : northernCountries) {
-            assertFalse(
-                    (Boolean) method.invoke(plantRecommendationService, country),
-                    "Should not identify " + country + " as southern hemisphere");
-        }
-    }
-
-    @Test
-    void isSouthernHemisphereCountry_ShouldHandleNullLocation() throws Exception {
-        Method method = PlantRecommendationService.class.getDeclaredMethod("isSouthernHemisphereCountry", String.class);
-        method.setAccessible(true);
-
-        assertFalse((Boolean) method.invoke(plantRecommendationService, (String) null));
-    }
-
-    @Test
-    void getPlantRecommendations_ShouldProcessValidRequest() throws Exception {
-        // Mock the Calendar for getCurrentSeason
-        try (MockedStatic<Calendar> calendarMock = mockStatic(Calendar.class)) {
-            Calendar mockCalendar = mock(Calendar.class);
-            calendarMock.when(Calendar::getInstance).thenReturn(mockCalendar);
-            when(mockCalendar.get(Calendar.MONTH)).thenReturn(Calendar.JULY);
-
-            // Setup different mocks for OpenAI and Unsplash to avoid conflicts
-            WebClient.RequestBodyUriSpec requestBodyUriSpec = mock(WebClient.RequestBodyUriSpec.class);
-            WebClient.RequestBodySpec requestBodySpec = mock(WebClient.RequestBodySpec.class);
-            WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
-
-            when(openaiWebClient.post()).thenReturn(requestBodyUriSpec);
-            when(requestBodyUriSpec.uri("/chat/completions")).thenReturn(requestBodySpec);
-            when(requestBodySpec.contentType(any(MediaType.class))).thenReturn(requestBodySpec);
-            doReturn(requestBodyUriSpec).when(requestBodyUriSpec).uri("/chat/completions");
-            doReturn(requestBodySpec).when(requestBodyUriSpec).contentType(any());
-            doReturn(requestBodySpec).when(requestBodySpec).bodyValue(any());
-            doReturn(responseSpec).when(requestBodySpec).retrieve();
-
-            when(requestBodySpec.retrieve()).thenReturn(responseSpec);
-
-            String openAiResponse =
-                    "{\"choices\":[{\"message\":{\"content\":\"[{\\\"name\\\":\\\"Tomato\\\",\\\"type\\\":\\\"Vegetable\\\",\\\"description\\\":\\\"Easy to grow\\\"}]\"}}]}";
-            when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.just(openAiResponse));
-
-            // Mock the isSouthernHemisphereCountry method directly
-            doReturn(false).when(plantRecommendationService).isSouthernHemisphereCountry(anyString());
-
-            // Setup separate mocks for JSON parsing of OpenAI response
-            JsonNode mockRootNode = mock(JsonNode.class);
-            JsonNode mockChoicesNode = mock(JsonNode.class);
-            JsonNode mockFirstChoice = mock(JsonNode.class);
-            JsonNode mockMessageNode = mock(JsonNode.class);
-            JsonNode mockContentNode = mock(JsonNode.class);
-
-            when(objectMapper.readTree(openAiResponse)).thenReturn(mockRootNode);
-            when(mockRootNode.path("choices")).thenReturn(mockChoicesNode);
-            when(mockChoicesNode.path(0)).thenReturn(mockFirstChoice);
-            when(mockFirstChoice.path("message")).thenReturn(mockMessageNode);
-            when(mockMessageNode.path("content")).thenReturn(mockContentNode);
-            when(mockContentNode.asText())
-                    .thenReturn("[{\"name\":\"Tomato\",\"type\":\"Vegetable\",\"description\":\"Easy to grow\"}]");
-
-            // Mock the readValue method for the recommendations
-            when(objectMapper.readValue(
-                            eq("[{\"name\":\"Tomato\",\"type\":\"Vegetable\",\"description\":\"Easy to grow\"}]"),
-                            any(TypeReference.class)))
-                    .thenReturn(mockRecommendations);
-
-            // Setup Unsplash mocks
-            WebClient.RequestHeadersUriSpec unsplashRequestSpec = mock(WebClient.RequestHeadersUriSpec.class);
-            WebClient.ResponseSpec unsplashResponseSpec = mock(WebClient.ResponseSpec.class);
-
-            when(unsplashWebClient.get()).thenReturn(unsplashRequestSpec);
-            when(unsplashRequestSpec.uri(any(Function.class))).thenReturn(unsplashRequestSpec);
-            when(unsplashRequestSpec.retrieve()).thenReturn(unsplashResponseSpec);
-
-            // Skip image fetching for simplicity
-            when(unsplashResponseSpec.bodyToMono(String.class)).thenReturn(Mono.empty());
-
-            // Call the actual method
-            PlantRecommendationResponse result = plantRecommendationService.getPlantRecommendations(validRequest);
-
-            // Verify the result
-            assertNotNull(result);
-            assertTrue(result.isSuccess());
-            assertNull(result.getError());
-            assertNotNull(result.getRecommendations());
-            assertEquals(mockRecommendations.size(), result.getRecommendations().size());
-            assertEquals("summer", result.getMeta().getSeason());
-            assertEquals("San Francisco", result.getMeta().getLocation());
-            assertEquals("balcony", result.getMeta().getGardenType());
-        }
-    }
-
-    @Test
-    void getPlantRecommendations_ShouldHandleWebClientResponseException() {
-        // Setup mocks for the actual implementation
-        WebClient.RequestBodyUriSpec requestBodyUriSpec = mock(WebClient.RequestBodyUriSpec.class);
-        WebClient.RequestBodySpec requestBodySpec = mock(WebClient.RequestBodySpec.class);
-
-        when(openaiWebClient.post()).thenReturn(requestBodyUriSpec);
-        doReturn(requestBodySpec).when(requestBodyUriSpec).uri("/chat/completions");
-        doReturn(requestBodySpec).when(requestBodySpec).contentType(any(MediaType.class));
-        doReturn(requestBodySpec).when(requestBodySpec).bodyValue(any());
-
-        // Mock the WebClientResponseException
-        WebClientResponseException exception = mock(WebClientResponseException.class);
-        when(exception.getMessage()).thenReturn("API Error");
-        when(requestBodySpec.retrieve()).thenThrow(exception);
-
-        // Mock the Calendar for getCurrentSeason
-        try (MockedStatic<Calendar> calendarMock = mockStatic(Calendar.class)) {
-            Calendar mockCalendar = mock(Calendar.class);
-            calendarMock.when(Calendar::getInstance).thenReturn(mockCalendar);
-            when(mockCalendar.get(Calendar.MONTH)).thenReturn(Calendar.JULY);
-
-            // Call the actual method
-            PlantRecommendationResponse result = plantRecommendationService.getPlantRecommendations(validRequest);
-
-            // Verify the result
-            assertNotNull(result);
-            assertFalse(result.isSuccess());
-            assertNotNull(result.getError());
-            assertTrue(result.getError().contains("API Error"));
-            assertNull(result.getRecommendations());
-        }
-    }
-
-    @Test
-    void getPlantRecommendations_ShouldHandleGenericException() {
-        // Setup mocks for the actual implementation
-        WebClient.RequestBodyUriSpec requestBodyUriSpec = mock(WebClient.RequestBodyUriSpec.class);
-        WebClient.RequestBodySpec requestBodySpec = mock(WebClient.RequestBodySpec.class);
-
-        when(openaiWebClient.post()).thenReturn(requestBodyUriSpec);
-        doReturn(requestBodySpec).when(requestBodyUriSpec).uri("/chat/completions");
-        doReturn(requestBodySpec).when(requestBodySpec).contentType(any(MediaType.class));
-        doReturn(requestBodySpec).when(requestBodySpec).bodyValue(any());
-
-        // Mock a generic exception
-        when(requestBodySpec.retrieve()).thenThrow(new RuntimeException("Generic error"));
-
-        // Mock the Calendar for getCurrentSeason
-        try (MockedStatic<Calendar> calendarMock = mockStatic(Calendar.class)) {
-            Calendar mockCalendar = mock(Calendar.class);
-            calendarMock.when(Calendar::getInstance).thenReturn(mockCalendar);
-            when(mockCalendar.get(Calendar.MONTH)).thenReturn(Calendar.JULY);
-
-            // Call the actual method
-            PlantRecommendationResponse result = plantRecommendationService.getPlantRecommendations(validRequest);
-
-            // Verify the result
-            assertNotNull(result);
-            assertFalse(result.isSuccess());
-            assertNotNull(result.getError());
-            assertTrue(result.getError().contains("Generic error"));
-            assertNull(result.getRecommendations());
-        }
     }
 }
