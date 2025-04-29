@@ -168,8 +168,8 @@ class ImageCommentControllerTest {
     @Test
     void testGetAllImageComments_withInvalidSortDirection() throws Exception {
         mockMvc.perform(get("/api/image-comments").param("direction", "INVALID"))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Invalid sort direction. Must be either 'ASC' or 'DESC'"));
     }
 
     @Test
@@ -186,8 +186,8 @@ class ImageCommentControllerTest {
     @Test
     void testGetCommentsByImageId_withInvalidSortDirection() throws Exception {
         mockMvc.perform(get("/api/image-comments/image/" + dto.getImageId()).param("direction", "INVALID"))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Invalid sort direction. Must be either 'ASC' or 'DESC'"));
     }
 
     @Test
@@ -205,8 +205,8 @@ class ImageCommentControllerTest {
     @Test
     void testGetCommentsByUserId_withInvalidSortDirection() throws Exception {
         mockMvc.perform(get("/api/image-comments/user/" + dto.getUserId()).param("direction", "INVALID"))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").value("Internal Server Error"));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Invalid sort direction. Must be either 'ASC' or 'DESC'"));
     }
 
     @Test

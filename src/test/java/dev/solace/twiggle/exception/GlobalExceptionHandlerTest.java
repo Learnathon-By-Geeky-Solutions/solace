@@ -248,7 +248,7 @@ class GlobalExceptionHandlerTest {
     void handleAllUncaughtException_ShouldReturnCorrectResponse() {
         Exception ex = new RuntimeException("Unexpected error");
 
-        ResponseEntity<Object> response = exceptionHandler.handleAllUncaughtException(ex, webRequest);
+        ResponseEntity<Object> response = exceptionHandler.handleGenericException(ex, webRequest);
 
         assertNotNull(response);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());

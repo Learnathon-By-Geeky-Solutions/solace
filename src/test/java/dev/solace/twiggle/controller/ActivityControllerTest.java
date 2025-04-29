@@ -404,30 +404,22 @@ class ActivityControllerTest {
 
     @Test
     void testGetAllActivitiesWithInvalidPage() throws Exception {
-        // Since the pagination parameters aren't validated by the controller but by
-        // Spring,
-        // we should expect 500 error when the service throws an exception
-        Mockito.when(activityService.findAll(any(Pageable.class)))
-                .thenThrow(new RuntimeException("Invalid page parameters"));
-
+        // With our refactored controller, invalid page params now return 400 BAD_REQUEST
+        // directly through the createPageable method instead of 500 INTERNAL_SERVER_ERROR
         MockHttpServletRequestBuilder request =
                 get("/api/activities").param("page", "-1").param("size", "10");
 
-        mockMvc.perform(request).andExpect(status().isInternalServerError());
+        mockMvc.perform(request).andExpect(status().isBadRequest());
     }
 
     @Test
     void testGetAllActivitiesWithInvalidSize() throws Exception {
-        // Since the pagination parameters aren't validated by the controller but by
-        // Spring,
-        // we should expect 500 error when the service throws an exception
-        Mockito.when(activityService.findAll(any(Pageable.class)))
-                .thenThrow(new RuntimeException("Invalid page parameters"));
-
+        // With our refactored controller, invalid size params now return 400 BAD_REQUEST
+        // directly through the createPageable method instead of 500 INTERNAL_SERVER_ERROR
         MockHttpServletRequestBuilder request =
                 get("/api/activities").param("page", "0").param("size", "0");
 
-        mockMvc.perform(request).andExpect(status().isInternalServerError());
+        mockMvc.perform(request).andExpect(status().isBadRequest());
     }
 
     @Test
