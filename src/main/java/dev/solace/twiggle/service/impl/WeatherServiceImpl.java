@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,7 @@ public class WeatherServiceImpl implements WeatherService {
     private static final String UNHEALTHY = "Unhealthy";
     private static final String VERY_UNHEALTHY = "Very Unhealthy";
     private static final String HAZARDOUS = "Hazardous";
+    private static final int GARDEN_WEATHER_FORECAST_DAYS = 3;
 
     private final WorldWeatherOnlineApiClient weatherApiClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -43,71 +45,43 @@ public class WeatherServiceImpl implements WeatherService {
     @Override
     public WeatherDTO getCurrentWeather(String location) {
         log.info("Fetching current weather for location: {}", location);
-        try {
-            String apiResponse = weatherApiClient.getCurrentWeather(location);
-            return parseWeatherResponse(apiResponse, 1, location);
-        } catch (Exception e) {
-            log.error("Error fetching current weather for location {}: {}", location, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve current weather data",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.EXTERNAL_API_ERROR);
-        }
+        return executeApiCall(
+                () -> weatherApiClient.getCurrentWeather(location),
+                1,
+                location,
+                "Failed to retrieve current weather data");
     }
 
     @Override
     public WeatherDTO getCurrentWeatherByCoordinates(double latitude, double longitude) {
         log.info("Fetching current weather for coordinates: {}, {}", latitude, longitude);
-        try {
-            String apiResponse = weatherApiClient.getCurrentWeatherByCoordinates(latitude, longitude);
-            return parseWeatherResponse(apiResponse, 1, String.format(FORMAT_PATTERN, latitude, longitude));
-        } catch (Exception e) {
-            log.error(
-                    "Error fetching current weather for coordinates {}, {}: {}",
-                    latitude,
-                    longitude,
-                    e.getMessage(),
-                    e);
-            throw new CustomException(
-                    "Failed to retrieve current weather data",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.EXTERNAL_API_ERROR);
-        }
+        String locationCoords = formatCoordinates(latitude, longitude);
+        return executeApiCall(
+                () -> weatherApiClient.getCurrentWeatherByCoordinates(latitude, longitude),
+                1,
+                locationCoords,
+                "Failed to retrieve current weather data");
     }
 
     @Override
     public WeatherDTO getWeatherForecast(String location, int days) {
         log.info("Fetching weather forecast for location: {} for {} days", location, days);
-        try {
-            String apiResponse = weatherApiClient.getWeatherForecast(location, days);
-            return parseWeatherResponse(apiResponse, days, location);
-        } catch (Exception e) {
-            log.error("Error fetching weather forecast for location {}: {}", location, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve weather forecast data",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.EXTERNAL_API_ERROR);
-        }
+        return executeApiCall(
+                () -> weatherApiClient.getWeatherForecast(location, days),
+                days,
+                location,
+                "Failed to retrieve weather forecast data");
     }
 
     @Override
     public WeatherDTO getWeatherForecastByCoordinates(double latitude, double longitude, int days) {
         log.info("Fetching weather forecast for coordinates: {}, {} for {} days", latitude, longitude, days);
-        try {
-            String apiResponse = weatherApiClient.getWeatherForecastByCoordinates(latitude, longitude, days);
-            return parseWeatherResponse(apiResponse, days, String.format(FORMAT_PATTERN, latitude, longitude));
-        } catch (Exception e) {
-            log.error(
-                    "Error fetching weather forecast for coordinates {}, {}: {}",
-                    latitude,
-                    longitude,
-                    e.getMessage(),
-                    e);
-            throw new CustomException(
-                    "Failed to retrieve weather forecast data",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.EXTERNAL_API_ERROR);
-        }
+        String locationCoords = formatCoordinates(latitude, longitude);
+        return executeApiCall(
+                () -> weatherApiClient.getWeatherForecastByCoordinates(latitude, longitude, days),
+                days,
+                locationCoords,
+                "Failed to retrieve weather forecast data");
     }
 
     @Override
@@ -117,32 +91,14 @@ public class WeatherServiceImpl implements WeatherService {
                 location,
                 gardenPlanId.orElse("not provided"));
 
-        try {
-            // Use 3-day forecast for garden weather
-            String apiResponse = weatherApiClient.getWeatherForecast(location, 3);
-            WeatherDTO weather = parseWeatherResponse(apiResponse, 3, location);
+        WeatherDTO weather = executeApiCall(
+                () -> weatherApiClient.getWeatherForecast(location, GARDEN_WEATHER_FORECAST_DAYS),
+                GARDEN_WEATHER_FORECAST_DAYS,
+                location,
+                "Failed to retrieve garden weather data");
 
-            // Add garden-specific advice based on weather conditions
-            if (weather.getHumidity() > 80) {
-                weather.setGardeningAdvice("High humidity may promote fungal growth. Consider fungicide application.");
-            } else if (weather.getTemperature() > 30) {
-                weather.setGardeningAdvice("High temperatures expected. Ensure plants are well watered.");
-            } else if (weather.getPrecipitation() > 10) {
-                weather.setGardeningAdvice("Heavy rain expected. Check drainage systems and protect sensitive plants.");
-            } else {
-                weather.setGardeningAdvice("Weather conditions are favorable for gardening activities.");
-            }
-
-            // Plant hazards are already set in parseWeatherResponse
-
-            return weather;
-        } catch (Exception e) {
-            log.error("Error fetching garden weather for location {}: {}", location, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve garden weather data",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.EXTERNAL_API_ERROR);
-        }
+        addGardeningAdvice(weather);
+        return weather;
     }
 
     @Override
@@ -153,33 +109,53 @@ public class WeatherServiceImpl implements WeatherService {
                 longitude,
                 gardenPlanId.orElse("not provided"));
 
+        String locationCoords = formatCoordinates(latitude, longitude);
+        WeatherDTO weather = executeApiCall(
+                () -> weatherApiClient.getWeatherForecastByCoordinates(
+                        latitude, longitude, GARDEN_WEATHER_FORECAST_DAYS),
+                GARDEN_WEATHER_FORECAST_DAYS,
+                locationCoords,
+                "Failed to retrieve garden weather data");
+
+        addGardeningAdvice(weather);
+        return weather;
+    }
+
+    /**
+     * Execute a weather API call with consistent error handling
+     */
+    private WeatherDTO executeApiCall(
+            Supplier<String> apiCallFunction, int days, String location, String errorMessage) {
         try {
-            // Use 3-day forecast for garden weather
-            String apiResponse = weatherApiClient.getWeatherForecastByCoordinates(latitude, longitude, 3);
-            WeatherDTO weather =
-                    parseWeatherResponse(apiResponse, 3, String.format(FORMAT_PATTERN, latitude, longitude));
-
-            // Add garden-specific advice based on weather conditions
-            if (weather.getHumidity() > 80) {
-                weather.setGardeningAdvice("High humidity may promote fungal growth. Consider fungicide application.");
-            } else if (weather.getTemperature() > 30) {
-                weather.setGardeningAdvice("High temperatures expected. Ensure plants are well watered.");
-            } else if (weather.getPrecipitation() > 10) {
-                weather.setGardeningAdvice("Heavy rain expected. Check drainage systems and protect sensitive plants.");
-            } else {
-                weather.setGardeningAdvice("Weather conditions are favorable for gardening activities.");
-            }
-
-            // Plant hazards are already set in parseWeatherResponse
-
-            return weather;
+            String apiResponse = apiCallFunction.get();
+            return parseWeatherResponse(apiResponse, days, location);
+        } catch (CustomException e) {
+            throw e;
         } catch (Exception e) {
-            log.error(
-                    "Error fetching garden weather for coordinates {}, {}: {}", latitude, longitude, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve garden weather data",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.EXTERNAL_API_ERROR);
+            log.error("Error fetching weather for {}: {}", location, e.getMessage(), e);
+            throw new CustomException(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.EXTERNAL_API_ERROR);
+        }
+    }
+
+    /**
+     * Format coordinates as a string
+     */
+    private String formatCoordinates(double latitude, double longitude) {
+        return String.format(FORMAT_PATTERN, latitude, longitude);
+    }
+
+    /**
+     * Add gardening advice to weather data
+     */
+    private void addGardeningAdvice(WeatherDTO weather) {
+        if (weather.getHumidity() > 80) {
+            weather.setGardeningAdvice("High humidity may promote fungal growth. Consider fungicide application.");
+        } else if (weather.getTemperature() > 30) {
+            weather.setGardeningAdvice("High temperatures expected. Ensure plants are well watered.");
+        } else if (weather.getPrecipitation() > 10) {
+            weather.setGardeningAdvice("Heavy rain expected. Check drainage systems and protect sensitive plants.");
+        } else {
+            weather.setGardeningAdvice("Weather conditions are favorable for gardening activities.");
         }
     }
 
@@ -231,22 +207,23 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     private void parseCurrentConditions(JsonNode currentCondition, WeatherDTO.WeatherDTOBuilder builder) {
-        builder.temperature(currentCondition.path("temp_C").asDouble())
+        double temperature = currentCondition.path("temp_C").asDouble();
+        int cloudCover = currentCondition.path(CLOUD_COVER_KEY).asInt();
+
+        builder.temperature(temperature)
                 .temperatureUnit("Celsius")
                 .humidity(currentCondition.path("humidity").asDouble())
                 .windSpeed(currentCondition.path("windspeedKmph").asDouble())
                 .windSpeedUnit("km/h")
                 .windDirection(currentCondition.path("winddir16Point").asText())
-                .cloudCover(currentCondition.path(CLOUD_COVER_KEY).asInt())
+                .cloudCover(cloudCover)
                 .precipitation(currentCondition.path("precipMM").asDouble())
                 .uvIndex(
                         currentCondition.has("uvIndex")
                                 ? currentCondition.path("uvIndex").asDouble()
                                 : 0);
 
-        builder.cloudType(getCloudType(currentCondition.path(CLOUD_COVER_KEY).asInt()))
-                .precipitationType(
-                        getPrecipitationType(currentCondition.path("temp_C").asDouble()));
+        builder.cloudType(getCloudType(cloudCover)).precipitationType(getPrecipitationType(temperature));
     }
 
     private void parseAirQuality(JsonNode currentCondition, WeatherDTO.WeatherDTOBuilder builder) {
@@ -384,6 +361,12 @@ public class WeatherServiceImpl implements WeatherService {
         }
 
         // Add specific pollutant hazards if high levels
+        addPollutantHazards(airQualityNode, hazards);
+
+        return hazards;
+    }
+
+    private void addPollutantHazards(JsonNode airQualityNode, List<String> hazards) {
         if (airQualityNode.has("pm2_5") && airQualityNode.path("pm2_5").asDouble() > 35) {
             hazards.add("High PM2.5 (fine particulate matter) levels");
         }
@@ -396,8 +379,6 @@ public class WeatherServiceImpl implements WeatherService {
         if (airQualityNode.has("no2") && airQualityNode.path("no2").asDouble() > 100) {
             hazards.add("High nitrogen dioxide levels");
         }
-
-        return hazards;
     }
 
     private String getCloudType(int cloudCover) {
@@ -428,22 +409,12 @@ public class WeatherServiceImpl implements WeatherService {
         // Add basic weather hazards
         addBasicWeatherHazards(weather, hazards);
 
-        // Add temperature tips
+        // Add tips for different categories
         addTemperatureTips(weather.getTemperature(), hazards);
-
-        // Add humidity tips
         addHumidityTips(weather.getHumidity(), hazards);
-
-        // Add UV index tips
         addUvIndexTips(weather.getUvIndex(), hazards);
-
-        // Add precipitation tips
         addPrecipitationTips(weather.getPrecipitation(), hazards);
-
-        // Add air quality tips
         addAirQualityTips(weather.getAirQualityIndex(), hazards);
-
-        // Add plant-specific suggestions
         addPlantSpecificSuggestions(hazards);
 
         return hazards;
@@ -550,20 +521,21 @@ public class WeatherServiceImpl implements WeatherService {
      * @return A numerical index (1-6)
      */
     private int getAirQualityIndex(String airQuality) {
-        if ("Good".equals(airQuality)) {
-            return 1;
-        } else if (MODERATE_QUALITY.equals(airQuality)) {
-            return 2;
-        } else if (UNHEALTHY_FOR_SENSITIVE_GROUPS.equals(airQuality)) {
-            return 3;
-        } else if (UNHEALTHY.equals(airQuality)) {
-            return 4;
-        } else if (VERY_UNHEALTHY.equals(airQuality)) {
-            return 5;
-        } else if (HAZARDOUS.equals(airQuality)) {
-            return 6;
-        } else {
-            return 2; // Default to moderate
+        switch (airQuality) {
+            case "Good":
+                return 1;
+            case MODERATE_QUALITY:
+                return 2;
+            case UNHEALTHY_FOR_SENSITIVE_GROUPS:
+                return 3;
+            case UNHEALTHY:
+                return 4;
+            case VERY_UNHEALTHY:
+                return 5;
+            case HAZARDOUS:
+                return 6;
+            default:
+                return 2; // Default to moderate
         }
     }
 }
