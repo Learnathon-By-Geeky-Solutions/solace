@@ -11,7 +11,6 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +25,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/garden-plans")
 @RequiredArgsConstructor
-@Slf4j
 @RateLimiter(name = "standard-api")
 public class GardenPlanController {
 
@@ -47,16 +45,10 @@ public class GardenPlanController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<GardenPlanDTO> plans = gardenPlanService.findAll(pageable);
-            return ResponseUtil.success("Successfully retrieved garden plans", plans);
-        } catch (Exception e) {
-            log.error("Error retrieving garden plans: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve garden plans", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+        Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
+        Page<GardenPlanDTO> plans = gardenPlanService.findAll(pageable);
+        return ResponseUtil.success("Successfully retrieved garden plans", plans);
     }
 
     /**
@@ -66,14 +58,8 @@ public class GardenPlanController {
      */
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<GardenPlanDTO>>> getAllGardenPlansWithoutPagination() {
-        try {
-            List<GardenPlanDTO> plans = gardenPlanService.findAll();
-            return ResponseUtil.success("Successfully retrieved all garden plans", plans);
-        } catch (Exception e) {
-            log.error("Error retrieving all garden plans: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve garden plans", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        List<GardenPlanDTO> plans = gardenPlanService.findAll();
+        return ResponseUtil.success("Successfully retrieved all garden plans", plans);
     }
 
     /**
@@ -84,19 +70,11 @@ public class GardenPlanController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<GardenPlanDTO>> getGardenPlanById(@PathVariable UUID id) {
-        try {
-            return gardenPlanService
-                    .findById(id)
-                    .map(plan -> ResponseUtil.success("Successfully retrieved garden plan", plan))
-                    .orElseThrow(() -> new CustomException(
-                            "Garden plan not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error retrieving garden plan with id {}: {}", id, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve garden plan", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return gardenPlanService
+                .findById(id)
+                .map(plan -> ResponseUtil.success("Successfully retrieved garden plan", plan))
+                .orElseThrow(() -> new CustomException(
+                        "Garden plan not found with id: " + id, HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
     }
 
     /**
@@ -116,18 +94,10 @@ public class GardenPlanController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<GardenPlanDTO> plans = gardenPlanService.findByUserId(userId, pageable);
-            return ResponseUtil.success("Successfully retrieved user's garden plans", plans);
-        } catch (Exception e) {
-            log.error("Error retrieving garden plans for user {}: {}", userId, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve user's garden plans",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
-        }
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+        Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
+        Page<GardenPlanDTO> plans = gardenPlanService.findByUserId(userId, pageable);
+        return ResponseUtil.success("Successfully retrieved user's garden plans", plans);
     }
 
     /**
@@ -139,16 +109,8 @@ public class GardenPlanController {
     @GetMapping("/user/{userId}/all")
     public ResponseEntity<ApiResponse<List<GardenPlanDTO>>> getGardenPlansByUserIdWithoutPagination(
             @PathVariable UUID userId) {
-        try {
-            List<GardenPlanDTO> plans = gardenPlanService.findByUserId(userId);
-            return ResponseUtil.success("Successfully retrieved user's garden plans", plans);
-        } catch (Exception e) {
-            log.error("Error retrieving garden plans for user {}: {}", userId, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve user's garden plans",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
-        }
+        List<GardenPlanDTO> plans = gardenPlanService.findByUserId(userId);
+        return ResponseUtil.success("Successfully retrieved user's garden plans", plans);
     }
 
     /**
@@ -166,18 +128,10 @@ public class GardenPlanController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<GardenPlanDTO> plans = gardenPlanService.findPublicPlans(pageable);
-            return ResponseUtil.success("Successfully retrieved public garden plans", plans);
-        } catch (Exception e) {
-            log.error("Error retrieving public garden plans: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve public garden plans",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
-        }
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+        Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
+        Page<GardenPlanDTO> plans = gardenPlanService.findPublicPlans(pageable);
+        return ResponseUtil.success("Successfully retrieved public garden plans", plans);
     }
 
     /**
@@ -187,16 +141,8 @@ public class GardenPlanController {
      */
     @GetMapping("/public/all")
     public ResponseEntity<ApiResponse<List<GardenPlanDTO>>> getPublicGardenPlansWithoutPagination() {
-        try {
-            List<GardenPlanDTO> plans = gardenPlanService.findPublicPlans();
-            return ResponseUtil.success("Successfully retrieved public garden plans", plans);
-        } catch (Exception e) {
-            log.error("Error retrieving public garden plans: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve public garden plans",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
-        }
+        List<GardenPlanDTO> plans = gardenPlanService.findPublicPlans();
+        return ResponseUtil.success("Successfully retrieved public garden plans", plans);
     }
 
     /**
@@ -208,14 +154,8 @@ public class GardenPlanController {
     @PostMapping
     public ResponseEntity<ApiResponse<GardenPlanDTO>> createGardenPlan(
             @Valid @RequestBody GardenPlanDTO gardenPlanDTO) {
-        try {
-            GardenPlanDTO createdPlan = gardenPlanService.create(gardenPlanDTO);
-            return ResponseUtil.success("Garden plan created successfully", createdPlan);
-        } catch (Exception e) {
-            log.error("Error creating garden plan: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to create garden plan", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        GardenPlanDTO createdPlan = gardenPlanService.create(gardenPlanDTO);
+        return ResponseUtil.success("Garden plan created successfully", createdPlan);
     }
 
     /**
@@ -228,19 +168,13 @@ public class GardenPlanController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<GardenPlanDTO>> updateGardenPlan(
             @PathVariable UUID id, @Valid @RequestBody GardenPlanDTO gardenPlanDTO) {
-        try {
-            return gardenPlanService
-                    .update(id, gardenPlanDTO)
-                    .map(updatedPlan -> ResponseUtil.success("Garden plan updated successfully", updatedPlan))
-                    .orElseThrow(() -> new CustomException(
-                            "Garden plan not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error updating garden plan with id {}: {}", id, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to update garden plan", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return gardenPlanService
+                .update(id, gardenPlanDTO)
+                .map(updatedPlan -> ResponseUtil.success("Garden plan updated successfully", updatedPlan))
+                .orElseThrow(() -> new CustomException(
+                        "Garden plan not found with id: " + id + " for update",
+                        HttpStatus.NOT_FOUND,
+                        ErrorCode.RESOURCE_NOT_FOUND));
     }
 
     /**
@@ -251,14 +185,8 @@ public class GardenPlanController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteGardenPlan(@PathVariable UUID id) {
-        try {
-            gardenPlanService.delete(id);
-            return ResponseUtil.success("Garden plan deleted successfully", null);
-        } catch (Exception e) {
-            log.error("Error deleting garden plan with id {}: {}", id, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to delete garden plan", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        gardenPlanService.delete(id);
+        return ResponseUtil.success("Garden plan deleted successfully", null);
     }
 
     /**
@@ -282,16 +210,10 @@ public class GardenPlanController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<GardenPlanDTO> plans = gardenPlanService.searchGardenPlans(query, userId, isPublic, pageable);
-            return ResponseUtil.success("Successfully searched garden plans", plans);
-        } catch (Exception e) {
-            log.error("Error searching garden plans: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to search garden plans", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+        Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
+        Page<GardenPlanDTO> plans = gardenPlanService.searchGardenPlans(query, userId, isPublic, pageable);
+        return ResponseUtil.success("Successfully searched garden plans", plans);
     }
 
     /**
@@ -319,18 +241,9 @@ public class GardenPlanController {
             @RequestParam(required = false) Boolean isPublic,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        try {
-            // For advanced search, we always sort by relevance score
-            Pageable pageable = PageRequest.of(page, size);
-            Page<GardenPlanDTO> plans = gardenPlanService.searchGardenPlansWithRelevance(
-                    name, type, location, query, userId, isPublic, pageable);
-            return ResponseUtil.success("Successfully searched garden plans with advanced criteria", plans);
-        } catch (Exception e) {
-            log.error("Error performing advanced search on garden plans: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to perform advanced search on garden plans",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
-        }
+        Pageable pageable = PageRequest.of(page, size);
+        Page<GardenPlanDTO> plans = gardenPlanService.searchGardenPlansWithRelevance(
+                name, type, location, query, userId, isPublic, pageable);
+        return ResponseUtil.success("Successfully searched garden plans with advanced criteria", plans);
     }
 }

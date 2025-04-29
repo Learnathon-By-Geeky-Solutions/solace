@@ -16,8 +16,8 @@ import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
@@ -25,14 +25,28 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 /**
  * Global exception handler for the application.
+ * Catches specific exceptions and returns standardized API responses.
  */
+@ControllerAdvice
 @Slf4j
-@RestControllerAdvice
 @NonNullApi
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+    /**
+     * Handles CustomException instances thrown by controllers.
+     *
+     * @param ex The CustomException instance.
+     * @param request The web request.
+     * @return ResponseEntity containing the standardized error response.
+     */
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<Object> handleCustomException(CustomException ex, WebRequest request) {
+        log.warn(
+                "Handling CustomException: {} - {}",
+                ex.getErrorCode(),
+                ex.getMessage()); // Log as warning as these are expected errors
+
+        // Return the error response using buildErrorResponse to maintain expected structure
         return buildErrorResponse(ex, ex.getMessage(), ex.getStatus(), ex.getErrorCode(), request);
     }
 
@@ -131,9 +145,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 ex, message, HttpStatus.UNSUPPORTED_MEDIA_TYPE, ErrorCode.UNSUPPORTED_MEDIA_TYPE, request);
     }
 
+    /**
+     * Handles generic Exception instances as a fallback.
+     * Logs the error and returns a generic internal server error response.
+     *
+     * @param ex The Exception instance.
+     * @param request The web request.
+     * @return ResponseEntity containing a generic internal server error response.
+     */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleAllUncaughtException(Exception ex, WebRequest request) {
-        log.error("Unexpected error occurred", ex);
+    public ResponseEntity<Object> handleGenericException(Exception ex, WebRequest request) {
+        log.error("Handling unexpected Exception: {}", ex.getMessage(), ex); // Log as error for unexpected issues
+        // Use the original message that tests expect
         return buildErrorResponse(
                 ex,
                 "An unexpected error occurred. Please try again later or contact support if the problem persists.",
