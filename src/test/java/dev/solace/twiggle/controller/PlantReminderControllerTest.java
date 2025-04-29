@@ -59,6 +59,9 @@ class PlantReminderControllerTest {
     private UUID plantId;
     private UUID gardenPlanId;
 
+    private static final String GENERIC_ERROR_MESSAGE =
+            "An unexpected error occurred. Please try again later or contact support if the problem persists.";
+
     @BeforeEach
     void setUp() {
         // Reset mock to clear any interactions
@@ -120,15 +123,13 @@ class PlantReminderControllerTest {
 
     @Test
     void testCreatePlantReminderError() throws Exception {
-        when(plantReminderService.create(any(PlantReminderDTO.class)))
-                .thenThrow(
-                        new CustomException("Test error", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR));
+        when(plantReminderService.create(any(PlantReminderDTO.class))).thenThrow(new RuntimeException("Service error"));
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/plant-reminders")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reminderDTO)))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to create plant reminder"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(GENERIC_ERROR_MESSAGE));
     }
 
     @Test
@@ -165,7 +166,7 @@ class PlantReminderControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reminderDTO)))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to update plant reminder"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(GENERIC_ERROR_MESSAGE));
     }
 
     @Test
@@ -214,7 +215,7 @@ class PlantReminderControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/api/plant-reminders/" + reminderId))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to delete plant reminder"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(GENERIC_ERROR_MESSAGE));
     }
 
     @Test
@@ -236,7 +237,7 @@ class PlantReminderControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/due")
                         .param("date", LocalDate.now().toString()))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to retrieve due reminders"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(GENERIC_ERROR_MESSAGE));
     }
 
     @Test
@@ -263,7 +264,7 @@ class PlantReminderControllerTest {
                         .param("sort", "reminderDate")
                         .param("direction", "ASC"))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to retrieve plant reminders"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(GENERIC_ERROR_MESSAGE));
     }
 
     @Test
@@ -279,12 +280,23 @@ class PlantReminderControllerTest {
 
     @Test
     void testGetAllPlantRemindersWithoutPaginationError() throws Exception {
-        // Use RuntimeException instead of CustomException for consistent exception handling
         when(plantReminderService.findAll()).thenThrow(new RuntimeException("Service error"));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/all"))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to retrieve plant reminders"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(GENERIC_ERROR_MESSAGE));
+    }
+
+    @Test
+    void testGetAllPlantRemindersWithInvalidSortDirection() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "reminderDate")
+                        .param("direction", "INVALID"))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
+                        .value("Invalid sort direction. Must be either 'ASC' or 'DESC'"));
     }
 
     @Test
@@ -314,7 +326,19 @@ class PlantReminderControllerTest {
                         .param("sort", "reminderDate")
                         .param("direction", "ASC"))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to retrieve reminders for plant"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(GENERIC_ERROR_MESSAGE));
+    }
+
+    @Test
+    void testGetRemindersByPlantIdWithInvalidSortDirection() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/plant/" + plantId)
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "reminderDate")
+                        .param("direction", "INVALID"))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
+                        .value("Invalid sort direction. Must be either 'ASC' or 'DESC'"));
     }
 
     @Test
@@ -344,8 +368,19 @@ class PlantReminderControllerTest {
                         .param("sort", "reminderDate")
                         .param("direction", "ASC"))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(GENERIC_ERROR_MESSAGE));
+    }
+
+    @Test
+    void testGetRemindersByGardenPlanIdWithInvalidSortDirection() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/garden-plan/" + gardenPlanId)
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "reminderDate")
+                        .param("direction", "INVALID"))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message")
-                        .value("Failed to retrieve reminders for garden plan"));
+                        .value("Invalid sort direction. Must be either 'ASC' or 'DESC'"));
     }
 
     @Test
@@ -361,13 +396,11 @@ class PlantReminderControllerTest {
 
     @Test
     void testGetIncompleteRemindersByPlantIdError() throws Exception {
-        // Use RuntimeException instead of CustomException for consistent behavior
         when(plantReminderService.findByPlantIdAndIsCompleted(any(UUID.class), eq(false)))
                 .thenThrow(new RuntimeException("Service error"));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/plant-reminders/plant/" + plantId + "/incomplete"))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
-                        .value("Failed to retrieve incomplete reminders for plant"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(GENERIC_ERROR_MESSAGE));
     }
 }

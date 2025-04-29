@@ -49,16 +49,9 @@ public class PlantReminderController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "reminderDate") String sort,
             @RequestParam(defaultValue = "ASC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<PlantReminderDTO> reminders = plantReminderService.findAll(pageable);
-            return ResponseUtil.success("Successfully retrieved plant reminders", reminders);
-        } catch (Exception e) {
-            log.error("Error retrieving plant reminders: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve plant reminders", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        Pageable pageable = createPageable(page, size, sort, direction);
+        Page<PlantReminderDTO> reminders = plantReminderService.findAll(pageable);
+        return ResponseUtil.success("Successfully retrieved plant reminders", reminders);
     }
 
     /**
@@ -68,14 +61,8 @@ public class PlantReminderController {
      */
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<PlantReminderDTO>>> getAllPlantRemindersWithoutPagination() {
-        try {
-            List<PlantReminderDTO> reminders = plantReminderService.findAll();
-            return ResponseUtil.success("Successfully retrieved all plant reminders", reminders);
-        } catch (Exception e) {
-            log.error("Error retrieving all plant reminders: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve plant reminders", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        List<PlantReminderDTO> reminders = plantReminderService.findAll();
+        return ResponseUtil.success("Successfully retrieved all plant reminders", reminders);
     }
 
     /**
@@ -86,19 +73,11 @@ public class PlantReminderController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<PlantReminderDTO>> getPlantReminderById(@PathVariable UUID id) {
-        try {
-            return plantReminderService
-                    .findById(id)
-                    .map(reminder -> ResponseUtil.success("Successfully retrieved plant reminder", reminder))
-                    .orElseThrow(() -> new CustomException(
-                            PLANT_REMINDER_NOT_FOUND, HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error retrieving plant reminder with id {}: {}", id, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve plant reminder", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return plantReminderService
+                .findById(id)
+                .map(reminder -> ResponseUtil.success("Successfully retrieved plant reminder", reminder))
+                .orElseThrow(() -> new CustomException(
+                        PLANT_REMINDER_NOT_FOUND, HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
     }
 
     /**
@@ -118,18 +97,9 @@ public class PlantReminderController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "reminderDate") String sort,
             @RequestParam(defaultValue = "ASC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<PlantReminderDTO> reminders = plantReminderService.findByPlantId(plantId, pageable);
-            return ResponseUtil.success("Successfully retrieved reminders for plant", reminders);
-        } catch (Exception e) {
-            log.error("Error retrieving reminders for plant {}: {}", plantId, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve reminders for plant",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
-        }
+        Pageable pageable = createPageable(page, size, sort, direction);
+        Page<PlantReminderDTO> reminders = plantReminderService.findByPlantId(plantId, pageable);
+        return ResponseUtil.success("Successfully retrieved reminders for plant", reminders);
     }
 
     /**
@@ -149,18 +119,9 @@ public class PlantReminderController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "reminderDate") String sort,
             @RequestParam(defaultValue = "ASC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<PlantReminderDTO> reminders = plantReminderService.findByGardenPlanId(gardenPlanId, pageable);
-            return ResponseUtil.success("Successfully retrieved reminders for garden plan", reminders);
-        } catch (Exception e) {
-            log.error("Error retrieving reminders for garden plan {}: {}", gardenPlanId, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve reminders for garden plan",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
-        }
+        Pageable pageable = createPageable(page, size, sort, direction);
+        Page<PlantReminderDTO> reminders = plantReminderService.findByGardenPlanId(gardenPlanId, pageable);
+        return ResponseUtil.success("Successfully retrieved reminders for garden plan", reminders);
     }
 
     /**
@@ -172,16 +133,8 @@ public class PlantReminderController {
     @GetMapping("/plant/{plantId}/incomplete")
     public ResponseEntity<ApiResponse<List<PlantReminderDTO>>> getIncompleteRemindersByPlantId(
             @PathVariable UUID plantId) {
-        try {
-            List<PlantReminderDTO> reminders = plantReminderService.findByPlantIdAndIsCompleted(plantId, false);
-            return ResponseUtil.success("Successfully retrieved incomplete reminders for plant", reminders);
-        } catch (Exception e) {
-            log.error("Error retrieving incomplete reminders for plant {}: {}", plantId, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve incomplete reminders for plant",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
-        }
+        List<PlantReminderDTO> reminders = plantReminderService.findByPlantIdAndIsCompleted(plantId, false);
+        return ResponseUtil.success("Successfully retrieved incomplete reminders for plant", reminders);
     }
 
     /**
@@ -197,15 +150,9 @@ public class PlantReminderController {
             @RequestParam LocalDate date,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "reminderDate"));
-            Page<PlantReminderDTO> reminders = plantReminderService.findByReminderDateLessThanEqual(date, pageable);
-            return ResponseUtil.success("Successfully retrieved due reminders", reminders);
-        } catch (Exception e) {
-            log.error("Error retrieving reminders due by date {}: {}", date, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve due reminders", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "reminderDate"));
+        Page<PlantReminderDTO> reminders = plantReminderService.findByReminderDateLessThanEqual(date, pageable);
+        return ResponseUtil.success("Successfully retrieved due reminders", reminders);
     }
 
     /**
@@ -217,14 +164,8 @@ public class PlantReminderController {
     @PostMapping
     public ResponseEntity<ApiResponse<PlantReminderDTO>> createPlantReminder(
             @Valid @RequestBody PlantReminderDTO reminderDTO) {
-        try {
-            PlantReminderDTO createdReminder = plantReminderService.create(reminderDTO);
-            return ResponseUtil.success("Plant reminder created successfully", createdReminder);
-        } catch (Exception e) {
-            log.error("Error creating plant reminder: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to create plant reminder", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        PlantReminderDTO createdReminder = plantReminderService.create(reminderDTO);
+        return ResponseUtil.success("Plant reminder created successfully", createdReminder);
     }
 
     /**
@@ -237,20 +178,11 @@ public class PlantReminderController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<PlantReminderDTO>> updatePlantReminder(
             @PathVariable UUID id, @Valid @RequestBody PlantReminderDTO reminderDTO) {
-        try {
-            return plantReminderService
-                    .update(id, reminderDTO)
-                    .map(updatedReminder ->
-                            ResponseUtil.success("Plant reminder updated successfully", updatedReminder))
-                    .orElseThrow(() -> new CustomException(
-                            PLANT_REMINDER_NOT_FOUND, HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error updating plant reminder with id {}: {}", id, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to update plant reminder", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return plantReminderService
+                .update(id, reminderDTO)
+                .map(updatedReminder -> ResponseUtil.success("Plant reminder updated successfully", updatedReminder))
+                .orElseThrow(() -> new CustomException(
+                        PLANT_REMINDER_NOT_FOUND, HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
     }
 
     /**
@@ -261,21 +193,11 @@ public class PlantReminderController {
      */
     @PutMapping("/{id}/complete")
     public ResponseEntity<ApiResponse<PlantReminderDTO>> markReminderAsCompleted(@PathVariable UUID id) {
-        try {
-            return plantReminderService
-                    .markAsCompleted(id)
-                    .map(updatedReminder -> ResponseUtil.success("Plant reminder marked as completed", updatedReminder))
-                    .orElseThrow(() -> new CustomException(
-                            PLANT_REMINDER_NOT_FOUND, HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error marking plant reminder with id {} as completed: {}", id, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to mark plant reminder as completed",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
-        }
+        return plantReminderService
+                .markAsCompleted(id)
+                .map(updatedReminder -> ResponseUtil.success("Plant reminder marked as completed", updatedReminder))
+                .orElseThrow(() -> new CustomException(
+                        PLANT_REMINDER_NOT_FOUND, HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
     }
 
     /**
@@ -286,13 +208,23 @@ public class PlantReminderController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deletePlantReminder(@PathVariable UUID id) {
+        plantReminderService.delete(id);
+        return ResponseUtil.success("Plant reminder deleted successfully", null);
+    }
+
+    /**
+     * Creates a pageable object from pagination parameters.
+     * Throws CustomException if the direction is invalid.
+     */
+    private Pageable createPageable(int page, int size, String sort, String direction) {
         try {
-            plantReminderService.delete(id);
-            return ResponseUtil.success("Plant reminder deleted successfully", null);
-        } catch (Exception e) {
-            log.error("Error deleting plant reminder with id {}: {}", id, e.getMessage(), e);
+            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+            return PageRequest.of(page, size, sortDirection, sort);
+        } catch (IllegalArgumentException e) {
             throw new CustomException(
-                    "Failed to delete plant reminder", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
+                    "Invalid sort direction. Must be either 'ASC' or 'DESC'",
+                    HttpStatus.BAD_REQUEST,
+                    ErrorCode.INVALID_REQUEST);
         }
     }
 }
