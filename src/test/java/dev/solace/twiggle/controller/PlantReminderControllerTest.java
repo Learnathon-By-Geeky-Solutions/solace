@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.solace.twiggle.config.TestSecurityConfig;
 import dev.solace.twiggle.dto.PlantReminderDTO;
 import dev.solace.twiggle.exception.CustomException;
 import dev.solace.twiggle.exception.ErrorCode;
@@ -18,7 +19,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -34,8 +34,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 @WebMvcTest(PlantReminderController.class)
-@Import(PlantReminderControllerTest.PlantReminderTestConfig.class)
-@AutoConfigureMockMvc(addFilters = false)
+@Import({PlantReminderControllerTest.PlantReminderTestConfig.class, TestSecurityConfig.class})
 class PlantReminderControllerTest {
 
     @TestConfiguration

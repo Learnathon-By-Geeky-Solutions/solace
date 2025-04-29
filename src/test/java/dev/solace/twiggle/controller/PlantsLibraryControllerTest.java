@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.solace.twiggle.config.TestSecurityConfig;
 import dev.solace.twiggle.dto.PlantsLibraryDTO;
 import dev.solace.twiggle.service.PlantsLibraryService;
 import java.util.List;
@@ -13,7 +14,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -24,8 +24,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(PlantsLibraryController.class)
-@Import(PlantsLibraryControllerTest.PlantsLibraryTestConfig.class)
-@AutoConfigureMockMvc(addFilters = false)
+@Import({PlantsLibraryControllerTest.PlantsLibraryTestConfig.class, TestSecurityConfig.class})
 class PlantsLibraryControllerTest {
 
     @TestConfiguration

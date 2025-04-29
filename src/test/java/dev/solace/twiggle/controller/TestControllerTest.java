@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import dev.solace.twiggle.config.RateLimiterConfiguration;
+import dev.solace.twiggle.config.TestSecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,8 @@ import org.springframework.test.web.servlet.MockMvc;
  * Tests for {@link TestController}.
  */
 @WebMvcTest(TestController.class)
-@Import({RateLimiterConfiguration.class})
-@AutoConfigureMockMvc(addFilters = false)
+@Import({RateLimiterConfiguration.class, TestSecurityConfig.class})
+@AutoConfigureMockMvc
 class TestControllerTest {
 
     @Autowired

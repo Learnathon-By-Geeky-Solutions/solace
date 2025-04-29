@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.solace.twiggle.config.RateLimiterConfiguration;
+import dev.solace.twiggle.config.TestSecurityConfig;
 import dev.solace.twiggle.dto.AddPlantDTO;
 import dev.solace.twiggle.dto.PlantDTO;
 import dev.solace.twiggle.service.AddPlantService;
@@ -17,7 +18,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -27,8 +27,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(AddPlantController.class)
-@Import({RateLimiterConfiguration.class, AddPlantControllerTest.AddPlantTestConfig.class})
-@AutoConfigureMockMvc(addFilters = false)
+@Import({RateLimiterConfiguration.class, AddPlantControllerTest.AddPlantTestConfig.class, TestSecurityConfig.class})
 class AddPlantControllerTest {
 
     @TestConfiguration
