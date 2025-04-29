@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.solace.twiggle.config.RateLimiterConfiguration;
+import dev.solace.twiggle.config.TestSecurityConfig;
 import dev.solace.twiggle.dto.ProfileDTO;
 import dev.solace.twiggle.service.ProfileService;
 import java.time.OffsetDateTime;
@@ -32,7 +33,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ProfileController.class)
-@Import({RateLimiterConfiguration.class, ProfileControllerTest.ProfileTestConfig.class})
+@Import({RateLimiterConfiguration.class, ProfileControllerTest.ProfileTestConfig.class, TestSecurityConfig.class})
 class ProfileControllerTest {
 
     @TestConfiguration

@@ -42,3 +42,5 @@ build/
 .scannerwork/
 
 /venv/
+
+run-sonar.sh

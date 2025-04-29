@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.solace.twiggle.config.TestSecurityConfig;
 import dev.solace.twiggle.dto.PlantDTO;
 import dev.solace.twiggle.service.PlantService;
 import java.time.OffsetDateTime;
@@ -26,7 +27,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(PlantController.class)
-@Import(PlantControllerTest.PlantTestConfig.class)
+@Import({PlantControllerTest.PlantTestConfig.class, TestSecurityConfig.class})
 class PlantControllerTest {
 
     @TestConfiguration

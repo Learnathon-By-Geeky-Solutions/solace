@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.solace.twiggle.config.TestSecurityConfig;
 import dev.solace.twiggle.dto.ImageCommentDTO;
 import dev.solace.twiggle.service.ImageCommentService;
 import java.time.OffsetDateTime;
@@ -23,7 +24,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ImageCommentController.class)
-@Import(ImageCommentControllerTest.ImageCommentTestConfig.class)
+@Import({ImageCommentControllerTest.ImageCommentTestConfig.class, TestSecurityConfig.class})
 class ImageCommentControllerTest {
 
     @TestConfiguration

@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.solace.twiggle.config.TestSecurityConfig;
 import dev.solace.twiggle.dto.ActivityDTO;
 import dev.solace.twiggle.exception.CustomException;
 import dev.solace.twiggle.exception.ErrorCode;
@@ -31,7 +32,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 @WebMvcTest(ActivityController.class)
-@Import(ActivityControllerTest.ActivityTestConfig.class)
+@Import({ActivityControllerTest.ActivityTestConfig.class, TestSecurityConfig.class})
 class ActivityControllerTest {
 
     @TestConfiguration
@@ -568,10 +569,12 @@ class ActivityControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Invalid sort direction. Must be either 'ASC' or 'DESC'"));
     }
+
     // Remove the failing test and add a more appropriate test
     @Test
     void testCustomExceptionHandling() throws Exception {
-        // Instead of testing pagination validation specifically, let's test the CustomException handling
+        // Instead of testing pagination validation specifically, let's test the
+        // CustomException handling
         // with a more reliable approach
         Mockito.when(activityService.findAll(any(Pageable.class)))
                 .thenThrow(
@@ -582,10 +585,12 @@ class ActivityControllerTest {
                 .andExpect(jsonPath("$.message").value("Custom error message"));
     }
 
-    // Additional test for parseSortDirection method which does throw a CustomException
+    // Additional test for parseSortDirection method which does throw a
+    // CustomException
     @Test
     void testSortDirectionValidation() throws Exception {
-        // This test should work because parseSortDirection specifically throws a CustomException
+        // This test should work because parseSortDirection specifically throws a
+        // CustomException
         MockHttpServletRequestBuilder request = get("/api/activities").param("direction", "INVALID_DIRECTION");
 
         mockMvc.perform(request)

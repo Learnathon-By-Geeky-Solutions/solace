@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import dev.solace.twiggle.config.RateLimiterConfiguration;
+import dev.solace.twiggle.config.TestSecurityConfig;
 import dev.solace.twiggle.dto.WeatherDTO;
 import dev.solace.twiggle.exception.CustomException;
 import dev.solace.twiggle.exception.ErrorCode;
@@ -32,7 +33,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(WeatherController.class)
-@Import({RateLimiterConfiguration.class, WeatherControllerTest.WeatherTestConfig.class})
+@Import({RateLimiterConfiguration.class, WeatherControllerTest.WeatherTestConfig.class, TestSecurityConfig.class})
 class WeatherControllerTest {
 
     @TestConfiguration
