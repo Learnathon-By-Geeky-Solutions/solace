@@ -155,7 +155,7 @@ class PlantRecommendationServiceTest {
         assertNotNull(result);
         assertFalse(result.isSuccess());
         assertNotNull(result.getError());
-        assertTrue(result.getError().contains("JSON parsing failed"));
+        assertTrue(result.getError().contains("Failed to parse plant recommendations"));
         assertNull(result.getRecommendations());
     }
 
@@ -189,10 +189,7 @@ class PlantRecommendationServiceTest {
     }
 
     @Test
-    void buildSuccessResponse_ShouldCreateCorrectResponse() throws JsonProcessingException {
-        // Arrange
-        String season = "summer";
-
+    void buildSuccessResponse_ShouldCreateCorrectResponse() {
         // Act
         PlantRecommendationResponse result = plantRecommendationService.getPlantRecommendations(validRequest);
 

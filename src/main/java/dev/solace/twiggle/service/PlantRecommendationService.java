@@ -90,7 +90,8 @@ public class PlantRecommendationService {
             return jsonUtils.extractRecommendationsFromOpenAiResponse(openAiResponse);
         } catch (JsonProcessingException e) {
             log.error("Error parsing recommendations from JSON: {}", e.getMessage(), e);
-            throw e; // Rethrow to be handled by the general exception handler
+            throw new JsonProcessingException(
+                    "Failed to parse plant recommendations from OpenAI response: " + e.getMessage(), e) {};
         }
     }
 
