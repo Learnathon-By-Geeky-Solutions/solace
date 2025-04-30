@@ -11,16 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
-@TestPropertySource(
-        properties = {
-            "spring.datasource.url=jdbc:h2:mem:testdb",
-            "spring.datasource.username=sa",
-            "spring.datasource.password=password",
-            "spring.datasource.driver-class-name=org.h2.Driver"
-        })
+@ActiveProfiles("test")
 class DatabaseConfigurationTest {
 
     @Autowired
@@ -35,7 +29,7 @@ class DatabaseConfigurationTest {
     @Value("${spring.datasource.password}")
     private String password;
 
-    @Value("${spring.datasource.driver-class-name}")
+    @Value("${spring.datasource.driver-class-name:${spring.datasource.driverClassName}}")
     private String driverClassName;
 
     @Test

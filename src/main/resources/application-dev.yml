@@ -106,9 +106,10 @@ unsplash:
   api:
     url: https://api.unsplash.com
 
+# Supabase Configuration
 supabase:
-  service_role_key: ${SUPABASE_SERVICE_ROLE_KEY:}
-  project_id: ${SUPABASE_PROJECT_ID:}
+  service_role_key: ${SUPABASE_SERVICE_ROLE_KEY:dev-service-role-key}
+  projectId: ${SUPABASE_PROJECT_ID:dev-project-id}
 
 # CORS Configuration
 cors:

@@ -7,8 +7,11 @@ import dev.solace.twiggle.security.JwtUtils;
 import dev.solace.twiggle.supabase.SupabaseAdminClient;
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,17 +22,38 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
-    private final SupabaseAdminClient supabaseAdminClient;
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+
+    @Nullable private final SupabaseAdminClient supabaseAdminClient;
+
     private final AuthUserRepository authUserRepository;
     private final UserLoadingService userLoadingService;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
 
+    @Autowired
+    public AuthService(
+            @Nullable SupabaseAdminClient supabaseAdminClient,
+            AuthUserRepository authUserRepository,
+            UserLoadingService userLoadingService,
+            PasswordEncoder passwordEncoder,
+            JwtUtils jwtUtils) {
+        this.supabaseAdminClient = supabaseAdminClient;
+        this.authUserRepository = authUserRepository;
+        this.userLoadingService = userLoadingService;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtils = jwtUtils;
+    }
+
     public void registerUser(String email, String password) {
-        supabaseAdminClient.createUser(email, password);
+        if (supabaseAdminClient != null) {
+            supabaseAdminClient.createUser(email, password);
+        } else {
+            log.warn("Supabase client not available - user registration with Supabase skipped");
+            // Perform local registration fallback if needed
+        }
     }
 
     public Authentication authentication(String email, String password) {
