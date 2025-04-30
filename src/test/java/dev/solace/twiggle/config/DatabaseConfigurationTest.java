@@ -1,7 +1,6 @@
 package dev.solace.twiggle.config;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.spy;
 
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;

@@ -213,13 +213,10 @@ public class ProfileController {
             log.warn(
                     "Invalid sort direction provided: '{}'. Defaulting might be required or throw bad request.",
                     direction);
-            // Option 1: Throw a specific exception for bad request
             throw new CustomException(
                     "Invalid sorting parameter: direction must be ASC or DESC",
                     HttpStatus.BAD_REQUEST,
                     ErrorCode.INVALID_REQUEST);
-            // Option 2: Default to a standard sort (e.g., DESC) - less explicit for the client
-            // return PageRequest.of(page, size, Sort.Direction.DESC, sort);
         }
     }
 }

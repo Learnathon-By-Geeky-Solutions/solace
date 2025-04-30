@@ -48,12 +48,5 @@ class SwaggerConfigTest {
         assertNotNull(applicationApi, "Application API configuration should not be null");
         assertEquals("Application API", applicationApi.getGroup(), "Group name should match");
         assertTrue(applicationApi.getPathsToMatch().contains("/api/**"), "Should include API path pattern");
-
-        // Verify OpenAPI metadata - Removed info check as it's handled globally
-        // Info info = openAPI.getInfo();
-        // assertNotNull(info, "OpenAPI Info should not be null");
-        // assertEquals("Twiggle API Documentation", info.getTitle(), "Title should match");
-        // assertEquals("API endpoints for Urban Garden Planner", info.getDescription(), "Description should match");
-        // assertEquals("1.0", info.getVersion(), "Version should match");
     }
 }

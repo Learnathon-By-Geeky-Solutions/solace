@@ -3,7 +3,6 @@ package dev.solace.twiggle.security;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
