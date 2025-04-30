@@ -5,12 +5,12 @@
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.4-brightgreen.svg)
 ![Java](https://img.shields.io/badge/Java-21-orange.svg)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)
-![Redis](https://img.shields.io/badge/Redis-7.0-red.svg)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
-[![Deploy Status](https://img.shields.io/badge/Deploy-Status-success.svg)](https://twiggle.com)
+![Vercel Deploy](https://deploy-badge.vercel.app/vercel/urban-garden-dashboard-journey?style=plastic)
+![Render Status](https://img.shields.io/endpoint?url=https://shield-io-proxy-weathered-hat-a5f2.ssrabonislam2000.workers.dev)
 [![Documentation](https://img.shields.io/badge/Docs-API-blue.svg)](docs/API.md)
-[![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen.svg)](https://github.com/your-org/twiggle/actions)
+[![SonarQube](https://github.com/Learnathon-By-Geeky-Solutions/solace/actions/workflows/build.yml/badge.svg)](https://github.com/Learnathon-By-Geeky-Solutions/solace/actions/workflows/build.yml)
 
 </div>
 
@@ -140,12 +140,13 @@ twiggle/
 
 ## 🔗 Quick Links
 
-- 🌐 [Live Application](https://twiggle.com)
+- 🌐 [Live Application](https://twiggle.tech)
+- 📚 [Live Swagger API Documentation](https://twiggle-app.onrender.com/swagger-ui/index.html?urls.primaryName=Application+API)
 - 📚 [API Documentation](docs/API.md)
 - 📋 [Product Requirements](docs/Product_Requirements_Document.md)
 - 🏗️ [Technical Specification](docs/Technical_Specification.md)
 - 📐 [System Architecture](docs/System_Architecture.md)
-- 🐳 [Docker Hub](https://hub.docker.com/r/your-org/twiggle)
+- 🐳 [Docker Hub](https://hub.docker.com/r/torr20/twiggle-app/tags)
 
 ## 🚀 Installation
 
@@ -154,8 +155,6 @@ twiggle/
 - Maven 3.8+
 - Docker and Docker Compose
 - PostgreSQL 15
-- MongoDB 6.0
-- Redis 7.0
 
 ### 🚀 Local Setup
 
@@ -269,7 +268,7 @@ Swagger UI: http://localhost:8080/swagger-ui/index.html
 | `SUPABASE_API_URL`          | Supabase API base URL               | `https://xyzcompany.supabase.co/rest/v1`  |
 | `SUPABASE_DB_URL`           | Supabase JDBC DB URL                | `jdbc:postgresql://xyz.supabase.co:5432/postgres` |
 | `SUPABASE_ANON_KEY`         | Supabase public anon key            | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`  |
-| `SUPABASE_SERVICE_ROLE_KEY`| Supabase service role key           | `service-role-key-goes-here`              |
+| `SUPABASE_SERVICE_ROLE_KEY`| Supabase service role key            | `service-role-key-goes-here`              |
 | `OPENAI_API_KEY`            | OpenAI API key                      | `sk-abc123xyz456789...`                   |
 | `UNSPLASH_ACCESS_KEY`       | Unsplash API access key             | `unsplash-access-key`                     |
 | `RESEND_API_KEY`            | Resend email API key                | `re_abc123xyz456...`                      |
@@ -277,6 +276,8 @@ Swagger UI: http://localhost:8080/swagger-ui/index.html
 | `WEATHER_API_KEY`           | Weather API key                     | `weather-123-api-key`                     |
 | `GOOGLE_CLIENT_ID`          | Google OAuth client ID              | `12345-abc.apps.googleusercontent.com`    |
 | `GOOGLE_CLIENT_SECRET`      | Google OAuth client secret          | `google-client-secret-here`               |
+| `JWT_SECRET`                | JWT secret                          | `JWT-secret-here`                         |
+| `JWT_EXPIRATION_MS`         | JWT expiration time                 | `JWT-expiration-here`                     |
 
 ### Configuration Files
 
