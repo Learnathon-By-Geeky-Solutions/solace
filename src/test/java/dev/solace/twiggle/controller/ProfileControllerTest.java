@@ -361,14 +361,19 @@ class ProfileControllerTest {
     void handleCustomException_ShouldReturnAppropriateErrorResponse() throws Exception {
         // Arrange
         UUID testUuid = UUID.randomUUID();
+        // Simulate an unexpected runtime exception from the service layer
         when(profileService.findById(any(UUID.class)))
-                .thenThrow(new IllegalStateException("Profile service is temporarily unavailable"));
+                .thenThrow(new IllegalStateException("Service unavailable simulation"));
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/profiles/{id}", testUuid).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isInternalServerError())
+                .andExpect(status().isInternalServerError()) // Expect 500
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("Failed to retrieve profile (Code: INTERNAL_ERROR)"));
+                .andExpect(
+                        jsonPath("$.message") // Expect generic message from GlobalExceptionHandler
+                                .value(
+                                        "An unexpected error occurred. Please try again later or contact support if the problem persists."))
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR")); // Expect code from GlobalExceptionHandler
     }
 
     @Test
@@ -380,9 +385,10 @@ class ProfileControllerTest {
                         .param("sort", "createdAt")
                         .param("direction", "INVALID")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("Failed to retrieve profiles (Code: INTERNAL_ERROR)"));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Invalid sorting parameter: direction must be ASC or DESC"))
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
     }
 
     @Test
@@ -397,7 +403,11 @@ class ProfileControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("Failed to retrieve profiles (Code: INTERNAL_ERROR)"));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(
+                                        "An unexpected error occurred. Please try again later or contact support if the problem persists."))
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
     }
 
     @Test
@@ -414,7 +424,11 @@ class ProfileControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("Failed to search profiles (Code: INTERNAL_ERROR)"));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(
+                                        "An unexpected error occurred. Please try again later or contact support if the problem persists."))
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
     }
 
     @Test
@@ -432,8 +446,11 @@ class ProfileControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message")
-                        .value("Failed to perform advanced search on profiles (Code: INTERNAL_ERROR)"));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(
+                                        "An unexpected error occurred. Please try again later or contact support if the problem persists."))
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
     }
 
     @Test
@@ -445,7 +462,11 @@ class ProfileControllerTest {
         mockMvc.perform(get("/api/v1/profiles/all").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("Failed to retrieve profiles (Code: INTERNAL_ERROR)"));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(
+                                        "An unexpected error occurred. Please try again later or contact support if the problem persists."))
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
     }
 
     @Test
@@ -461,7 +482,11 @@ class ProfileControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("Failed to retrieve profiles by name (Code: INTERNAL_ERROR)"));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(
+                                        "An unexpected error occurred. Please try again later or contact support if the problem persists."))
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
     }
 
     @Test
@@ -474,7 +499,11 @@ class ProfileControllerTest {
         mockMvc.perform(get("/api/v1/profiles/name/{fullName}/all", "test").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("Failed to retrieve profiles by name (Code: INTERNAL_ERROR)"));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(
+                                        "An unexpected error occurred. Please try again later or contact support if the problem persists."))
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
     }
 
     @Test
@@ -493,7 +522,11 @@ class ProfileControllerTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("Failed to create profile (Code: INTERNAL_ERROR)"));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(
+                                        "An unexpected error occurred. Please try again later or contact support if the problem persists."))
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
     }
 
     @Test
@@ -513,7 +546,11 @@ class ProfileControllerTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("Failed to update profile (Code: INTERNAL_ERROR)"));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(
+                                        "An unexpected error occurred. Please try again later or contact support if the problem persists."))
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
     }
 
     @Test
@@ -526,7 +563,11 @@ class ProfileControllerTest {
         mockMvc.perform(delete("/api/v1/profiles/{id}", profile1Uuid).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message").value("Failed to delete profile (Code: INTERNAL_ERROR)"));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(
+                                        "An unexpected error occurred. Please try again later or contact support if the problem persists."))
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
     }
 
     @Test
