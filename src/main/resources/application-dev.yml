@@ -6,8 +6,8 @@ spring:
       name: ${TWIGGLE_USER_NAME:your_username_here}
       password: ${TWIGGLE_USER_PASSWORD:your_password_here}
   app:
-    jwtSecret: ${JWT_SECRET}
-    jwtExpirationMs: ${JWT_EXPIRATION_MS}
+    jwtSecret: ${JWT_SECRET:your-jwt-secret-key-here}
+    jwtExpirationMs: ${JWT_EXPIRATION_MS:86400000}
 
   datasource:
     url: jdbc:postgresql://${SUPABASE_URL}:5432/postgres
@@ -40,12 +40,12 @@ server:
 
 weather:
   api:
-    key: ${WEATHER_API_KEY}
+    key: ${WEATHER_API_KEY:your-api-key-here}
     baseUrl: https://api.worldweatheronline.com/premium/v1
 
 plants:
   api:
-    key: ${PERENUAL_API_KEY}
+    key: ${PERENUAL_API_KEY:your-api-key-here}
 
 management:
   info:
