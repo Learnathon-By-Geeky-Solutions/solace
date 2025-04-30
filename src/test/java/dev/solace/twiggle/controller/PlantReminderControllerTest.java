@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.solace.twiggle.config.TestSecurityConfig;
 import dev.solace.twiggle.dto.PlantReminderDTO;
 import dev.solace.twiggle.exception.CustomException;
 import dev.solace.twiggle.exception.ErrorCode;
@@ -33,7 +34,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 @WebMvcTest(PlantReminderController.class)
-@Import(PlantReminderControllerTest.PlantReminderTestConfig.class)
+@Import({PlantReminderControllerTest.PlantReminderTestConfig.class, TestSecurityConfig.class})
 class PlantReminderControllerTest {
 
     @TestConfiguration

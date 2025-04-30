@@ -160,4 +160,35 @@ class JsonUtilsTest {
         // Assert
         assertEquals("[]", result);
     }
+
+    @Test
+    void cleanAndRepairJson_ShouldReturnEmptyArrayWhenTooManyUnmatchedBraces() throws JsonProcessingException {
+        // Arrange
+        String lotsOfOpenBraces = "{".repeat(101); // 101 open braces
+
+        // Mock initial validation to fail
+        when(objectMapper.readTree(lotsOfOpenBraces)).thenThrow(JsonProcessingException.class);
+        // Note: We don't need to mock the repair attempt's validation, as the code should return "[]" before that
+
+        // Act
+        String result = jsonUtils.cleanAndRepairJson(lotsOfOpenBraces);
+
+        // Assert
+        assertEquals("[]", result);
+    }
+
+    @Test
+    void cleanAndRepairJson_ShouldReturnEmptyArrayWhenTooManyUnmatchedBrackets() throws JsonProcessingException {
+        // Arrange
+        String lotsOfOpenBrackets = "[".repeat(101); // 101 open brackets
+
+        // Mock initial validation to fail
+        when(objectMapper.readTree(lotsOfOpenBrackets)).thenThrow(JsonProcessingException.class);
+
+        // Act
+        String result = jsonUtils.cleanAndRepairJson(lotsOfOpenBrackets);
+
+        // Assert
+        assertEquals("[]", result);
+    }
 }

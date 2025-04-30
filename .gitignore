@@ -42,3 +42,8 @@ build/
 .scannerwork/
 
 /venv/
+
+run-sonar.sh
+
+bruno/twiggle/collection.bru
+bruno/twiggle/plant-diseases/get-all-diseases.bru

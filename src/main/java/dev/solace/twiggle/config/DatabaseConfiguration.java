@@ -2,8 +2,10 @@ package dev.solace.twiggle.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import jakarta.annotation.PreDestroy;
 import java.util.Properties;
 import javax.sql.DataSource;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +18,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 @Configuration
 @EnableTransactionManagement
-public class DatabaseConfiguration {
+public class DatabaseConfiguration implements DisposableBean {
 
     @Value("${spring.datasource.url}")
     private String url;
@@ -29,6 +31,8 @@ public class DatabaseConfiguration {
 
     @Value("${spring.datasource.driver-class-name}")
     private String driverClassName;
+
+    private HikariDataSource hikariDataSource;
 
     /**
      * Create a HikariCP data source with optimized settings to prevent connection leaks.
@@ -54,13 +58,35 @@ public class DatabaseConfiguration {
         // Enable leak detection
         config.setLeakDetectionThreshold(60000); // 60 seconds
 
+        // Register for JVM shutdown to ensure the pool is closed
+        config.setRegisterMbeans(true);
+        config.setAllowPoolSuspension(false);
+
         // Add additional connection properties
         Properties props = new Properties();
         props.setProperty("tcpKeepAlive", "true");
         config.setDataSourceProperties(props);
 
+        // Store the HikariDataSource reference for proper cleanup
+        this.hikariDataSource = new HikariDataSource(config);
+
         // Create and wrap the HikariDataSource with LazyConnectionDataSourceProxy
         // to delay getting a connection until it's actually needed
-        return new LazyConnectionDataSourceProxy(new HikariDataSource(config));
+        return new LazyConnectionDataSourceProxy(hikariDataSource);
+    }
+
+    /**
+     * Ensure the connection pool is properly closed on application shutdown
+     */
+    @PreDestroy
+    public void closeDataSource() {
+        if (hikariDataSource != null && !hikariDataSource.isClosed()) {
+            hikariDataSource.close();
+        }
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        closeDataSource();
     }
 }

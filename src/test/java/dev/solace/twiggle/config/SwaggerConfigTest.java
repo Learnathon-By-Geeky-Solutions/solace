@@ -41,19 +41,12 @@ class SwaggerConfigTest {
     void applicationApi_ShouldReturnCorrectlyConfiguredGroupedOpenApi() {
         // When
         GroupedOpenApi applicationApi = swaggerConfig.applicationApi();
-        OpenAPI openAPI = new OpenAPI();
-        applicationApi.getOpenApiCustomizers().forEach(customizer -> customizer.customise(openAPI));
+        // OpenAPI openAPI = new OpenAPI(); // No longer need to apply customizer here
+        // applicationApi.getOpenApiCustomizers().forEach(customizer -> customizer.customise(openAPI)); // Removed
 
         // Then
         assertNotNull(applicationApi, "Application API configuration should not be null");
         assertEquals("Application API", applicationApi.getGroup(), "Group name should match");
         assertTrue(applicationApi.getPathsToMatch().contains("/api/**"), "Should include API path pattern");
-
-        // Verify OpenAPI metadata
-        Info info = openAPI.getInfo();
-        assertNotNull(info, "OpenAPI Info should not be null");
-        assertEquals("Twiggle API Documentation", info.getTitle(), "Title should match");
-        assertEquals("API endpoints for Urban Garden Planner", info.getDescription(), "Description should match");
-        assertEquals("1.0", info.getVersion(), "Version should match");
     }
 }

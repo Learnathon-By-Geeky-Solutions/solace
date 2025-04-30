@@ -47,16 +47,9 @@ public class ProfileController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<ProfileDTO> profiles = profileService.findAll(pageable);
-            return ResponseUtil.success("Successfully retrieved profiles", profiles);
-        } catch (Exception e) {
-            log.error("Error retrieving profiles: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve profiles", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        Pageable pageable = createPageable(page, size, sort, direction);
+        Page<ProfileDTO> profiles = profileService.findAll(pageable);
+        return ResponseUtil.success("Successfully retrieved profiles", profiles);
     }
 
     /**
@@ -76,16 +69,9 @@ public class ProfileController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<ProfileDTO> profiles = profileService.searchProfiles(query, pageable);
-            return ResponseUtil.success("Successfully searched profiles", profiles);
-        } catch (Exception e) {
-            log.error("Error searching profiles: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to search profiles", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        Pageable pageable = createPageable(page, size, sort, direction);
+        Page<ProfileDTO> profiles = profileService.searchProfiles(query, pageable);
+        return ResponseUtil.success("Successfully searched profiles", profiles);
     }
 
     /**
@@ -105,18 +91,10 @@ public class ProfileController {
             @RequestParam(required = false) String query,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        try {
-            // For advanced search, we always sort by relevance score
-            Pageable pageable = PageRequest.of(page, size);
-            Page<ProfileDTO> profiles = profileService.searchProfilesWithRelevance(fullName, query, pageable);
-            return ResponseUtil.success("Successfully searched profiles with advanced criteria", profiles);
-        } catch (Exception e) {
-            log.error("Error performing advanced search on profiles: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to perform advanced search on profiles",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ErrorCode.INTERNAL_ERROR);
-        }
+        // For advanced search, we always sort by relevance score
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProfileDTO> profiles = profileService.searchProfilesWithRelevance(fullName, query, pageable);
+        return ResponseUtil.success("Successfully searched profiles with advanced criteria", profiles);
     }
 
     /**
@@ -126,14 +104,8 @@ public class ProfileController {
      */
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<ProfileDTO>>> getAllProfilesWithoutPagination() {
-        try {
-            List<ProfileDTO> profiles = profileService.findAll();
-            return ResponseUtil.success("Successfully retrieved all profiles", profiles);
-        } catch (Exception e) {
-            log.error("Error retrieving all profiles: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve profiles", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        List<ProfileDTO> profiles = profileService.findAll();
+        return ResponseUtil.success("Successfully retrieved all profiles", profiles);
     }
 
     /**
@@ -144,19 +116,11 @@ public class ProfileController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProfileDTO>> getProfileById(@PathVariable UUID id) {
-        try {
-            return profileService
-                    .findById(id)
-                    .map(profile -> ResponseUtil.success("Successfully retrieved profile", profile))
-                    .orElseThrow(() -> new CustomException(
-                            "Profile not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error retrieving profile with id {}: {}", id, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve profile", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return profileService
+                .findById(id)
+                .map(profile -> ResponseUtil.success("Successfully retrieved profile", profile))
+                .orElseThrow(() ->
+                        new CustomException("Profile not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
     }
 
     /**
@@ -176,16 +140,9 @@ public class ProfileController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "DESC") String direction) {
-        try {
-            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-            Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
-            Page<ProfileDTO> profiles = profileService.findByFullName(fullName, pageable);
-            return ResponseUtil.success("Successfully retrieved profiles by name", profiles);
-        } catch (Exception e) {
-            log.error("Error retrieving profiles by name {}: {}", fullName, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve profiles by name", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        Pageable pageable = createPageable(page, size, sort, direction);
+        Page<ProfileDTO> profiles = profileService.findByFullName(fullName, pageable);
+        return ResponseUtil.success("Successfully retrieved profiles by name", profiles);
     }
 
     /**
@@ -197,14 +154,8 @@ public class ProfileController {
     @GetMapping("/name/{fullName}/all")
     public ResponseEntity<ApiResponse<List<ProfileDTO>>> getProfilesByNameWithoutPagination(
             @PathVariable String fullName) {
-        try {
-            List<ProfileDTO> profiles = profileService.findByFullName(fullName);
-            return ResponseUtil.success("Successfully retrieved profiles by name", profiles);
-        } catch (Exception e) {
-            log.error("Error retrieving profiles by name {}: {}", fullName, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to retrieve profiles by name", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        List<ProfileDTO> profiles = profileService.findByFullName(fullName);
+        return ResponseUtil.success("Successfully retrieved profiles by name", profiles);
     }
 
     /**
@@ -215,14 +166,8 @@ public class ProfileController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<ProfileDTO>> createProfile(@Valid @RequestBody ProfileDTO profileDTO) {
-        try {
-            ProfileDTO createdProfile = profileService.create(profileDTO);
-            return ResponseUtil.created("Profile created successfully", createdProfile);
-        } catch (Exception e) {
-            log.error("Error creating profile: {}", e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to create profile", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        ProfileDTO createdProfile = profileService.create(profileDTO);
+        return ResponseUtil.created("Profile created successfully", createdProfile);
     }
 
     /**
@@ -235,19 +180,11 @@ public class ProfileController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ProfileDTO>> updateProfile(
             @PathVariable UUID id, @Valid @RequestBody ProfileDTO profileDTO) {
-        try {
-            return profileService
-                    .update(id, profileDTO)
-                    .map(updatedProfile -> ResponseUtil.success("Profile updated successfully", updatedProfile))
-                    .orElseThrow(() -> new CustomException(
-                            "Profile not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error updating profile with id {}: {}", id, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to update profile", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        return profileService
+                .update(id, profileDTO)
+                .map(updatedProfile -> ResponseUtil.success("Profile updated successfully", updatedProfile))
+                .orElseThrow(() ->
+                        new CustomException("Profile not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
     }
 
     /**
@@ -263,35 +200,23 @@ public class ProfileController {
             throw new CustomException(
                     "Profile not found for deletion", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
         }
-        try {
-            profileService.delete(id);
-            return ResponseUtil.success("Profile deleted successfully", null);
-        } catch (Exception e) { // Catch potential errors during deletion itself
-            log.error("Error deleting profile with id {}: {}", id, e.getMessage(), e);
-            throw new CustomException(
-                    "Failed to delete profile", HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
-        }
+        profileService.delete(id);
+        return ResponseUtil.success("Profile deleted successfully", null);
     }
 
-    /**
-     * Exception handler for CustomExceptions thrown within this controller.
-     *
-     * @param ex The CustomException
-     * @return ResponseEntity with appropriate status and error message
-     */
-    @ExceptionHandler(CustomException.class)
-    public ResponseEntity<ApiResponse<Object>> handleCustomException(CustomException ex) {
-        log.warn(
-                "Handling CustomException: Status={}, Code={}, Message={}",
-                ex.getStatus(),
-                ex.getErrorCode(),
-                ex.getMessage());
-        ApiResponse<Object> errorResponse = ApiResponse.builder()
-                .timestamp(java.time.LocalDateTime.now(java.time.ZoneOffset.UTC))
-                .status(ex.getStatus().value())
-                .message(ex.getMessage() + " (Code: " + ex.getErrorCode() + ")") // Include code in message
-                .data(null) // No data for error response
-                .build();
-        return new ResponseEntity<>(errorResponse, ex.getStatus());
+    // Helper method to create Pageable objects
+    private Pageable createPageable(int page, int size, String sort, String direction) {
+        try {
+            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+            return PageRequest.of(page, size, sortDirection, sort);
+        } catch (IllegalArgumentException e) {
+            log.warn(
+                    "Invalid sort direction provided: '{}'. Defaulting might be required or throw bad request.",
+                    direction);
+            throw new CustomException(
+                    "Invalid sorting parameter: direction must be ASC or DESC",
+                    HttpStatus.BAD_REQUEST,
+                    ErrorCode.INVALID_REQUEST);
+        }
     }
 }

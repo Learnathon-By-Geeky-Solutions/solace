@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.solace.twiggle.config.TestSecurityConfig;
 import dev.solace.twiggle.dto.GardenPlanDTO;
 import dev.solace.twiggle.service.GardenPlanService;
 import java.time.OffsetDateTime;
@@ -27,7 +28,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(GardenPlanController.class)
-@Import(GardenPlanControllerTest.GardenPlanTestConfig.class)
+@Import({GardenPlanControllerTest.GardenPlanTestConfig.class, TestSecurityConfig.class})
 class GardenPlanControllerTest {
 
     @TestConfiguration
@@ -68,7 +69,7 @@ class GardenPlanControllerTest {
                 .build();
     }
 
-    /* ----------  Happy-path endpoints  ---------- */
+    /* ---------- Happy-path endpoints ---------- */
 
     @Test
     void testGetAllGardenPlans() throws Exception {
@@ -171,7 +172,7 @@ class GardenPlanControllerTest {
                 .andExpect(jsonPath("$.data.content[0].location").value("Dhaka"));
     }
 
-    /* ----------  Pagination / sorting helpers  ---------- */
+    /* ---------- Pagination / sorting helpers ---------- */
 
     @Test
     void testGetGardenPlansByUserId() throws Exception {
@@ -220,7 +221,7 @@ class GardenPlanControllerTest {
                 .andExpect(jsonPath("$.data[0].type").value("Balcony"));
     }
 
-    /* ----------  Validation & error-path tests  ---------- */
+    /* ---------- Validation & error-path tests ---------- */
 
     @Test
     void testGetAllGardenPlansWithInvalidSortDirection() throws Exception {
@@ -355,7 +356,7 @@ class GardenPlanControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content").isArray());
     }
-    /* ----------  Additional test cases for full coverage  ---------- */
+    /* ---------- Additional test cases for full coverage ---------- */
 
     @Test
     void testGetAllGardenPlansWithoutPagination_withServiceException() throws Exception {

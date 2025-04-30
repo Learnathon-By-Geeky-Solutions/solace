@@ -1,6 +1,13 @@
 spring:
   application:
     name: twiggle
+  security:
+    user:
+      name: ${TWIGGLE_USER_NAME:your_username_here}
+      password: ${TWIGGLE_USER_PASSWORD:your_password_here}
+  app:
+    jwtSecret: ${JWT_SECRET:your-jwt-secret-key-here}
+    jwtExpirationMs: ${JWT_EXPIRATION_MS:86400000}
 
   datasource:
     url: jdbc:postgresql://${SUPABASE_URL}:5432/postgres
@@ -33,12 +40,12 @@ server:
 
 weather:
   api:
-    key: ${WEATHER_API_KEY:your_api_key_here}
+    key: ${WEATHER_API_KEY:your-api-key-here}
     baseUrl: https://api.worldweatheronline.com/premium/v1
 
 plants:
   api:
-    key: ${PERENUAL_API_KEY:your_api_key_here}
+    key: ${PERENUAL_API_KEY:your-api-key-here}
 
 management:
   info:
@@ -98,6 +105,11 @@ unsplash:
     key: ${UNSPLASH_ACCESS_KEY:}
   api:
     url: https://api.unsplash.com
+
+# Supabase Configuration
+supabase:
+  service_role_key: ${SUPABASE_SERVICE_ROLE_KEY:dev-service-role-key}
+  projectId: ${SUPABASE_PROJECT_ID:dev-project-id}
 
 # CORS Configuration
 cors:

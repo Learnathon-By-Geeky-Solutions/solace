@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.solace.twiggle.config.RateLimiterConfiguration;
+import dev.solace.twiggle.config.TestSecurityConfig;
 import dev.solace.twiggle.dto.ReminderEmailRequest;
 import dev.solace.twiggle.exception.CustomException;
 import dev.solace.twiggle.exception.ErrorCode;
@@ -28,8 +29,22 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ReminderController.class)
-@Import({RateLimiterConfiguration.class, ReminderControllerTest.ReminderTestConfig.class})
+@Import({
+    RateLimiterConfiguration.class,
+    TestSecurityConfig.class,
+    ReminderControllerTest.ReminderTestConfig.class,
+    TestSecurityConfig.class
+})
 class ReminderControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private ReminderService reminderService;
 
     @TestConfiguration
     static class ReminderTestConfig {
@@ -40,29 +55,19 @@ class ReminderControllerTest {
         }
     }
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ReminderService reminderService;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @Test
     void sendReminderEmail_WithValidRequest_ShouldReturnSuccess() throws Exception {
         // Arrange
         ReminderEmailRequest request = ReminderEmailRequest.builder()
-                .userEmail("user@example.com")
                 .plantName("Tomato")
                 .reminderType("Watering")
-                .reminderDate("2024-07-20")
-                .reminderTime("09:00")
-                .gardenSpaceName("Backyard Patch")
+                .reminderDate("2024-04-30")
+                .reminderTime("10:00")
+                .userEmail("test@example.com")
+                .gardenSpaceName("Test Garden")
                 .gardenSpaceId(UUID.randomUUID().toString())
                 .build();
 
-        // Mock the correct service method to return a success Map
         Map<String, Object> mockServiceResult = new HashMap<>();
         mockServiceResult.put("success", true);
         mockServiceResult.put("id", "some-mock-id");

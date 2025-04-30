@@ -3,6 +3,7 @@ package dev.solace.twiggle.controller;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import dev.solace.twiggle.config.TestSecurityConfig;
 import dev.solace.twiggle.dto.PlantDiseaseDTO;
 import dev.solace.twiggle.service.PlantDiseaseService;
 import java.time.OffsetDateTime;
@@ -20,7 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @WebMvcTest(PlantDiseaseController.class)
-@Import(PlantDiseaseControllerTest.PlantDiseaseTestConfig.class)
+@Import({PlantDiseaseControllerTest.PlantDiseaseTestConfig.class, TestSecurityConfig.class})
 class PlantDiseaseControllerTest {
 
     @TestConfiguration
