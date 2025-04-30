@@ -67,19 +67,19 @@ class AuthControllerTest {
 
     @Test
     void login_WithValidCredentials_ShouldReturnOk() throws Exception {
-        AuthDTO validAuthDTO = new AuthDTO("test@example.com", "password123");
+        AuthDTO loginRequestDTO = new AuthDTO("test@example.com", "password123");
         AuthResponse validAuthResponse = new AuthResponse(
                 "valid-jwt-token",
                 "test@example.com",
                 UUID.fromString("2e57afc9-6e8b-4cc3-9b6d-7d672e10ab92"),
                 List.of("authenticated"));
-        when(authService.loginUser(validAuthDTO.getEmail(), validAuthDTO.getPassword()))
+        when(authService.loginUser(loginRequestDTO.getEmail(), loginRequestDTO.getPassword()))
                 .thenReturn(ResponseEntity.ok(validAuthResponse));
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("username", validAuthDTO.getEmail())
-                        .param("password", validAuthDTO.getPassword()))
+                        .param("username", loginRequestDTO.getEmail())
+                        .param("password", loginRequestDTO.getPassword()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.access_token").value(validAuthResponse.getAccess_token()))
                 .andExpect(jsonPath("$.email").value(validAuthResponse.getEmail()))

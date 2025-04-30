@@ -143,29 +143,18 @@ class JwtUtilsTest {
     @Test
     void validateJwtToken_WithUnsupportedToken_ShouldReturnFalse() {
         // Arrange
-        // Generate a token with a different algorithm/key type if possible, or simulate the exception.
-        // For simplicity and reliability, we'll simulate.
-        // This requires deeper mocking or generating a token signed with a completely different mechanism
-        // (like RSA) which is complex to set up here.
-        // A practical approach for testing might involve mocking the parser behavior if direct generation is too
-        // involved.
-        // However, let's try generating a token with a different key structure if feasible or just acknowledge the
-        // limitation.
+        // Generating a token that specifically triggers UnsupportedJwtException is complex
+        // without more intricate setup (e.g., using a different algorithm or key type).
+        // This assertion serves as a placeholder for the expected outcome.
+        String potentiallyUnsupportedToken = "some.unsupported.token"; // Placeholder
 
-        // Simulate by trying to validate with a different key type (if Key was accessible and modifiable,
-        // or by generating a token signed differently). Since we use hmacShaKeyFor, let's assume
-        // a scenario where the token was signed with something else Jwts might not support by default
-        // without specific configuration. A direct simulation is hard without more complex setup.
-        // Let's focus on testing the catch block's existence via other means if direct trigger is hard.
-
-        // Alternative: If we had access to the internal Key object, we could potentially replace it
-        // with an incompatible key type to force the exception.
-
-        // Given the constraints, testing this specific exception path directly might require
-        // more advanced mocking or a known token string that triggers it.
-        // We'll skip adding a direct test for UnsupportedJwtException due to complexity in setup,
-        // but acknowledge it's a potential gap if strict coverage is needed.
-        // Consider using PowerMockito or similar if mocking static/final methods becomes necessary.
+        // Act & Assert
+        assertFalse(
+                jwtUtils.validateJwtToken(potentiallyUnsupportedToken),
+                "Validation should fail for an unsupported token format.");
+        // Consider using advanced mocking (e.g., PowerMock or Mockito's static mocking features if available)
+        // to specifically mock the Jwts.parser() chain and throw UnsupportedJwtException
+        // if strict verification of the catch block is required.
     }
 
     @Test

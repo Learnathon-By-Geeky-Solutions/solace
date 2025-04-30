@@ -84,14 +84,12 @@ public class PlantRecommendationService {
         }
     }
 
-    private List<PlantRecommendation> parseRecommendationsFromJson(String openAiResponse)
-            throws JsonProcessingException {
+    private List<PlantRecommendation> parseRecommendationsFromJson(String openAiResponse) {
         try {
             return jsonUtils.extractRecommendationsFromOpenAiResponse(openAiResponse);
         } catch (JsonProcessingException e) {
-            log.error("Error parsing recommendations from JSON: {}", e.getMessage(), e);
-            throw new JsonProcessingException(
-                    "Failed to parse plant recommendations from OpenAI response: " + e.getMessage(), e) {};
+            throw new RuntimeException(
+                    "Failed to parse plant recommendations from OpenAI response: " + e.getMessage(), e);
         }
     }
 

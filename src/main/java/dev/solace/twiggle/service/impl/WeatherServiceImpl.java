@@ -227,18 +227,20 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     private void parseAirQuality(JsonNode currentCondition, WeatherDTO.WeatherDTOBuilder builder) {
-        String airQuality = "Good"; // Default value
-        List<String> airHazards = new ArrayList<>();
-
+        String airQuality = ""; // Default value
+        JsonNode airQualityNode = null; // Initialize to null
         if (currentCondition.has("air_quality")) {
-            JsonNode airQualityNode = currentCondition.path("air_quality");
+            airQualityNode = currentCondition.path("air_quality");
             airQuality = getAirQualityFromEpaIndex(
                     airQualityNode.path("us-epa-index").asInt());
-            airHazards = getAirHazardsFromAirQuality(airQuality, airQualityNode);
         }
 
+        // If airQualityNode is null (no air_quality data), pass an empty list or handle appropriately
+        List<String> finalAirHazards =
+                (airQualityNode != null) ? getAirHazardsFromAirQuality(airQuality, airQualityNode) : new ArrayList<>();
+
         builder.airQualityIndex(airQuality)
-                .airHazards(airHazards)
+                .airHazards(finalAirHazards) // Use the determined hazards list
                 .plantHazards(new ArrayList<>()); // Initialize with empty list, will be populated later
     }
 
