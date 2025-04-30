@@ -129,7 +129,7 @@ class AuthServiceTest {
         assertEquals(200, response.getStatusCode().value());
         AuthResponse authResponse = response.getBody();
         assertNotNull(authResponse);
-        assertEquals(JWT_TOKEN, authResponse.getJwtToken());
+        assertEquals(JWT_TOKEN, authResponse.getAccess_token());
         assertEquals(TEST_EMAIL, authResponse.getEmail());
         assertEquals(USER_ID, authResponse.getUserId());
         assertEquals(1, authResponse.getRoles().size());

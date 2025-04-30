@@ -1,5 +1,8 @@
 package dev.solace.twiggle.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -64,25 +67,40 @@ class AuthControllerTest {
 
     @Test
     void login_WithValidCredentials_ShouldReturnOk() throws Exception {
-        when(authService.loginUser(anyString(), anyString())).thenReturn(ResponseEntity.ok(validAuthResponse));
+        AuthDTO validAuthDTO = new AuthDTO("test@example.com", "password123");
+        AuthResponse validAuthResponse = new AuthResponse(
+                "valid-jwt-token",
+                "test@example.com",
+                UUID.fromString("2e57afc9-6e8b-4cc3-9b6d-7d672e10ab92"),
+                List.of("authenticated"));
+        when(authService.loginUser(validAuthDTO.getEmail(), validAuthDTO.getPassword()))
+                .thenReturn(ResponseEntity.ok(validAuthResponse));
 
         mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validAuthDTO)))
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("username", validAuthDTO.getEmail())
+                        .param("password", validAuthDTO.getPassword()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.jwtToken").value(validAuthResponse.getJwtToken()))
+                .andExpect(jsonPath("$.access_token").value(validAuthResponse.getAccess_token()))
                 .andExpect(jsonPath("$.email").value(validAuthResponse.getEmail()))
                 .andExpect(jsonPath("$.roles").isArray());
+
+        assertEquals("test@example.com", validAuthResponse.getEmail());
+        assertEquals(UUID.fromString("2e57afc9-6e8b-4cc3-9b6d-7d672e10ab92"), validAuthResponse.getUserId());
+        assertNotNull(validAuthResponse.getAccess_token());
+        assertTrue(validAuthResponse.getRoles().contains("authenticated"));
     }
 
     @Test
     void login_WithInvalidCredentials_ShouldReturnUnauthorized() throws Exception {
-        when(authService.loginUser(anyString(), anyString()))
+        AuthDTO invalidAuthDTO = new AuthDTO("wrong@example.com", "wrongpassword");
+        when(authService.loginUser(invalidAuthDTO.getEmail(), invalidAuthDTO.getPassword()))
                 .thenThrow(new BadCredentialsException("Invalid credentials"));
 
         mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validAuthDTO)))
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("username", invalidAuthDTO.getEmail())
+                        .param("password", invalidAuthDTO.getPassword()))
                 .andExpect(status().isUnauthorized());
     }
 

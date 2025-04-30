@@ -28,12 +28,14 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         // Check for the custom header to bypass authentication
-        log.debug("AuthTokenFilter called for URI: {}", request.getRequestURI());
+        log.debug("AuthTokenFilter received request for URI: {}", request.getRequestURI());
         try {
             String jwt = parseJwt(request);
+            // Add more detailed logging before validation
+            log.debug("AuthTokenFilter - JWT parsed from header: [{}]", jwt);
             if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
                 String username = jwtUtils.getUserNameFromJwtToken(jwt);
-                log.debug("Username: {}", username);
+                log.debug("AuthTokenFilter - Valid JWT found for username: {}", username);
                 UserDetails userDetails = userLoadingService.loadUserByUsername(username);
 
                 UsernamePasswordAuthenticationToken authentication =
@@ -53,7 +55,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
     private String parseJwt(HttpServletRequest request) {
         String jwt = jwtUtils.getJwtFromHeader(request);
-        log.debug("AuthTokenFilter.java: {}", jwt);
+        // Log the raw result from JwtUtils
+        log.debug("AuthTokenFilter.parseJwt - Token received from JwtUtils: [{}]", jwt);
         return jwt;
     }
 }

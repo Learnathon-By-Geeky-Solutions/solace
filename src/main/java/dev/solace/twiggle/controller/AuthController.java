@@ -11,6 +11,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -22,9 +23,10 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthDTO authDTO) {
+    public ResponseEntity<AuthResponse> login(
+            @RequestParam("username") String email, @RequestParam("password") String password) {
         try {
-            return authService.loginUser(authDTO.getEmail(), authDTO.getPassword());
+            return authService.loginUser(email, password);
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(401).build();
         }

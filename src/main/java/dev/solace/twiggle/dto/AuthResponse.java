@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AuthResponse {
-    private String jwtToken;
+    private String access_token;
     private String email;
     private UUID userId;
     private List<String> roles;
