@@ -7,7 +7,6 @@ on:
       - CI/sonar-1
       - 'test/**'
       - main
-      - 'fix/**'
   pull_request:
     branches:
       - develop-backend
