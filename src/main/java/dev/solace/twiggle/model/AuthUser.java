@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Immutable;
 
@@ -20,8 +21,11 @@ import org.hibernate.annotations.Immutable;
 @Entity
 @Immutable
 @DynamicUpdate
+@Slf4j
 @Table(name = "users", schema = "auth")
 public class AuthUser {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Id
     @Column(columnDefinition = "uuid")
@@ -130,34 +134,46 @@ public class AuthUser {
     private Boolean isAnonymous;
 
     // Helper methods to convert between String and JsonNode
+    @Transient
     public JsonNode getRawAppMetaDataAsJson() {
+        if (rawAppMetaData == null) {
+            return null;
+        }
         try {
-            return new ObjectMapper().readTree(rawAppMetaData);
+            return MAPPER.readTree(rawAppMetaData);
         } catch (JsonProcessingException e) {
+            log.error("Failed to parse rawAppMetaData", e);
             return null;
         }
     }
 
     public void setRawAppMetaDataFromJson(JsonNode jsonNode) {
         try {
-            this.rawAppMetaData = new ObjectMapper().writeValueAsString(jsonNode);
+            this.rawAppMetaData = MAPPER.writeValueAsString(jsonNode);
         } catch (JsonProcessingException e) {
+            log.error("Failed to serialize rawAppMetaData", e);
             this.rawAppMetaData = null;
         }
     }
 
+    @Transient
     public JsonNode getRawUserMetaDataAsJson() {
+        if (rawUserMetaData == null) {
+            return null;
+        }
         try {
-            return new ObjectMapper().readTree(rawUserMetaData);
+            return MAPPER.readTree(rawUserMetaData);
         } catch (JsonProcessingException e) {
+            log.error("Failed to parse rawUserMetaData", e);
             return null;
         }
     }
 
     public void setRawUserMetaDataFromJson(JsonNode jsonNode) {
         try {
-            this.rawUserMetaData = new ObjectMapper().writeValueAsString(jsonNode);
+            this.rawUserMetaData = MAPPER.writeValueAsString(jsonNode);
         } catch (JsonProcessingException e) {
+            log.error("Failed to serialize rawUserMetaData", e);
             this.rawUserMetaData = null;
         }
     }

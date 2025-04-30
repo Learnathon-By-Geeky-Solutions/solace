@@ -25,7 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     private final DataSource dataSource;
     private final AuthEntryPointJwt unauthorizedHandler;
-    private final AuthTokenFilter authTokenFilter; // 👈 inject AuthTokenFilter here properly
+    private final AuthTokenFilter authTokenFilter;
 
     @Bean
     @SuppressWarnings("java:S4502") // Disabling CSRF for stateless JWT endpoints is safe
