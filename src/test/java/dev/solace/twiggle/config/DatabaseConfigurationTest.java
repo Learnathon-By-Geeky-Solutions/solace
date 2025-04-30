@@ -1,6 +1,7 @@
 package dev.solace.twiggle.config;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.spy;
 
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
@@ -91,5 +92,54 @@ class DatabaseConfigurationTest {
         // Test additional properties
         Properties props = hikariDataSource.getDataSourceProperties();
         assertTrue(Boolean.parseBoolean(props.getProperty("tcpKeepAlive")), "tcpKeepAlive should be true");
+    }
+
+    @Test
+    void testCloseDataSource() throws Exception {
+        // Create a fresh instance of DatabaseConfiguration for this test
+        DatabaseConfiguration freshConfig = new DatabaseConfiguration();
+
+        // Set the required properties via reflection
+        java.lang.reflect.Field urlField = DatabaseConfiguration.class.getDeclaredField("url");
+        urlField.setAccessible(true);
+        urlField.set(freshConfig, url);
+
+        java.lang.reflect.Field usernameField = DatabaseConfiguration.class.getDeclaredField("username");
+        usernameField.setAccessible(true);
+        usernameField.set(freshConfig, username);
+
+        java.lang.reflect.Field passwordField = DatabaseConfiguration.class.getDeclaredField("password");
+        passwordField.setAccessible(true);
+        passwordField.set(freshConfig, password);
+
+        java.lang.reflect.Field driverField = DatabaseConfiguration.class.getDeclaredField("driverClassName");
+        driverField.setAccessible(true);
+        driverField.set(freshConfig, driverClassName);
+
+        // Get a fresh data source
+        DataSource dataSource = freshConfig.dataSource();
+        LazyConnectionDataSourceProxy lazyDataSource = (LazyConnectionDataSourceProxy) dataSource;
+        HikariDataSource hikariDataSource = (HikariDataSource) lazyDataSource.getTargetDataSource();
+
+        // Now verify it's not closed initially
+        assertFalse(hikariDataSource.isClosed(), "HikariDataSource should not be closed initially");
+
+        // Call the closeDataSource method
+        freshConfig.closeDataSource();
+
+        // Verify hikariDataSource is closed after calling closeDataSource
+        assertTrue(hikariDataSource.isClosed(), "HikariDataSource should be closed after closeDataSource is called");
+    }
+
+    @Test
+    void testDestroy() throws Exception {
+        // Create a spy of DatabaseConfiguration to verify method calls
+        DatabaseConfiguration spy = org.mockito.Mockito.spy(databaseConfiguration);
+
+        // Call the destroy method
+        spy.destroy();
+
+        // Verify that closeDataSource was called
+        org.mockito.Mockito.verify(spy).closeDataSource();
     }
 }
