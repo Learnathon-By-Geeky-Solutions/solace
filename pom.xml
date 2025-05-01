@@ -25,7 +25,7 @@
 		<spotless.version>2.43.0</spotless.version>
 		<palantir.format.version>2.35.0</palantir.format.version>
 		<sonarsource.scanner.maven.version>3.9.1.2184</sonarsource.scanner.maven.version>
-		<lombok.version>1.18.36</lombok.version>
+		<lombok.version>1.18.38</lombok.version>
 		<dotenv.version>4.0.0</dotenv.version>
 		<resend.version>3.1.0</resend.version>
 		<jwt.version>0.12.6</jwt.version>
@@ -310,12 +310,12 @@
 				<version>${spotless.version}</version>
 				<configuration>
 					<java>
-						<importOrder />
-						<removeUnusedImports />
+						<importOrder/>
+						<removeUnusedImports/>
 						<palantirJavaFormat>
 							<version>${palantir.format.version}</version>
 						</palantirJavaFormat>
-						<formatAnnotations />
+						<formatAnnotations/>
 					</java>
 				</configuration>
 				<executions>
