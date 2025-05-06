@@ -130,7 +130,7 @@
 		<dependency>
 			<groupId>io.github.cdimascio</groupId>
 			<artifactId>dotenv-java</artifactId>
-			<version>3.0.0</version>
+			<version>3.1.0</version>
 		</dependency>
 
 		<!-- JWT -->
@@ -310,12 +310,12 @@
 				<version>${spotless.version}</version>
 				<configuration>
 					<java>
-						<importOrder />
-						<removeUnusedImports />
+						<importOrder/>
+						<removeUnusedImports/>
 						<palantirJavaFormat>
 							<version>${palantir.format.version}</version>
 						</palantirJavaFormat>
-						<formatAnnotations />
+						<formatAnnotations/>
 					</java>
 				</configuration>
 				<executions>
